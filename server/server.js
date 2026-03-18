@@ -1,6 +1,6 @@
 const app = require('./src/app');
 const env = require('./src/config/env');
-const sequelize = require('./src/config/database');
+const { sequelize } = require('./src/models');
 
 const PORT = env.PORT;
 
@@ -13,7 +13,7 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
 
-    // Sync models (in development only — use migrations in production)
+    // Sync models with associations (in development only — use migrations in production)
     if (env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true });
       console.log('✅ Database models synchronized.');
