@@ -66,7 +66,7 @@ app.use('/api/v1', routes);
 // ------------------------------------
 // 404 Handler
 // ------------------------------------
-app.all('*', (req, res, next) => {
+app.use((req, res, next) => {
   next(ApiError.notFound(`Cannot find ${req.method} ${req.originalUrl}`));
 });
 
