@@ -1,0 +1,325 @@
+const { Op } = require('sequelize');
+const { Booking, Student, Route, Vehicle, Driver, Payment } = require('../models');
+const ApiError = require('../utils/ApiError');
+const ApiResponse = require('../utils/ApiResponse');
+const catchAsync = require('../utils/catchAsync');
+
+// Common include set for booking queries
+const bookingIncludes = [
+  { association: 'student', attributes: ['id', 'first_name', 'last_name', 'school_name', 'grade'] },
+  { association: 'route', attributes: ['id', 'name', 'start_location', 'end_location', 'price'] },
+  { association: 'parent', attributes: ['id', 'first_name', 'last_name', 'email', 'phone'] },
+  { association: 'vehicle', attributes: ['id', 'plate_number', 'make', 'model', 'capacity'] },
+  { association: 'driver', attributes: ['id', 'first_name', 'last_name', 'phone'] },
+];
+
+// =============================================
+// PARENT ENDPOINTS
+// =============================================
+
+/**
+ * POST /api/v1/bookings
+ * Create a new booking (parent).
+ * Auto-sets parent_id, pulls price from route.
+ */
+const createBooking = catchAsync(async (req, res) => {
+  const { student_id, route_id, pickup_time, dropoff_time, start_date, end_date, notes } = req.body;
+
+  // 1. Verify the student belongs to this parent
+  const student = await Student.findOne({
+    where: { id: student_id, parent_id: req.user.id, is_active: true },
+  });
+  if (!student) {
+    throw ApiError.notFound('Student not found or does not belong to you.');
+  }
+
+  // 2. Verify the route exists and is active
+  const route = await Route.findOne({
+    where: { id: route_id, is_active: true },
+  });
+  if (!route) {
+    throw ApiError.notFound('Route not found or is inactive.');
+  }
+
+  // 3. Check for duplicate active booking (same student + route + overlapping dates)
+  const existingBooking = await Booking.findOne({
+    where: {
+      student_id,
+      route_id,
+      status: { [Op.in]: ['pending', 'confirmed'] },
+      start_date: { [Op.lte]: end_date || start_date },
+      [Op.or]: [
+        { end_date: null },
+        { end_date: { [Op.gte]: start_date } },
+      ],
+    },
+  });
+  if (existingBooking) {
+    throw ApiError.conflict(
+      `Student already has an active booking (${existingBooking.booking_reference}) on this route for overlapping dates.`,
+    );
+  }
+
+  // 4. Create booking — price from route
+  const booking = await Booking.create({
+    parent_id: req.user.id,
+    student_id,
+    route_id,
+    pickup_time,
+    dropoff_time: dropoff_time || null,
+    start_date,
+    end_date: end_date || null,
+    amount: route.price,
+    notes: notes || null,
+  });
+
+  // 5. Re-fetch with associations
+  const fullBooking = await Booking.findByPk(booking.id, { include: bookingIncludes });
+
+  ApiResponse.created(res, { booking: fullBooking }, 'Booking created successfully');
+});
+
+/**
+ * GET /api/v1/bookings
+ * List bookings — parents see own, admins see all.
+ */
+const getBookings = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, status, student_id, route_id, start_date, end_date } = req.query;
+  const offset = (page - 1) * limit;
+
+  const where = {};
+
+  // Parents see only their own bookings
+  if (req.user.role === 'parent') {
+    where.parent_id = req.user.id;
+  }
+
+  if (status) where.status = status;
+  if (student_id) where.student_id = student_id;
+  if (route_id) where.route_id = route_id;
+
+  // Date range filter
+  if (start_date) {
+    where.start_date = { ...(where.start_date || {}), [Op.gte]: start_date };
+  }
+  if (end_date) {
+    where.start_date = { ...(where.start_date || {}), [Op.lte]: end_date };
+  }
+
+  const { count, rows: bookings } = await Booking.findAndCountAll({
+    where,
+    include: bookingIncludes,
+    limit: parseInt(limit),
+    offset: parseInt(offset),
+    order: [['created_at', 'DESC']],
+  });
+
+  ApiResponse.paginated(
+    res,
+    { bookings },
+    {
+      total: count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(count / limit),
+    },
+    'Bookings retrieved successfully',
+  );
+});
+
+/**
+ * GET /api/v1/bookings/:id
+ * Get a single booking.
+ */
+const getBooking = catchAsync(async (req, res) => {
+  const where = { id: req.params.id };
+
+  // Parents can only see their own
+  if (req.user.role === 'parent') {
+    where.parent_id = req.user.id;
+  }
+
+  const booking = await Booking.findOne({
+    where,
+    include: [
+      ...bookingIncludes,
+      { association: 'payments' },
+    ],
+  });
+
+  if (!booking) {
+    throw ApiError.notFound('Booking not found.');
+  }
+
+  ApiResponse.success(res, { booking }, 'Booking retrieved successfully');
+});
+
+/**
+ * PATCH /api/v1/bookings/:id/cancel
+ * Cancel a booking (parent — own bookings only).
+ */
+const cancelBooking = catchAsync(async (req, res) => {
+  const booking = await Booking.findOne({
+    where: { id: req.params.id, parent_id: req.user.id },
+  });
+
+  if (!booking) {
+    throw ApiError.notFound('Booking not found.');
+  }
+
+  if (booking.status === 'cancelled') {
+    throw ApiError.badRequest('Booking is already cancelled.');
+  }
+
+  if (booking.status === 'completed') {
+    throw ApiError.badRequest('Cannot cancel a completed booking.');
+  }
+
+  booking.status = 'cancelled';
+  await booking.save();
+
+  const updated = await Booking.findByPk(booking.id, { include: bookingIncludes });
+
+  ApiResponse.success(res, { booking: updated }, 'Booking cancelled successfully');
+});
+
+// =============================================
+// ADMIN ENDPOINTS
+// =============================================
+
+/**
+ * PATCH /api/v1/bookings/:id/status
+ * Update booking status + optionally assign vehicle/driver (admin).
+ */
+const updateBookingStatus = catchAsync(async (req, res) => {
+  const { status, vehicle_id, driver_id } = req.body;
+
+  const booking = await Booking.findByPk(req.params.id);
+
+  if (!booking) {
+    throw ApiError.notFound('Booking not found.');
+  }
+
+  // Validate status transitions
+  const validTransitions = {
+    pending: ['confirmed', 'cancelled'],
+    confirmed: ['completed', 'cancelled'],
+    cancelled: [],      // terminal state
+    completed: [],      // terminal state
+  };
+
+  if (!validTransitions[booking.status]?.includes(status)) {
+    throw ApiError.badRequest(
+      `Cannot change status from "${booking.status}" to "${status}".`,
+    );
+  }
+
+  // If confirming, optionally assign vehicle and driver
+  if (status === 'confirmed') {
+    if (vehicle_id) {
+      const vehicle = await Vehicle.findByPk(vehicle_id);
+      if (!vehicle) throw ApiError.notFound('Vehicle not found.');
+      if (vehicle.status !== 'active') throw ApiError.badRequest('Vehicle is not active.');
+      booking.vehicle_id = vehicle_id;
+    }
+
+    if (driver_id) {
+      const driver = await Driver.findByPk(driver_id);
+      if (!driver) throw ApiError.notFound('Driver not found.');
+      if (driver.status === 'off_duty') throw ApiError.badRequest('Driver is off duty.');
+      booking.driver_id = driver_id;
+    }
+  }
+
+  booking.status = status;
+  await booking.save();
+
+  const updated = await Booking.findByPk(booking.id, { include: bookingIncludes });
+
+  ApiResponse.success(res, { booking: updated }, `Booking ${status} successfully`);
+});
+
+/**
+ * PUT /api/v1/bookings/:id/assign
+ * Assign vehicle and/or driver to a booking (admin).
+ */
+const assignBooking = catchAsync(async (req, res) => {
+  const { vehicle_id, driver_id } = req.body;
+
+  const booking = await Booking.findByPk(req.params.id);
+
+  if (!booking) {
+    throw ApiError.notFound('Booking not found.');
+  }
+
+  if (booking.status === 'cancelled' || booking.status === 'completed') {
+    throw ApiError.badRequest(`Cannot assign resources to a ${booking.status} booking.`);
+  }
+
+  if (vehicle_id !== undefined) {
+    if (vehicle_id === null) {
+      booking.vehicle_id = null;
+    } else {
+      const vehicle = await Vehicle.findByPk(vehicle_id);
+      if (!vehicle) throw ApiError.notFound('Vehicle not found.');
+      if (vehicle.status !== 'active') throw ApiError.badRequest('Vehicle is not active.');
+      booking.vehicle_id = vehicle_id;
+    }
+  }
+
+  if (driver_id !== undefined) {
+    if (driver_id === null) {
+      booking.driver_id = null;
+    } else {
+      const driver = await Driver.findByPk(driver_id);
+      if (!driver) throw ApiError.notFound('Driver not found.');
+      if (driver.status === 'off_duty') throw ApiError.badRequest('Driver is off duty.');
+      booking.driver_id = driver_id;
+    }
+  }
+
+  await booking.save();
+
+  const updated = await Booking.findByPk(booking.id, { include: bookingIncludes });
+
+  ApiResponse.success(res, { booking: updated }, 'Booking assignment updated successfully');
+});
+
+/**
+ * GET /api/v1/bookings/stats
+ * Get booking statistics (admin).
+ */
+const getBookingStats = catchAsync(async (req, res) => {
+  const [total, pending, confirmed, completed, cancelled] = await Promise.all([
+    Booking.count(),
+    Booking.count({ where: { status: 'pending' } }),
+    Booking.count({ where: { status: 'confirmed' } }),
+    Booking.count({ where: { status: 'completed' } }),
+    Booking.count({ where: { status: 'cancelled' } }),
+  ]);
+
+  const totalRevenue = await Booking.sum('amount', {
+    where: { status: { [Op.in]: ['confirmed', 'completed'] } },
+  });
+
+  ApiResponse.success(res, {
+    stats: {
+      total,
+      pending,
+      confirmed,
+      completed,
+      cancelled,
+      totalRevenue: totalRevenue || 0,
+    },
+  }, 'Booking statistics retrieved successfully');
+});
+
+module.exports = {
+  createBooking,
+  getBookings,
+  getBooking,
+  cancelBooking,
+  updateBookingStatus,
+  assignBooking,
+  getBookingStats,
+};

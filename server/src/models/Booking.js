@@ -12,6 +12,11 @@ const Booking = sequelize.define('Booking', {
     type: DataTypes.STRING(20),
     allowNull: false,
     unique: true,
+    defaultValue: () => {
+      const timestamp = Date.now().toString(36).toUpperCase();
+      const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+      return `BK-${timestamp}-${random}`;
+    },
   },
   parent_id: {
     type: DataTypes.UUID,
@@ -90,15 +95,6 @@ const Booking = sequelize.define('Booking', {
   },
 }, {
   tableName: 'bookings',
-  hooks: {
-    beforeCreate: (booking) => {
-      if (!booking.booking_reference) {
-        const timestamp = Date.now().toString(36).toUpperCase();
-        const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-        booking.booking_reference = `BK-${timestamp}-${random}`;
-      }
-    },
-  },
 });
 
 module.exports = Booking;

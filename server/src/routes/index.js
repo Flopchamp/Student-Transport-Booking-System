@@ -5,6 +5,7 @@ const studentRoutes = require('./studentRoutes');
 const transportRoutes = require('./transportRoutes');
 const vehicleRoutes = require('./vehicleRoutes');
 const driverRoutes = require('./driverRoutes');
+const bookingRoutes = require('./bookingRoutes');
 
 const router = Router();
 
@@ -26,8 +27,10 @@ router.use('/vehicles', vehicleRoutes);
 // Drivers (admin)
 router.use('/drivers', driverRoutes);
 
+// Bookings
+router.use('/bookings', bookingRoutes);
+
 // Future routes will be registered here:
-// router.use('/bookings', bookingRoutes);
 // router.use('/payments', paymentRoutes);
 
 module.exports = router;
