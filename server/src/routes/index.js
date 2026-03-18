@@ -1,13 +1,16 @@
 const { Router } = require('express');
 const healthRoutes = require('./healthRoutes');
+const authRoutes = require('./authRoutes');
 
 const router = Router();
 
 // Health check
 router.use('/health', healthRoutes);
 
+// Authentication
+router.use('/auth', authRoutes);
+
 // Future routes will be registered here:
-// router.use('/auth', authRoutes);
 // router.use('/students', studentRoutes);
 // router.use('/routes', transportRoutes);
 // router.use('/vehicles', vehicleRoutes);
