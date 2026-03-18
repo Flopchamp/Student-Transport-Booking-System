@@ -1,0 +1,91 @@
+const { DataTypes } = require('sequelize');
+const bcrypt = require('bcryptjs');
+const sequelize = require('../config/database');
+const { ROLES } = require('../config/constants');
+
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
+  first_name: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'First name is required' },
+      len: { args: [2, 50], msg: 'First name must be 2-50 characters' },
+    },
+  },
+  last_name: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Last name is required' },
+      len: { args: [2, 50], msg: 'Last name must be 2-50 characters' },
+    },
+  },
+  email: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    unique: { msg: 'Email already registered' },
+    validate: {
+      isEmail: { msg: 'Please provide a valid email' },
+    },
+  },
+  phone: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Phone number is required' },
+    },
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      len: { args: [6, 255], msg: 'Password must be at least 6 characters' },
+    },
+  },
+  role: {
+    type: DataTypes.ENUM(Object.values(ROLES)),
+    defaultValue: ROLES.PARENT,
+    allowNull: false,
+  },
+  is_active: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+}, {
+  tableName: 'users',
+  hooks: {
+    beforeCreate: async (user) => {
+      if (user.password) {
+        user.password = await bcrypt.hash(user.password, 12);
+      }
+    },
+    beforeUpdate: async (user) => {
+      if (user.changed('password')) {
+        user.password = await bcrypt.hash(user.password, 12);
+      }
+    },
+  },
+});
+
+/**
+ * Compare candidate password with stored hash.
+ */
+User.prototype.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+/**
+ * Return user data without sensitive fields.
+ */
+User.prototype.toSafeJSON = function () {
+  const values = { ...this.get() };
+  delete values.password;
+  return values;
+};
+
+module.exports = User;
