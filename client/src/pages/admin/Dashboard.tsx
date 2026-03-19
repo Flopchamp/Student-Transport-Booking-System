@@ -1,0 +1,230 @@
+import { useState, useEffect } from 'react';
+import api from '../../lib/api';
+import {
+  Users,
+  MapPin,
+  Truck,
+  Calendar,
+  TrendingUp,
+  DollarSign,
+  UserCheck,
+  ArrowUpRight,
+} from 'lucide-react';
+import type { Booking, Driver } from '../../types';
+
+interface AdminStats {
+  totalStudents: number;
+  totalRoutes: number;
+  totalVehicles: number;
+  totalDrivers: number;
+  totalBookings: number;
+  activeBookings: number;
+  revenue: number;
+}
+
+export default function AdminDashboard() {
+  const [stats, setStats] = useState<AdminStats>({
+    totalStudents: 0,
+    totalRoutes: 0,
+    totalVehicles: 0,
+    totalDrivers: 0,
+    totalBookings: 0,
+    activeBookings: 0,
+    revenue: 0,
+  });
+  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [studentsRes, routesRes, vehiclesRes, driversRes, bookingsRes] = await Promise.all([
+        api.get('/students').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
+        api.get('/transport/routes').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
+        api.get('/vehicles').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
+        api.get('/drivers').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
+        api.get('/bookings').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
+      ]);
+
+      const bookingData = bookingsRes.data.data || [];
+      const driverData = driversRes.data.data || [];
+
+      setRecentBookings(bookingData.slice(0, 5));
+      setDrivers(driverData.slice(0, 6));
+
+      const revenue = bookingData
+        .filter((b: Booking) => b.status === 'completed' || b.status === 'confirmed')
+        .reduce((sum: number, b: Booking) => sum + (b.fare_amount || 0), 0);
+
+      setStats({
+        totalStudents: studentsRes.data.pagination?.total || studentsRes.data.data?.length || 0,
+        totalRoutes: routesRes.data.pagination?.total || routesRes.data.data?.length || 0,
+        totalVehicles: vehiclesRes.data.pagination?.total || vehiclesRes.data.data?.length || 0,
+        totalDrivers: driversRes.data.pagination?.total || driverData.length || 0,
+        totalBookings: bookingsRes.data.pagination?.total || bookingData.length || 0,
+        activeBookings: bookingData.filter((b: Booking) => ['confirmed', 'in_progress'].includes(b.status)).length,
+        revenue,
+      });
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const statCards = [
+    { label: 'Total Students', value: stats.totalStudents, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', trend: '+12%' },
+    { label: 'Active Routes', value: stats.totalRoutes, icon: MapPin, color: 'text-green-600', bg: 'bg-green-50', trend: '+3' },
+    { label: 'Vehicles', value: stats.totalVehicles, icon: Truck, color: 'text-purple-600', bg: 'bg-purple-50', trend: '98%' },
+    { label: 'Active Drivers', value: stats.totalDrivers, icon: UserCheck, color: 'text-orange-600', bg: 'bg-orange-50', trend: 'Online' },
+    { label: 'Total Bookings', value: stats.totalBookings, icon: Calendar, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '+24%' },
+    { label: 'Revenue', value: `KES ${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+18%' },
+  ];
+
+  const getStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      pending: 'bg-yellow-50 text-yellow-700',
+      confirmed: 'bg-blue-50 text-blue-700',
+      in_progress: 'bg-green-50 text-green-700',
+      completed: 'bg-gray-100 text-gray-700',
+      cancelled: 'bg-red-50 text-red-700',
+    };
+    return styles[status] || styles.pending;
+  };
+
+  const getDriverStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      active: 'bg-green-100 text-green-700',
+      on_leave: 'bg-yellow-100 text-yellow-700',
+      inactive: 'bg-gray-100 text-gray-700',
+    };
+    return styles[status] || styles.inactive;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-text">Admin Dashboard</h1>
+        <p className="text-text-secondary mt-1">Overview of your transport management system</p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        {statCards.map((stat) => (
+          <div key={stat.label} className="card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className={`w-10 h-10 ${stat.bg} rounded-lg flex items-center justify-center`}>
+                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+              </div>
+              <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                <TrendingUp className="w-3 h-3" />
+                {stat.trend}
+              </span>
+            </div>
+            <p className="text-2xl font-bold text-text">{stat.value}</p>
+            <p className="text-sm text-text-secondary mt-0.5">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Recent Bookings Table */}
+        <div className="lg:col-span-2 card overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h3 className="text-base font-semibold text-text">Recent Bookings</h3>
+            <button className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
+              View All <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Reference</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Student</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Status</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Fare</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentBookings.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-sm text-text-muted">
+                      No bookings yet
+                    </td>
+                  </tr>
+                ) : (
+                  recentBookings.map((booking) => (
+                    <tr key={booking.id} className="border-t border-border hover:bg-gray-50">
+                      <td className="px-6 py-3 text-sm font-mono text-text">{booking.booking_reference}</td>
+                      <td className="px-6 py-3 text-sm text-text">
+                        {booking.Student ? `${booking.Student.first_name} ${booking.Student.last_name}` : '-'}
+                      </td>
+                      <td className="px-6 py-3">
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(booking.status)}`}>
+                          {booking.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 text-sm font-medium text-text">
+                        KES {booking.fare_amount?.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Driver Availability */}
+        <div className="card">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h3 className="text-base font-semibold text-text">Driver Status</h3>
+            <button className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
+              View All <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="p-4 space-y-3">
+            {drivers.length === 0 ? (
+              <p className="text-sm text-text-muted text-center py-4">No drivers yet</p>
+            ) : (
+              drivers.map((driver) => (
+                <div key={driver.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
+                  <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-primary">
+                      {driver.first_name[0]}{driver.last_name[0]}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text truncate">
+                      {driver.first_name} {driver.last_name}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      {driver.total_trips} trips • ⭐ {driver.rating?.toFixed(1) || 'N/A'}
+                    </p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getDriverStatusBadge(driver.status)}`}>
+                    {driver.status.replace('_', ' ')}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
