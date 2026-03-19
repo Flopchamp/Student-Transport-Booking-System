@@ -1,0 +1,81 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Layouts
+import ParentLayout from './layouts/ParentLayout';
+import AdminLayout from './layouts/AdminLayout';
+
+// Public Pages
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/auth/LoginPage';
+
+// Parent Pages
+import ParentDashboard from './pages/parent/Dashboard';
+import StudentManagement from './pages/parent/StudentManagement';
+import BookTransport from './pages/parent/BookTransport';
+import MyBookings from './pages/parent/MyBookings';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard';
+import RouteManagement from './pages/admin/RouteManagement';
+import VehicleFleet from './pages/admin/VehicleFleet';
+import DriverManagement from './pages/admin/DriverManagement';
+import DriverProfile from './pages/admin/DriverProfile';
+import AdminBookings from './pages/admin/BookingManagement';
+
+function App() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-text-secondary text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route
+        path="/"
+        element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace /> : <LandingPage />}
+      />
+      <Route
+        path="/login"
+        element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace /> : <LoginPage />}
+      />
+
+      {/* Parent Routes */}
+      <Route element={<ProtectedRoute allowedRoles={['parent']} />}>
+        <Route element={<ParentLayout />}>
+        <Route path="/dashboard" element={<ParentDashboard />} />
+        <Route path="/students" element={<StudentManagement />} />
+        <Route path="/book-transport" element={<BookTransport />} />
+        <Route path="/my-bookings" element={<MyBookings />} />
+        </Route>
+      </Route>
+
+      {/* Admin Routes */}
+      <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+        <Route element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/routes" element={<RouteManagement />} />
+        <Route path="/admin/vehicles" element={<VehicleFleet />} />
+        <Route path="/admin/drivers" element={<DriverManagement />} />
+        <Route path="/admin/drivers/:id" element={<DriverProfile />} />
+        <Route path="/admin/bookings" element={<AdminBookings />} />
+        </Route>
+      </Route>
+
+      {/* Default redirect */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+export default App;
