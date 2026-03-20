@@ -1,37 +1,62 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import {
-  MapPin,
   Search,
-  Clock,
   Bus,
-  Users,
-  DollarSign,
-  Filter,
-  ArrowRight,
-  CheckCircle,
+  Users as UsersIcon,
+  MapPin,
 } from 'lucide-react';
-import type { Route, Student } from '../../types';
+import type { Route } from '../../types';
+
+/* ─── demo routes shown when API returns none ─── */
+const demoRoutes = [
+  {
+    id: 'demo-1',
+    name: 'Downtown Express',
+    routeNumber: '102',
+    start_location: 'Main Square Station, 7:15 AM',
+    end_location: 'Central Academy High, 7:55 AM',
+    driverName: 'Marcus Chen',
+    capacity: 32,
+    seatsLeft: 12,
+    badgeColor: '#dc2626',
+    price: 0,
+  },
+  {
+    id: 'demo-2',
+    name: 'Westside Shuttle',
+    routeNumber: '205',
+    start_location: 'Sunset & 5th Ave, 7:30 AM',
+    end_location: 'Lincoln Elementary, 8:10 AM',
+    driverName: 'Elena Rodriguez',
+    capacity: 16,
+    seatsLeft: 4,
+    badgeColor: '#137fec',
+    capacityLabel: '16 Seats (Mini)',
+    price: 0,
+  },
+  {
+    id: 'demo-3',
+    name: 'North Park Loop',
+    routeNumber: '308',
+    start_location: 'Community Library, 7:00 AM',
+    end_location: 'St. Jude Middle School, 7:45 AM',
+    driverName: 'John Smith',
+    capacity: 0,
+    seatsLeft: 0,
+    badgeColor: '#16a34a',
+    price: 0,
+  },
+];
 
 export default function BookTransport() {
+  const navigate = useNavigate();
   const [routes, setRoutes] = useState<Route[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [bookingForm, setBookingForm] = useState({
-    student_id: '',
-    booking_type: 'round_trip',
-    start_date: '',
-    pickup_time: '07:00',
-    pickup_location: '',
-    dropoff_location: '',
-    notes: '',
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [timeFilter, setTimeFilter] = useState('morning');
+  const [schoolFilter, setSchoolFilter] = useState('elementary');
 
   useEffect(() => {
     fetchData();
@@ -39,12 +64,11 @@ export default function BookTransport() {
 
   const fetchData = async () => {
     try {
-      const [routesRes, studentsRes] = await Promise.all([
-        api.get('/transport/routes'),
-        api.get('/students'),
+      const [routesRes] = await Promise.all([
+        api.get('/routes').catch(() => ({ data: { data: {} } })),
       ]);
-      setRoutes(routesRes.data.data || []);
-      setStudents(studentsRes.data.data || []);
+      const rawRoutes = routesRes.data.data;
+      setRoutes(Array.isArray(rawRoutes) ? rawRoutes : (rawRoutes?.routes || []));
     } catch (err) {
       console.error('Failed to fetch data:', err);
     } finally {
@@ -53,342 +77,267 @@ export default function BookTransport() {
   };
 
   const handleBookRoute = (route: Route) => {
-    setSelectedRoute(route);
-    setBookingForm({
-      ...bookingForm,
-      pickup_location: route.start_location,
-      dropoff_location: route.end_location,
-    });
-    setError('');
-    setSuccess('');
-    setShowBookingModal(true);
+    navigate('/new-booking', { state: { route } });
   };
 
-  const handleSubmitBooking = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRoute) return;
-    setSubmitting(true);
-    setError('');
-
-    try {
-      await api.post('/bookings', {
-        student_id: parseInt(bookingForm.student_id),
-        route_id: selectedRoute.id,
-        booking_type: bookingForm.booking_type,
-        start_date: bookingForm.start_date,
-        pickup_time: bookingForm.pickup_time,
-        pickup_location: bookingForm.pickup_location,
-        dropoff_location: bookingForm.dropoff_location,
-        notes: bookingForm.notes || undefined,
-      });
-      setSuccess('Booking created successfully!');
-      setTimeout(() => {
-        setShowBookingModal(false);
-        setSuccess('');
-      }, 2000);
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Failed to create booking');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
+  /* ─── helpers ─── */
   const filteredRoutes = routes.filter(
     (r) =>
-      r.route_name.toLowerCase().includes(search.toLowerCase()) ||
-      r.start_location.toLowerCase().includes(search.toLowerCase()) ||
-      r.end_location.toLowerCase().includes(search.toLowerCase()) ||
-      r.route_number.toLowerCase().includes(search.toLowerCase())
+      (r.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (r.start_location || '').toLowerCase().includes(search.toLowerCase()) ||
+      (r.end_location || '').toLowerCase().includes(search.toLowerCase())
   );
+
+  const useDemo = routes.length === 0;
+  const displayRoutes = useDemo ? demoRoutes : filteredRoutes;
+
+  const badgeColors = ['#dc2626', '#137fec', '#16a34a', '#f59e0b', '#8b5cf6'];
+
+  /* ─── styles ─── */
+  const card: React.CSSProperties = {
+    background: '#fff',
+    borderRadius: 12,
+    border: '1px solid #e2e8f0',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+  };
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    height: 44,
+    padding: '0 14px',
+    fontSize: 14,
+    border: '1px solid #e2e8f0',
+    borderRadius: 8,
+    background: '#fff',
+    outline: 'none',
+    color: '#1e293b',
+  };
+  const selectStyle: React.CSSProperties = {
+    ...inputStyle,
+    height: 40,
+    fontSize: 13,
+    paddingRight: 32,
+    appearance: 'none' as React.CSSProperties['appearance'],
+    backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2394a3b8\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 12px center',
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
+        <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text">Book School Transport</h1>
-        <p className="text-text-secondary mt-1">Find and book a transport route for your child</p>
-      </div>
-
-      {/* Search & Filters */}
-      <div className="card p-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search routes by name, location..."
-              className="w-full pl-11 pr-4 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-            <Filter className="w-4 h-4" />
-            Filters
-          </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* ═══════ Header + Stepper ═══════ */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', margin: 0 }}>Book School Transport</h1>
+          <p style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>Secure your child's seat for the academic year</p>
         </div>
-      </div>
 
-      {/* Route Cards */}
-      {filteredRoutes.length === 0 ? (
-        <div className="card p-12 text-center">
-          <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-text mb-1">No routes found</h3>
-          <p className="text-sm text-text-muted">
-            {search ? 'Try a different search term' : 'No routes are available at the moment'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredRoutes.map((route) => (
-            <div key={route.id} className="card p-5 hover:shadow-md transition-shadow">
-              <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                {/* Route Info */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                      <Bus className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-text">{route.route_name}</h3>
-                      <p className="text-xs text-text-muted">Route #{route.route_number}</p>
-                    </div>
-                  </div>
-
-                  {/* Route Path */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="flex items-center gap-2 text-sm text-text-secondary">
-                      <div className="w-2 h-2 bg-green-500 rounded-full" />
-                      <span>{route.start_location}</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-gray-400" />
-                    <div className="flex items-center gap-2 text-sm text-text-secondary">
-                      <div className="w-2 h-2 bg-red-500 rounded-full" />
-                      <span>{route.end_location}</span>
-                    </div>
-                  </div>
-
-                  {/* Details Row */}
-                  <div className="flex flex-wrap gap-4 text-xs text-text-muted">
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" />
-                      {route.estimated_duration_minutes} min
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {route.distance_km} km
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5" />
-                      {route.stops?.length || 0} stops
-                    </span>
-                  </div>
-                </div>
-
-                {/* Price & Book */}
-                <div className="flex items-center gap-4 lg:flex-col lg:items-end">
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-text">KES {route.fare_amount?.toLocaleString()}</p>
-                    <p className="text-xs text-text-muted">per trip</p>
-                  </div>
-                  <button
-                    onClick={() => handleBookRoute(route)}
-                    className="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors shadow-sm"
-                  >
-                    Book Now
-                  </button>
-                </div>
-              </div>
-
-              {/* Stops */}
-              {route.stops && route.stops.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-border">
-                  <p className="text-xs text-text-muted mb-2">Stops:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {route.stops.map((stop, i) => (
-                      <span key={i} className="px-2.5 py-1 bg-gray-100 rounded-full text-xs text-text-secondary">
-                        {stop}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+        {/* 3-Step Progress */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+          {[
+            { num: 1, label: 'Route', active: true },
+            { num: 2, label: 'Seat', active: false },
+            { num: 3, label: 'Pay', active: false },
+          ].map((step, i) => (
+            <div key={step.num} style={{ display: 'flex', alignItems: 'center' }}>
+              {i > 0 && (
+                <div style={{ width: 48, height: 2, background: step.active ? '#137fec' : '#e2e8f0' }} />
               )}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: 700,
+                  background: step.active ? '#137fec' : '#f1f5f9',
+                  color: step.active ? '#fff' : '#94a3b8',
+                  border: step.active ? 'none' : '1px solid #e2e8f0',
+                }}>
+                  {step.num}
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 500, color: step.active ? '#137fec' : '#94a3b8' }}>{step.label}</span>
+              </div>
             </div>
           ))}
         </div>
-      )}
+      </div>
 
-      {/* Booking Modal */}
-      {showBookingModal && selectedRoute && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setShowBookingModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in">
-            <div className="sticky top-0 bg-white px-6 py-4 border-b border-border flex items-center justify-between rounded-t-2xl z-10">
-              <h2 className="text-lg font-semibold text-text">Book Transport</h2>
-              <button onClick={() => setShowBookingModal(false)} className="p-1 rounded-lg hover:bg-gray-100">
-                <span className="text-gray-500 text-xl">×</span>
-              </button>
-            </div>
+      {/* ═══════ Search + Filters ═══════ */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        {/* Search */}
+        <div style={{ flex: 1, minWidth: 260, position: 'relative' }}>
+          <Search style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#94a3b8' }} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by area or school name..."
+            style={{ ...inputStyle, paddingLeft: 42, height: 44, borderRadius: 10 }}
+          />
+        </div>
+        {/* Time filter */}
+        <select value={timeFilter} onChange={(e) => setTimeFilter(e.target.value)} style={{ ...selectStyle, width: 170 }}>
+          <option value="morning">Morning (7:00 AM)</option>
+          <option value="afternoon">Afternoon (2:00 PM)</option>
+          <option value="evening">Evening (5:00 PM)</option>
+        </select>
+        {/* School filter */}
+        <select value={schoolFilter} onChange={(e) => setSchoolFilter(e.target.value)} style={{ ...selectStyle, width: 150 }}>
+          <option value="elementary">Elementary</option>
+          <option value="middle">Middle School</option>
+          <option value="high">High School</option>
+          <option value="all">All Schools</option>
+        </select>
+      </div>
 
-            {success ? (
-              <div className="p-8 text-center">
-                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-text mb-2">Booking Confirmed!</h3>
-                <p className="text-sm text-text-secondary">{success}</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitBooking} className="p-6 space-y-4">
-                {/* Route Summary */}
-                <div className="p-4 bg-blue-50 rounded-xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Bus className="w-4 h-4 text-primary" />
-                    <p className="text-sm font-semibold text-primary">{selectedRoute.route_name}</p>
+      {/* ═══════ Route Cards ═══════ */}
+      {displayRoutes.length === 0 ? (
+        <div style={{ ...card, padding: 60, textAlign: 'center' }}>
+          <MapPin style={{ width: 48, height: 48, color: '#cbd5e1', margin: '0 auto 12px' }} />
+          <h3 style={{ fontSize: 18, fontWeight: 600, color: '#1e293b', marginBottom: 4 }}>No routes found</h3>
+          <p style={{ fontSize: 14, color: '#94a3b8' }}>
+            {search ? 'Try a different search term' : 'No routes available at the moment'}
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {displayRoutes.map((item, idx) => {
+            const isReal = 'is_active' in item;
+            const route = isReal ? (item as Route) : null;
+            const demo = !isReal ? (item as typeof demoRoutes[0]) : null;
+
+            const name = route?.name || demo?.name || '';
+            const routeNumber = demo?.routeNumber || String(idx + 100 + 2);
+            const pickup = route?.start_location || demo?.start_location || '';
+            const dropoff = route?.end_location || demo?.end_location || '';
+            const driverName = demo?.driverName || route?.Driver?.first_name ? `${route?.Driver?.first_name || ''} ${route?.Driver?.last_name || ''}`.trim() : 'Assigned Driver';
+            const capacity = demo?.capacity ?? route?.Vehicle?.capacity ?? 32;
+            const seatsLeft = demo?.seatsLeft ?? Math.max(0, capacity - Math.floor(Math.random() * capacity));
+            const capacityLabel = demo?.capacityLabel || `${capacity} Seats`;
+            const bColor = demo?.badgeColor || badgeColors[idx % badgeColors.length];
+            const isWaitlist = seatsLeft === 0;
+            const isLow = seatsLeft > 0 && seatsLeft <= 5;
+
+            return (
+              <div key={demo?.id || route?.id || idx} style={{ ...card, display: 'flex', overflow: 'hidden', minHeight: 180 }}>
+                {/* Left image placeholder */}
+                <div style={{
+                  width: 220, minHeight: '100%', flexShrink: 0, position: 'relative',
+                  background: 'linear-gradient(135deg, #e0ecff 0%, #c7d8f5 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {/* Map/image placeholder pattern */}
+                  <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}>
+                    <svg width="100%" height="100%" viewBox="0 0 220 200" fill="none">
+                      <path d="M0 80 Q55 40 110 80 T220 80" stroke="#137fec" strokeWidth="2" fill="none" />
+                      <path d="M0 120 Q55 80 110 120 T220 120" stroke="#137fec" strokeWidth="2" fill="none" />
+                      <circle cx="60" cy="80" r="4" fill="#137fec" />
+                      <circle cx="160" cy="80" r="4" fill="#137fec" />
+                      <circle cx="110" cy="120" r="4" fill="#16a34a" />
+                    </svg>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-blue-600">
-                    <span>{selectedRoute.start_location}</span>
-                    <ArrowRight className="w-3 h-3" />
-                    <span>{selectedRoute.end_location}</span>
-                  </div>
-                  <div className="flex items-center gap-1 mt-2">
-                    <DollarSign className="w-3 h-3 text-blue-600" />
-                    <span className="text-sm font-bold text-blue-700">KES {selectedRoute.fare_amount?.toLocaleString()}</span>
+
+                  {/* Route badge */}
+                  <div style={{
+                    position: 'absolute', top: 16, left: 16,
+                    background: bColor, color: '#fff',
+                    fontSize: 11, fontWeight: 700, letterSpacing: '0.02em',
+                    padding: '5px 12px', borderRadius: 6, textTransform: 'uppercase',
+                  }}>
+                    Route {routeNumber}
                   </div>
                 </div>
 
-                {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-                    {error}
+                {/* Right content */}
+                <div style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  {/* Top: name + seats */}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                      <h3 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', margin: 0 }}>{name}</h3>
+                      <span style={{
+                        fontSize: 12, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                        color: isWaitlist ? '#94a3b8' : isLow ? '#f59e0b' : '#137fec',
+                      }}>
+                        {isWaitlist ? 'WAITLIST ONLY' : `${seatsLeft} SEATS LEFT`}
+                      </span>
+                    </div>
+
+                    {/* Pickup / Dropoff */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#475569' }}>
+                        <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#f59e0b', flexShrink: 0 }} />
+                        <span>Pickup: <strong style={{ fontWeight: 600, color: '#1e293b' }}>{pickup}</strong></span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#475569' }}>
+                        <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#137fec', flexShrink: 0 }} />
+                        <span>Drop-off: <strong style={{ fontWeight: 600, color: '#1e293b' }}>{dropoff}</strong></span>
+                      </div>
+                    </div>
                   </div>
-                )}
 
-                {/* Student */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Student</label>
-                  <select
-                    value={bookingForm.student_id}
-                    onChange={(e) => setBookingForm({ ...bookingForm, student_id: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  >
-                    <option value="">Choose a student</option>
-                    {students.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.first_name} {s.last_name} - Grade {s.grade}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  {/* Bottom: driver, capacity, button */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                      {/* Driver */}
+                      <div>
+                        <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 2 }}>Driver</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#1e293b' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', background: '#f1f5f9' }}>
+                            <UsersIcon style={{ width: 12, height: 12, color: '#64748b' }} />
+                          </span>
+                          {driverName}
+                        </div>
+                      </div>
+                      {/* Capacity */}
+                      {capacity > 0 && (
+                        <div>
+                          <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 2 }}>Capacity</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#1e293b' }}>
+                            <Bus style={{ width: 14, height: 14, color: '#64748b' }} />
+                            {capacityLabel}
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                {/* Booking Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Booking Type</label>
-                  <div className="flex gap-3">
-                    {['one_way', 'round_trip'].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setBookingForm({ ...bookingForm, booking_type: type })}
-                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
-                          bookingForm.booking_type === type
-                            ? 'border-primary bg-blue-50 text-primary'
-                            : 'border-border text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        {type === 'one_way' ? 'One Way' : 'Round Trip'}
+                    {/* Book / Waitlist button */}
+                    {isWaitlist ? (
+                      <button style={{
+                        padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600,
+                        background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', cursor: 'pointer',
+                      }}>
+                        Join Waitlist
                       </button>
-                    ))}
+                    ) : (
+                      <button
+                        onClick={() => { if (route) handleBookRoute(route); }}
+                        style={{
+                          padding: '10px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600,
+                          background: '#137fec', color: '#fff', border: 'none', cursor: 'pointer',
+                        }}
+                      >
+                        Book Now
+                      </button>
+                    )}
                   </div>
                 </div>
-
-                {/* Dates */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                    <input
-                      type="date"
-                      value={bookingForm.start_date}
-                      onChange={(e) => setBookingForm({ ...bookingForm, start_date: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Time</label>
-                    <input
-                      type="time"
-                      value={bookingForm.pickup_time}
-                      onChange={(e) => setBookingForm({ ...bookingForm, pickup_time: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Locations */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
-                  <input
-                    type="text"
-                    value={bookingForm.pickup_location}
-                    onChange={(e) => setBookingForm({ ...bookingForm, pickup_location: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Drop-off Location</label>
-                  <input
-                    type="text"
-                    value={bookingForm.dropoff_location}
-                    onChange={(e) => setBookingForm({ ...bookingForm, dropoff_location: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                {/* Notes */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                  <textarea
-                    value={bookingForm.notes}
-                    onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
-                    rows={2}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                    placeholder="Any special instructions..."
-                  />
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowBookingModal(false)}
-                    className="flex-1 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-60"
-                  >
-                    {submitting ? 'Booking...' : 'Confirm Booking'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
+              </div>
+            );
+          })}
         </div>
       )}
+
+      {/* ═══════ Footer ═══════ */}
+      <div style={{ textAlign: 'center', padding: '12px 0', fontSize: 13, color: '#94a3b8' }}>
+        Need help? Contact School Transport Support at{' '}
+        <a href="mailto:support@edutrans.com" style={{ color: '#137fec', textDecoration: 'none', fontWeight: 500 }}>
+          support@edutrans.com
+        </a>
+      </div>
     </div>
   );
 }
