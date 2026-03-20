@@ -6,9 +6,9 @@ import {
   LayoutDashboard,
   Users,
   BookOpen,
+  Route as RouteIcon,
   CreditCard,
   Settings,
-  HelpCircle,
   LogOut,
   Menu,
   X,
@@ -20,13 +20,13 @@ import {
 const mainNav = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { label: 'Students', icon: Users, path: '/students' },
-  { label: 'Booking', icon: BookOpen, path: '/book-transport' },
-  { label: 'Payments', icon: CreditCard, path: '/my-bookings' },
+  { label: 'Bookings', icon: BookOpen, path: '/my-bookings' },
+  { label: 'Routes', icon: RouteIcon, path: '/book-transport' },
+  { label: 'Payments', icon: CreditCard, path: '/payment' },
 ];
 
 const accountNav = [
   { label: 'Settings', icon: Settings, path: '#settings' },
-  { label: 'Support', icon: HelpCircle, path: '#support' },
 ];
 
 export default function ParentLayout() {
@@ -89,8 +89,8 @@ export default function ParentLayout() {
               <Bus style={{ width: 20, height: 20, color: '#fff' }} />
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>ParentPortal</div>
-              <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.2 }}>Student Transport</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>EduTrans</div>
+              <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.2 }}>Portal</div>
             </div>
           </div>
           <button
@@ -158,7 +158,7 @@ export default function ParentLayout() {
               <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user?.first_name} {user?.last_name}
               </div>
-              <div style={{ fontSize: 11, color: '#94a3b8' }}>Premium Member</div>
+              <div style={{ fontSize: 11, color: '#94a3b8' }}>Parent Account</div>
             </div>
           </div>
           <button
