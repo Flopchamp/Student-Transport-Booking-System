@@ -14,7 +14,9 @@ import LoginPage from './pages/auth/LoginPage';
 import ParentDashboard from './pages/parent/Dashboard';
 import StudentManagement from './pages/parent/StudentManagement';
 import BookTransport from './pages/parent/BookTransport';
+import NewBooking from './pages/parent/NewBooking';
 import MyBookings from './pages/parent/MyBookings';
+import PaymentPage from './pages/parent/PaymentPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -56,7 +58,9 @@ function App() {
         <Route path="/dashboard" element={<ParentDashboard />} />
         <Route path="/students" element={<StudentManagement />} />
         <Route path="/book-transport" element={<BookTransport />} />
+        <Route path="/new-booking" element={<NewBooking />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/payment" element={<PaymentPage />} />
         </Route>
       </Route>
 
