@@ -48,14 +48,18 @@ export interface Student {
 // ============================================
 export interface Route {
   id: number;
-  route_name: string;
-  route_number: string;
+  name: string;
+  route_name?: string;
+  route_number?: string;
+  description?: string;
   start_location: string;
   end_location: string;
   stops: string[];
   distance_km: number;
-  estimated_duration_minutes: number;
-  fare_amount: number;
+  estimated_duration_min: number;
+  estimated_duration_minutes?: number;
+  price: number;
+  fare_amount?: number;
   is_active: boolean;
   createdAt: string;
   updatedAt: string;
