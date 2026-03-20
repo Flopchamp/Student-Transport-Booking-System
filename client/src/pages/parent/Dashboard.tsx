@@ -43,8 +43,11 @@ export default function ParentDashboard() {
         api.get('/bookings').catch(() => ({ data: { data: [] } })),
       ]);
 
-      const studentData = studentsRes.data.data || [];
-      const bookingData = bookingsRes.data.data || [];
+      const rawStudents = studentsRes.data.data;
+      const rawBookings = bookingsRes.data.data;
+      // API returns { students: [...] } and { bookings: [...] } inside data
+      const studentData = Array.isArray(rawStudents) ? rawStudents : (rawStudents?.students || []);
+      const bookingData = Array.isArray(rawBookings) ? rawBookings : (rawBookings?.bookings || []);
 
       setStudents(studentData);
       setRecentBookings(bookingData.slice(0, 5));
