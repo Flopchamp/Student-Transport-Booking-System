@@ -69,7 +69,9 @@ export default function StudentManagement() {
   const fetchStudents = async () => {
     try {
       const res = await api.get('/students');
-      setStudents(res.data.data || []);
+      const data = res.data.data;
+      // API returns { students: [...] } inside data
+      setStudents(Array.isArray(data) ? data : (data?.students || []));
     } catch (err) {
       console.error('Failed to fetch students:', err);
     } finally {
