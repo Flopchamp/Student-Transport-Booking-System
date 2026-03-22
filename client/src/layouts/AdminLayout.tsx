@@ -59,7 +59,7 @@ export default function AdminLayout() {
               <Bus className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-white">SchoolRide</h1>
+              <h1 className="text-base font-bold text-white">EduTrans</h1>
               <p className="text-[10px] text-gray-400 leading-none">Admin Panel</p>
             </div>
           </div>
