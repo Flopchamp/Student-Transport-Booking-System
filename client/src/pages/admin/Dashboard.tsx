@@ -44,7 +44,7 @@ export default function AdminDashboard() {
     try {
       const [studentsRes, routesRes, vehiclesRes, driversRes, bookingsRes] = await Promise.all([
         api.get('/students').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
-        api.get('/transport/routes').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
+        api.get('/routes').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
         api.get('/vehicles').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
         api.get('/drivers').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
         api.get('/bookings').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
     { label: 'Vehicles', value: stats.totalVehicles, icon: Truck, color: 'text-purple-600', bg: 'bg-purple-50', trend: '98%' },
     { label: 'Active Drivers', value: stats.totalDrivers, icon: UserCheck, color: 'text-orange-600', bg: 'bg-orange-50', trend: 'Online' },
     { label: 'Total Bookings', value: stats.totalBookings, icon: Calendar, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '+24%' },
-    { label: 'Revenue', value: `KES ${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+18%' },
+    { label: 'Revenue', value: `$${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+18%' },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -179,7 +179,7 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="px-6 py-3 text-sm font-medium text-text">
-                        KES {booking.fare_amount?.toLocaleString()}
+                        ${booking.fare_amount?.toLocaleString()}
                       </td>
                     </tr>
                   ))
