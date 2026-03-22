@@ -9,7 +9,7 @@ const catchAsync = require('../utils/catchAsync');
  * Register a new user (parent by default).
  */
 const register = catchAsync(async (req, res) => {
-  const { first_name, last_name, email, phone, password, role } = req.body;
+  const { first_name, last_name, email, phone, password } = req.body;
 
   // Check if email already exists
   const existingUser = await User.findOne({ where: { email } });
@@ -17,14 +17,14 @@ const register = catchAsync(async (req, res) => {
     throw ApiError.conflict('An account with this email already exists.');
   }
 
-  // Create user
+  // Create user — role is always 'parent' (admin accounts must be created manually)
   const user = await User.create({
     first_name,
     last_name,
     email,
     phone,
     password,
-    role: role || 'parent',
+    role: 'parent',
   });
 
   // Generate token
