@@ -40,7 +40,7 @@ export default function LoginPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', backgroundColor: '#137fec', borderRadius: '8px', color: '#fff' }}>
             <Bus size={20} />
           </div>
-          <h2 style={{ color: '#0f172a', fontSize: '18px', fontWeight: 800, lineHeight: '1.25', letterSpacing: '-0.01em' }}>EduRide</h2>
+          <h2 style={{ color: '#0f172a', fontSize: '18px', fontWeight: 800, lineHeight: '1.25', letterSpacing: '-0.01em' }}>EduTrans</h2>
         </div>
         <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', height: '40px', width: '40px', backgroundColor: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer' }}>
           <HelpCircle size={20} />
