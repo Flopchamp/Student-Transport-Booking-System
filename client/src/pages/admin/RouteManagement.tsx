@@ -21,14 +21,14 @@ export default function RouteManagement() {
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [formData, setFormData] = useState({
-    route_name: '',
-    route_number: '',
+    name: '',
+    description: '',
     start_location: '',
     end_location: '',
     stops: '',
     distance_km: '',
-    estimated_duration_minutes: '',
-    fare_amount: '',
+    estimated_duration_min: '',
+    price: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -39,8 +39,9 @@ export default function RouteManagement() {
 
   const fetchRoutes = async () => {
     try {
-      const res = await api.get('/transport/routes');
-      setRoutes(res.data.data || []);
+      const res = await api.get('/routes');
+      const raw = res.data.data;
+      setRoutes(Array.isArray(raw) ? raw : (raw?.routes || []));
     } catch (err) {
       console.error('Failed to fetch routes:', err);
     } finally {
@@ -52,26 +53,26 @@ export default function RouteManagement() {
     if (route) {
       setEditingRoute(route);
       setFormData({
-        route_name: route.route_name,
-        route_number: route.route_number,
-        start_location: route.start_location,
-        end_location: route.end_location,
+        name: route.name || '',
+        description: route.description || '',
+        start_location: route.start_location || '',
+        end_location: route.end_location || '',
         stops: Array.isArray(route.stops) ? route.stops.join(', ') : '',
         distance_km: route.distance_km?.toString() || '',
-        estimated_duration_minutes: route.estimated_duration_minutes?.toString() || '',
-        fare_amount: route.fare_amount?.toString() || '',
+        estimated_duration_min: route.estimated_duration_min?.toString() || '',
+        price: route.price?.toString() || '',
       });
     } else {
       setEditingRoute(null);
       setFormData({
-        route_name: '',
-        route_number: '',
+        name: '',
+        description: '',
         start_location: '',
         end_location: '',
         stops: '',
         distance_km: '',
-        estimated_duration_minutes: '',
-        fare_amount: '',
+        estimated_duration_min: '',
+        price: '',
       });
     }
     setError('');
@@ -84,21 +85,21 @@ export default function RouteManagement() {
     setError('');
 
     const payload = {
-      route_name: formData.route_name,
-      route_number: formData.route_number,
+      name: formData.name,
+      description: formData.description || undefined,
       start_location: formData.start_location,
       end_location: formData.end_location,
       stops: formData.stops.split(',').map((s) => s.trim()).filter(Boolean),
-      distance_km: parseFloat(formData.distance_km),
-      estimated_duration_minutes: parseInt(formData.estimated_duration_minutes),
-      fare_amount: parseFloat(formData.fare_amount),
+      distance_km: formData.distance_km ? parseFloat(formData.distance_km) : undefined,
+      estimated_duration_min: formData.estimated_duration_min ? parseInt(formData.estimated_duration_min) : undefined,
+      price: parseFloat(formData.price),
     };
 
     try {
       if (editingRoute) {
-        await api.put(`/transport/routes/${editingRoute.id}`, payload);
+        await api.put(`/routes/${editingRoute.id}`, payload);
       } else {
-        await api.post('/transport/routes', payload);
+        await api.post('/routes', payload);
       }
       setShowModal(false);
       fetchRoutes();
@@ -110,10 +111,10 @@ export default function RouteManagement() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this route?')) return;
     try {
-      await api.delete(`/transport/routes/${id}`);
+      await api.delete(`/routes/${id}`);
       if (selectedRoute?.id === id) setSelectedRoute(null);
       fetchRoutes();
     } catch (err) {
@@ -123,10 +124,9 @@ export default function RouteManagement() {
 
   const filteredRoutes = routes.filter(
     (r) =>
-      r.route_name.toLowerCase().includes(search.toLowerCase()) ||
-      r.route_number.toLowerCase().includes(search.toLowerCase()) ||
-      r.start_location.toLowerCase().includes(search.toLowerCase()) ||
-      r.end_location.toLowerCase().includes(search.toLowerCase())
+      (r.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (r.start_location || '').toLowerCase().includes(search.toLowerCase()) ||
+      (r.end_location || '').toLowerCase().includes(search.toLowerCase())
   );
 
   if (loading) {
@@ -202,17 +202,14 @@ export default function RouteManagement() {
                       onClick={() => setSelectedRoute(route)}
                     >
                       <td className="px-6 py-4">
-                        <div>
-                          <p className="text-sm font-medium text-text">{route.route_name}</p>
-                          <p className="text-xs text-text-muted">#{route.route_number}</p>
-                        </div>
+                        <p className="text-sm font-medium text-text">{route.name}</p>
                       </td>
                       <td className="px-6 py-4 text-sm text-text-secondary">
                         {route.start_location} → {route.end_location}
                       </td>
                       <td className="px-6 py-4 text-sm text-text-secondary">{route.distance_km} km</td>
-                      <td className="px-6 py-4 text-sm text-text-secondary">{route.estimated_duration_minutes} min</td>
-                      <td className="px-6 py-4 text-sm font-medium text-text">KES {route.fare_amount?.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-sm text-text-secondary">{route.estimated_duration_min} min</td>
+                      <td className="px-6 py-4 text-sm font-medium text-text">${route.price?.toLocaleString()}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${route.is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                           {route.is_active ? 'Active' : 'Inactive'}
@@ -254,8 +251,10 @@ export default function RouteManagement() {
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-lg font-bold text-text">{selectedRoute.route_name}</h4>
-                <p className="text-sm text-text-muted">#{selectedRoute.route_number}</p>
+                <h4 className="text-lg font-bold text-text">{selectedRoute.name}</h4>
+                {selectedRoute.description && (
+                  <p className="text-sm text-text-muted mt-1">{selectedRoute.description}</p>
+                )}
               </div>
 
               <div className="p-4 bg-gray-50 rounded-xl space-y-3">
@@ -263,10 +262,10 @@ export default function RouteManagement() {
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <span className="text-sm text-text-secondary">{selectedRoute.start_location}</span>
                 </div>
-                {selectedRoute.stops?.map((stop, i) => (
+                {selectedRoute.stops?.map((stop: string, i: number) => (
                   <div key={i} className="flex items-center gap-2 pl-1">
                     <div className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
-                    <span className="text-xs text-text-muted">{stop}</span>
+                    <span className="text-xs text-text-muted">{typeof stop === 'string' ? stop : (stop as { name?: string }).name || `Stop ${i + 1}`}</span>
                   </div>
                 ))}
                 <div className="flex items-center gap-2">
@@ -278,7 +277,7 @@ export default function RouteManagement() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-blue-50 rounded-lg text-center">
                   <Clock className="w-4 h-4 text-blue-600 mx-auto mb-1" />
-                  <p className="text-sm font-bold text-blue-700">{selectedRoute.estimated_duration_minutes} min</p>
+                  <p className="text-sm font-bold text-blue-700">{selectedRoute.estimated_duration_min} min</p>
                   <p className="text-xs text-blue-500">Duration</p>
                 </div>
                 <div className="p-3 bg-green-50 rounded-lg text-center">
@@ -293,7 +292,7 @@ export default function RouteManagement() {
                 </div>
                 <div className="p-3 bg-orange-50 rounded-lg text-center">
                   <DollarSign className="w-4 h-4 text-orange-600 mx-auto mb-1" />
-                  <p className="text-sm font-bold text-orange-700">KES {selectedRoute.fare_amount?.toLocaleString()}</p>
+                  <p className="text-sm font-bold text-orange-700">${selectedRoute.price?.toLocaleString()}</p>
                   <p className="text-xs text-orange-500">Fare</p>
                 </div>
               </div>
@@ -321,27 +320,25 @@ export default function RouteManagement() {
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Route Name</label>
-                  <input
-                    type="text"
-                    value={formData.route_name}
-                    onChange={(e) => setFormData({ ...formData, route_name: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Route Number</label>
-                  <input
-                    type="text"
-                    value={formData.route_number}
-                    onChange={(e) => setFormData({ ...formData, route_number: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Route Name</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
               </div>
 
               <div>
@@ -386,25 +383,24 @@ export default function RouteManagement() {
                     value={formData.distance_km}
                     onChange={(e) => setFormData({ ...formData, distance_km: e.target.value })}
                     className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Duration (min)</label>
                   <input
                     type="number"
-                    value={formData.estimated_duration_minutes}
-                    onChange={(e) => setFormData({ ...formData, estimated_duration_minutes: e.target.value })}
+                    value={formData.estimated_duration_min}
+                    onChange={(e) => setFormData({ ...formData, estimated_duration_min: e.target.value })}
                     className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fare (KES)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fare ($)</label>
                   <input
                     type="number"
-                    value={formData.fare_amount}
-                    onChange={(e) => setFormData({ ...formData, fare_amount: e.target.value })}
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   />

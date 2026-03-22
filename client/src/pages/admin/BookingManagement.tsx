@@ -193,7 +193,7 @@ export default function BookingManagement() {
                       {booking.Student ? `${booking.Student.first_name} ${booking.Student.last_name}` : '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-text-secondary">
-                      {booking.Route?.route_name || '-'}
+                      {booking.Route?.name || '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-text-secondary">
                       {new Date(booking.start_date).toLocaleDateString()}
@@ -204,7 +204,7 @@ export default function BookingManagement() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-text">
-                      KES {booking.fare_amount?.toLocaleString()}
+                      ${booking.fare_amount?.toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
@@ -294,7 +294,7 @@ export default function BookingManagement() {
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-border">
                 <span className="text-sm font-medium text-text">Total Fare</span>
-                <span className="text-lg font-bold text-primary">KES {selectedBooking.fare_amount?.toLocaleString()}</span>
+                <span className="text-lg font-bold text-primary">${selectedBooking.fare_amount?.toLocaleString()}</span>
               </div>
 
               {/* Actions */}
