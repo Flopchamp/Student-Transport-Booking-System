@@ -12,7 +12,7 @@ export default function LandingPage() {
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', backgroundColor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', padding: '16px 80px', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: P }}>
           <Bus style={{ width: 28, height: 28 }} />
-          <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a' }}>EduRide</span>
+          <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.025em', color: '#0f172a' }}>EduTrans</span>
         </div>
         <nav style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="#features" style={{ fontSize: 14, fontWeight: 500, color: '#0f172a', textDecoration: 'none' }}>Features</a>
@@ -139,8 +139,8 @@ export default function LandingPage() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
               {[
-                { quote: '"EduRide has completely changed our morning routine. No more rushing, and I love seeing exactly where the bus is at any time."', name: 'Sarah Jenkins', role: 'Mother of two', initials: 'SJ', bg: '#f472b6' },
-                { quote: '"Safety was my top priority. After meeting the driver and seeing the vetting process, I felt 100% confident in choosing EduRide."', name: 'David Chen', role: 'Parent at Lincoln High', initials: 'DC', bg: '#60a5fa' },
+                { quote: '"EduTrans has completely changed our morning routine. No more rushing, and I love seeing exactly where the bus is at any time."', name: 'Sarah Jenkins', role: 'Mother of two', initials: 'SJ', bg: '#f472b6' },
+                { quote: '"Safety was my top priority. After meeting the driver and seeing the vetting process, I felt 100% confident in choosing EduTrans."', name: 'David Chen', role: 'Parent at Lincoln High', initials: 'DC', bg: '#60a5fa' },
                 { quote: '"The app is so easy to use. Rescheduling for after-school activities takes seconds. Worth every penny for the peace of mind."', name: 'Emma Wilson', role: 'Working Parent', initials: 'EW', bg: '#fbbf24' },
               ].map(t => (
                 <div key={t.name} style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', padding: 32, borderRadius: 16, border: '1px solid rgba(255,255,255,0.2)' }}>
@@ -176,7 +176,7 @@ export default function LandingPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
               <Bus style={{ width: 28, height: 28, color: P }} />
-              <span style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>EduRide</span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>EduTrans</span>
             </div>
             <p style={{ fontSize: 14, lineHeight: 1.75, marginBottom: 24 }}>Redefining student safety and transportation efficiency for the modern generation of parents and schools.</p>
             <div style={{ display: 'flex', gap: 16 }}>
@@ -205,14 +205,14 @@ export default function LandingPage() {
           <div>
             <h4 style={{ color: '#fff', fontWeight: 700, marginBottom: 24, fontSize: 16 }}>Contact</h4>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14 }}><Mail style={{ width: 20, height: 20, color: P, flexShrink: 0 }} />hello@eduride.app</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14 }}><Phone style={{ width: 20, height: 20, color: P, flexShrink: 0 }} />1-800-EDURIDE</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14 }}><Mail style={{ width: 20, height: 20, color: P, flexShrink: 0 }} />hello@edutrans.app</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14 }}><Phone style={{ width: 20, height: 20, color: P, flexShrink: 0 }} />1-800-EDUTRANS</li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 14 }}><MapPinned style={{ width: 20, height: 20, color: P, flexShrink: 0, marginTop: 2 }} /><span>123 Transport Way, Suite 400<br />San Francisco, CA 94103</span></li>
             </ul>
           </div>
         </div>
         <div style={{ maxWidth: 1280, margin: '0 auto', paddingTop: 32, borderTop: '1px solid #1e293b', textAlign: 'center', fontSize: 12, color: '#64748b' }}>
-          <p>© 2024 EduRide Technologies Inc. All rights reserved.</p>
+          <p>© 2024 EduTrans Technologies Inc. All rights reserved.</p>
         </div>
       </footer>
     </div>
