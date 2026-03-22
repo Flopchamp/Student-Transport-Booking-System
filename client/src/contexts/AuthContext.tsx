@@ -34,7 +34,6 @@ interface RegisterData {
   phone: string;
   password: string;
   confirm_password: string;
-  role?: 'parent' | 'admin';
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
