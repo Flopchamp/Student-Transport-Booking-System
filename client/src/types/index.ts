@@ -2,7 +2,7 @@
 // User & Auth Types
 // ============================================
 export interface User {
-  id: number;
+  id: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -25,8 +25,8 @@ export interface AuthResponse {
 // Student Types
 // ============================================
 export interface Student {
-  id: number;
-  user_id: number;
+  id: string;
+  user_id: string;
   first_name: string;
   last_name: string;
   date_of_birth: string;
@@ -47,7 +47,7 @@ export interface Student {
 // Route Types
 // ============================================
 export interface Route {
-  id: number;
+  id: string;
   name: string;
   route_name?: string;
   route_number?: string;
@@ -71,7 +71,7 @@ export interface Route {
 // Vehicle Types
 // ============================================
 export interface Vehicle {
-  id: number;
+  id: string;
   vehicle_number: string;
   vehicle_type: string;
   make: string;
@@ -94,7 +94,7 @@ export interface Vehicle {
 // Driver Types
 // ============================================
 export interface Driver {
-  id: number;
+  id: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -108,8 +108,8 @@ export interface Driver {
   status: 'active' | 'on_leave' | 'inactive';
   rating: number;
   total_trips: number;
-  vehicle_id?: number;
-  route_id?: number;
+  vehicle_id?: string;
+  route_id?: string;
   is_active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -121,11 +121,11 @@ export interface Driver {
 // Booking Types
 // ============================================
 export interface Booking {
-  id: number;
+  id: string;
   booking_reference: string;
-  user_id: number;
-  student_id: number;
-  route_id: number;
+  user_id: string;
+  student_id: string;
+  route_id: string;
   booking_type: 'one_way' | 'round_trip';
   start_date: string;
   end_date?: string;
@@ -147,9 +147,9 @@ export interface Booking {
 // Payment Types
 // ============================================
 export interface Payment {
-  id: number;
-  booking_id: number;
-  user_id: number;
+  id: string;
+  booking_id: string;
+  user_id: string;
   amount: number;
   payment_method: 'credit_card' | 'mpesa' | 'bank_transfer';
   transaction_reference?: string;
