@@ -1,5 +1,15 @@
 require('dotenv').config();
 
+// Validate critical environment variables at startup
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_super_secret_jwt_key_change_in_production') {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('❌ FATAL: JWT_SECRET must be set to a secure value in production!');
+    process.exit(1);
+  } else {
+    console.warn('⚠️  WARNING: Using default JWT_SECRET — set a secure value in .env for production');
+  }
+}
+
 module.exports = {
   // Server
   NODE_ENV: process.env.NODE_ENV || 'development',
@@ -13,7 +23,7 @@ module.exports = {
   DB_PASSWORD: process.env.DB_PASSWORD || '',
 
   // JWT
-  JWT_SECRET: process.env.JWT_SECRET,
+  JWT_SECRET: process.env.JWT_SECRET || 'dev-fallback-secret-change-in-production',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
 
   // M-Pesa
