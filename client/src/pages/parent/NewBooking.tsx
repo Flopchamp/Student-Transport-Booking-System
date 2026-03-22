@@ -42,13 +42,13 @@ export default function NewBooking() {
 
   const [step, setStep] = useState(passedRoute ? 1 : 0);
   const [students, setStudents] = useState<Student[]>([]);
-  const [, setRoutes] = useState<Route[]>([]);
+  const [availableRoutes, setAvailableRoutes] = useState<Route[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Selections
   const [selectedStudent, setSelectedStudent] = useState<Student | (typeof demoStudents)[0] | null>(null);
-  const [selectedRoute] = useState<Route | null>(passedRoute);
+  const [selectedRoute, setSelectedRoute] = useState<Route | null>(passedRoute);
   const [selectedStop, setSelectedStop] = useState<string>(demoStops[0].name);
   const [bookingType, setBookingType] = useState('round_trip');
   const [startDate, setStartDate] = useState('');
@@ -74,7 +74,7 @@ export default function NewBooking() {
       const rawR = routesRes.data.data;
       const rawV = vehiclesRes.data.data;
       setStudents(Array.isArray(rawS) ? rawS : (rawS?.students || []));
-      setRoutes(Array.isArray(rawR) ? rawR : (rawR?.routes || []));
+      setAvailableRoutes(Array.isArray(rawR) ? rawR : (rawR?.routes || []));
       setVehicles(Array.isArray(rawV) ? rawV : (rawV?.vehicles || []));
     } catch (err) {
       console.error('Failed to fetch data:', err);
