@@ -22,8 +22,8 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
-      navigate(activeTab === 'admin' ? '/admin' : '/dashboard');
+      const loggedInUser = await login(email, password);
+      navigate(loggedInUser.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setError(error.response?.data?.message || 'Invalid credentials. Please try again.');

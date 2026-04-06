@@ -42,13 +42,13 @@ export default function NewBooking() {
 
   const [step, setStep] = useState(passedRoute ? 1 : 0);
   const [students, setStudents] = useState<Student[]>([]);
-  const [availableRoutes, setAvailableRoutes] = useState<Route[]>([]);
+  const [, setAvailableRoutes] = useState<Route[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Selections
   const [selectedStudent, setSelectedStudent] = useState<Student | (typeof demoStudents)[0] | null>(null);
-  const [selectedRoute, setSelectedRoute] = useState<Route | null>(passedRoute);
+  const [selectedRoute] = useState<Route | null>(passedRoute);
   const [selectedStop, setSelectedStop] = useState<string>(demoStops[0].name);
   const [bookingType, setBookingType] = useState('round_trip');
   const [startDate, setStartDate] = useState('');

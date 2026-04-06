@@ -133,7 +133,7 @@ export default function StudentManagement() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to remove this student?')) return;
     try {
       await api.delete(`/students/${id}`);
@@ -257,7 +257,7 @@ export default function StudentManagement() {
             const initials = student.first_name[0] + student.last_name[0];
             const colors = ['#dbeafe', '#d1fae5', '#fef3c7', '#ede9fe', '#fce7f3'];
             const textColors = ['#137fec', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
-            const colorIdx = (student.id || 0) % colors.length;
+            const colorIdx = Math.abs(String(student.id || '').split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0)) % colors.length;
 
             return (
               <div key={student.id} style={{ ...card, padding: 24, display: 'flex', alignItems: 'center', gap: 20 }}>

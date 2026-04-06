@@ -33,7 +33,7 @@ export default function BookingManagement() {
     }
   };
 
-  const handleStatusChange = async (id: number, status: string) => {
+  const handleStatusChange = async (id: string, status: string) => {
     try {
       await api.patch(`/bookings/${id}/status`, { status });
       fetchBookings();

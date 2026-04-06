@@ -115,7 +115,7 @@ export default function DriverManagement() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this driver?')) return;
     try {
       await api.delete(`/drivers/${id}`);

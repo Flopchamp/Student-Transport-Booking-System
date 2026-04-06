@@ -49,7 +49,7 @@ export default function MyBookings() {
     }
   };
 
-  const handleCancel = async (id: number) => {
+  const handleCancel = async (id: string) => {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
     try {
       await api.patch(`/bookings/${id}/status`, { status: 'cancelled' });
