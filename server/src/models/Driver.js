@@ -67,6 +67,11 @@ const Driver = sequelize.define('Driver', {
     defaultValue: DRIVER_STATUS.AVAILABLE,
     allowNull: false,
   },
+  is_active: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false,
+  },
   profile_photo: {
     type: DataTypes.STRING(255),
     allowNull: true,

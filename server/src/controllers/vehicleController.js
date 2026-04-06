@@ -171,7 +171,10 @@ const deleteVehicle = catchAsync(async (req, res) => {
     );
   }
 
-  await vehicle.destroy();
+  // Soft-delete: deactivate instead of destroying
+  vehicle.is_active = false;
+  vehicle.status = 'retired';
+  await vehicle.save();
 
   ApiResponse.success(res, null, 'Vehicle deleted successfully');
 });

@@ -50,6 +50,11 @@ const Vehicle = sequelize.define('Vehicle', {
     defaultValue: VEHICLE_STATUS.ACTIVE,
     allowNull: false,
   },
+  is_active: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false,
+  },
   insurance_expiry: {
     type: DataTypes.DATEONLY,
     allowNull: true,
