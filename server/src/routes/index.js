@@ -6,6 +6,7 @@ const transportRoutes = require('./transportRoutes');
 const vehicleRoutes = require('./vehicleRoutes');
 const driverRoutes = require('./driverRoutes');
 const bookingRoutes = require('./bookingRoutes');
+const paymentRoutes = require('./paymentRoutes');
 
 const router = Router();
 
@@ -30,7 +31,7 @@ router.use('/drivers', driverRoutes);
 // Bookings
 router.use('/bookings', bookingRoutes);
 
-// Future routes will be registered here:
-// router.use('/payments', paymentRoutes);
+// Payments
+router.use('/payments', paymentRoutes);
 
 module.exports = router;

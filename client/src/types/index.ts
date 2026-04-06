@@ -124,8 +124,11 @@ export interface Booking {
   id: string;
   booking_reference: string;
   user_id: string;
+  parent_id?: string;
   student_id: string;
   route_id: string;
+  vehicle_id?: string;
+  driver_id?: string;
   booking_type: 'one_way' | 'round_trip';
   start_date: string;
   end_date?: string;
@@ -134,13 +137,17 @@ export interface Booking {
   pickup_location: string;
   dropoff_location: string;
   status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
-  fare_amount: number;
+  amount: number;
+  fare_amount?: number;
   notes?: string;
   createdAt: string;
   updatedAt: string;
   User?: User;
   Student?: Student;
   Route?: Route;
+  parent?: User;
+  student?: Student;
+  route?: Route;
 }
 
 // ============================================
