@@ -14,26 +14,19 @@ type PaymentMethod = 'card' | 'mpesa';
 
 export default function PaymentPage() {
   const [method, setMethod] = useState<PaymentMethod>('card');
-  const [cardForm, setCardForm] = useState({
-    name: '',
-    number: '',
-    expiry: '',
-    cvv: '',
-  });
+  const [cardForm, setCardForm] = useState({ name: '', number: '', expiry: '', cvv: '' });
   const [mpesaPhone, setMpesaPhone] = useState('');
   const [processing, setProcessing] = useState(false);
 
   const handlePay = (e: React.FormEvent) => {
     e.preventDefault();
     setProcessing(true);
-    // Simulate payment
     setTimeout(() => {
       setProcessing(false);
       alert('Payment successful! (Demo)');
     }, 2000);
   };
 
-  /* ─── formatting helpers ─── */
   const formatCardNumber = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 16);
     return digits.replace(/(.{4})/g, '$1 ').trim();
@@ -44,34 +37,7 @@ export default function PaymentPage() {
     return digits;
   };
 
-  /* ─── styles ─── */
-  const card: React.CSSProperties = {
-    background: '#fff',
-    borderRadius: 12,
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-  };
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    height: 48,
-    padding: '0 16px',
-    fontSize: 15,
-    border: '1px solid #e2e8f0',
-    borderRadius: 10,
-    background: '#fff',
-    outline: 'none',
-    color: '#1e293b',
-  };
-  const labelStyle: React.CSSProperties = {
-    fontSize: 12,
-    fontWeight: 600,
-    color: '#475569',
-    letterSpacing: '0.02em',
-    marginBottom: 8,
-    display: 'block',
-  };
-
-  /* ─── demo booking data (right column) ─── */
+  /* ─── demo booking data ─── */
   const booking = {
     routeName: 'Downtown Express',
     studentName: 'Alex Johnson',
@@ -85,245 +51,157 @@ export default function PaymentPage() {
   const serviceFee = +(booking.baseFare * booking.serviceFeeRate).toFixed(2);
   const total = +(booking.baseFare + booking.discount + serviceFee).toFixed(2);
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* ─── Breadcrumb ─── */}
-      <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        Payment Process
-      </div>
+  const inputCls = 'w-full h-12 px-4 text-[15px] border border-slate-200 rounded-[10px] bg-white outline-none text-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent';
 
-      {/* ─── Back Link ─── */}
-      <Link
-        to="/my-bookings"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: '#137fec', textDecoration: 'none' }}
-      >
-        <ArrowLeft style={{ width: 16, height: 16 }} /> Back to Booking
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Breadcrumb */}
+      <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Payment Process</div>
+
+      {/* Back Link */}
+      <Link to="/my-bookings" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
+        <ArrowLeft className="w-4 h-4" /> Back to Booking
       </Link>
 
-      {/* ─── Header ─── */}
+      {/* Header */}
       <div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#1e293b', margin: 0 }}>Complete Your Payment</h1>
-        <p style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>
-          Please review your booking and choose a payment method to finalize.
-        </p>
+        <h1 className="text-[26px] font-extrabold text-slate-800">Complete Your Payment</h1>
+        <p className="text-sm text-slate-500 mt-1">Please review your booking and choose a payment method to finalize.</p>
       </div>
 
-      {/* ═══════ Two-Column Layout ═══════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 28, alignItems: 'start' }}>
-        {/* ─── LEFT COLUMN ─── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {/* ── Payment Method Selection ── */}
+      {/* Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-7 items-start">
+        {/* LEFT COLUMN */}
+        <div className="flex flex-col gap-6">
+          {/* Payment Method Selection */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <CreditCard style={{ width: 20, height: 20, color: '#1e293b' }} />
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', margin: 0 }}>Select Payment Method</h2>
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard className="w-5 h-5 text-slate-800" />
+              <h2 className="text-lg font-bold text-slate-800">Select Payment Method</h2>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {/* Credit/Debit Card option */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Credit/Debit Card */}
               <button
                 type="button"
                 onClick={() => setMethod('card')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-                  borderRadius: 12, cursor: 'pointer', textAlign: 'left',
-                  border: method === 'card' ? '2px solid #137fec' : '1px solid #e2e8f0',
-                  background: method === 'card' ? '#f0f7ff' : '#fff',
-                  position: 'relative',
-                }}
+                className={`relative flex items-center gap-3.5 p-4 rounded-xl cursor-pointer text-left transition
+                  ${method === 'card' ? 'border-2 border-primary bg-blue-50/50' : 'border border-slate-200 bg-white hover:border-slate-300'}`}
               >
-                <div style={{
-                  width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                  background: '#137fec', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <CreditCard style={{ width: 20, height: 20, color: '#fff' }} />
+                <div className="w-10 h-10 rounded-[10px] shrink-0 bg-primary flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>Credit/Debit Card</div>
-                  <div style={{ fontSize: 12, color: '#94a3b8' }}>Visa, Mastercard, Amex</div>
+                  <div className="text-sm font-bold text-slate-800">Credit/Debit Card</div>
+                  <div className="text-xs text-slate-400">Visa, Mastercard, Amex</div>
                 </div>
-                {/* Radio indicator */}
-                <div style={{
-                  position: 'absolute', top: 16, right: 16,
-                  width: 18, height: 18, borderRadius: '50%',
-                  border: method === 'card' ? '5px solid #137fec' : '2px solid #cbd5e1',
-                  background: '#fff',
-                }} />
+                <div className={`absolute top-4 right-4 w-[18px] h-[18px] rounded-full bg-white
+                  ${method === 'card' ? 'border-[5px] border-primary' : 'border-2 border-slate-300'}`} />
               </button>
 
-              {/* M-Pesa option */}
+              {/* M-Pesa */}
               <button
                 type="button"
                 onClick={() => setMethod('mpesa')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-                  borderRadius: 12, cursor: 'pointer', textAlign: 'left',
-                  border: method === 'mpesa' ? '2px solid #137fec' : '1px solid #e2e8f0',
-                  background: method === 'mpesa' ? '#f0f7ff' : '#fff',
-                  position: 'relative',
-                }}
+                className={`relative flex items-center gap-3.5 p-4 rounded-xl cursor-pointer text-left transition
+                  ${method === 'mpesa' ? 'border-2 border-primary bg-blue-50/50' : 'border border-slate-200 bg-white hover:border-slate-300'}`}
               >
-                <div style={{
-                  width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                  background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Smartphone style={{ width: 20, height: 20, color: '#fff' }} />
+                <div className="w-10 h-10 rounded-[10px] shrink-0 bg-green-600 flex items-center justify-center">
+                  <Smartphone className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>M-Pesa</div>
-                  <div style={{ fontSize: 12, color: '#94a3b8' }}>Mobile Money Transfer</div>
+                  <div className="text-sm font-bold text-slate-800">M-Pesa</div>
+                  <div className="text-xs text-slate-400">Mobile Money Transfer</div>
                 </div>
-                <div style={{
-                  position: 'absolute', top: 16, right: 16,
-                  width: 18, height: 18, borderRadius: '50%',
-                  border: method === 'mpesa' ? '5px solid #137fec' : '2px solid #cbd5e1',
-                  background: '#fff',
-                }} />
+                <div className={`absolute top-4 right-4 w-[18px] h-[18px] rounded-full bg-white
+                  ${method === 'mpesa' ? 'border-[5px] border-primary' : 'border-2 border-slate-300'}`} />
               </button>
             </div>
           </div>
 
-          {/* ── Card / M-Pesa Details Form ── */}
-          <div style={{ ...card, padding: 28 }}>
+          {/* Form */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-7">
             <form onSubmit={handlePay}>
               {method === 'card' ? (
                 <>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 20 }}>
-                    Card Details
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-5">Card Details</div>
+
+                  <div className="mb-[18px]">
+                    <label className="block text-xs font-semibold text-slate-600 tracking-wide mb-2">Cardholder Name</label>
+                    <input type="text" value={cardForm.name} onChange={(e) => setCardForm({ ...cardForm, name: e.target.value })} placeholder="John Doe" className={inputCls} required />
                   </div>
 
-                  {/* Cardholder Name */}
-                  <div style={{ marginBottom: 18 }}>
-                    <label style={labelStyle}>Cardholder Name</label>
-                    <input
-                      type="text"
-                      value={cardForm.name}
-                      onChange={(e) => setCardForm({ ...cardForm, name: e.target.value })}
-                      placeholder="John Doe"
-                      style={inputStyle}
-                      required
-                    />
-                  </div>
-
-                  {/* Card Number */}
-                  <div style={{ marginBottom: 18 }}>
-                    <label style={labelStyle}>Card Number</label>
-                    <div style={{ position: 'relative' }}>
+                  <div className="mb-[18px]">
+                    <label className="block text-xs font-semibold text-slate-600 tracking-wide mb-2">Card Number</label>
+                    <div className="relative">
                       <input
                         type="text"
                         value={cardForm.number}
                         onChange={(e) => setCardForm({ ...cardForm, number: formatCardNumber(e.target.value) })}
                         placeholder="0000 0000 0000 0000"
                         maxLength={19}
-                        style={inputStyle}
+                        className={inputCls}
                         required
                       />
-                      {/* Card brand icons */}
-                      <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: 6 }}>
-                        <div style={{ width: 32, height: 20, borderRadius: 4, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
-                            <rect x="0" y="0" width="20" height="14" rx="2" fill="#1a1f71"/>
-                            <text x="3" y="10" fontSize="7" fontWeight="bold" fill="#fff">V</text>
-                          </svg>
+                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex gap-1.5">
+                        <div className="w-8 h-5 rounded bg-slate-100 flex items-center justify-center">
+                          <svg width="20" height="14" viewBox="0 0 20 14" fill="none"><rect x="0" y="0" width="20" height="14" rx="2" fill="#1a1f71"/><text x="3" y="10" fontSize="7" fontWeight="bold" fill="#fff">V</text></svg>
                         </div>
-                        <div style={{ width: 32, height: 20, borderRadius: 4, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
-                            <circle cx="8" cy="7" r="5" fill="#eb001b" opacity="0.8"/>
-                            <circle cx="12" cy="7" r="5" fill="#f79e1b" opacity="0.8"/>
-                          </svg>
+                        <div className="w-8 h-5 rounded bg-slate-100 flex items-center justify-center">
+                          <svg width="20" height="14" viewBox="0 0 20 14" fill="none"><circle cx="8" cy="7" r="5" fill="#eb001b" opacity="0.8"/><circle cx="12" cy="7" r="5" fill="#f79e1b" opacity="0.8"/></svg>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Expiry + CVV row */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 28 }}>
+                  <div className="grid grid-cols-2 gap-3.5 mb-7">
                     <div>
-                      <label style={labelStyle}>Expiry Date</label>
-                      <input
-                        type="text"
-                        value={cardForm.expiry}
-                        onChange={(e) => setCardForm({ ...cardForm, expiry: formatExpiry(e.target.value) })}
-                        placeholder="MM/YY"
-                        maxLength={5}
-                        style={inputStyle}
-                        required
-                      />
+                      <label className="block text-xs font-semibold text-slate-600 tracking-wide mb-2">Expiry Date</label>
+                      <input type="text" value={cardForm.expiry} onChange={(e) => setCardForm({ ...cardForm, expiry: formatExpiry(e.target.value) })} placeholder="MM/YY" maxLength={5} className={inputCls} required />
                     </div>
                     <div>
-                      <label style={labelStyle}>CVV</label>
-                      <input
-                        type="text"
-                        value={cardForm.cvv}
-                        onChange={(e) => setCardForm({ ...cardForm, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })}
-                        placeholder="123"
-                        maxLength={4}
-                        style={inputStyle}
-                        required
-                      />
+                      <label className="block text-xs font-semibold text-slate-600 tracking-wide mb-2">CVV</label>
+                      <input type="text" value={cardForm.cvv} onChange={(e) => setCardForm({ ...cardForm, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })} placeholder="123" maxLength={4} className={inputCls} required />
                     </div>
                   </div>
                 </>
               ) : (
                 <>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 20 }}>
-                    M-Pesa Details
-                  </div>
-
-                  <div style={{ marginBottom: 28 }}>
-                    <label style={labelStyle}>M-Pesa Phone Number</label>
-                    <div style={{ position: 'relative' }}>
-                      <Smartphone style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#94a3b8' }} />
-                      <input
-                        type="tel"
-                        value={mpesaPhone}
-                        onChange={(e) => setMpesaPhone(e.target.value)}
-                        placeholder="+254 7XX XXX XXX"
-                        style={{ ...inputStyle, paddingLeft: 42 }}
-                        required
-                      />
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-5">M-Pesa Details</div>
+                  <div className="mb-7">
+                    <label className="block text-xs font-semibold text-slate-600 tracking-wide mb-2">M-Pesa Phone Number</label>
+                    <div className="relative">
+                      <Smartphone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
+                      <input type="tel" value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} placeholder="+254 7XX XXX XXX" className={`${inputCls} pl-10`} required />
                     </div>
-                    <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>
-                      You will receive an STK push prompt on your phone to confirm payment.
-                    </p>
+                    <p className="text-xs text-slate-400 mt-2">You will receive an STK push prompt on your phone to confirm payment.</p>
                   </div>
                 </>
               )}
 
-              {/* Pay Now button + terms */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div className="flex items-center gap-4">
                 <button
                   type="submit"
                   disabled={processing}
-                  style={{
-                    height: 48, padding: '0 36px', borderRadius: 10, border: 'none',
-                    background: '#137fec', color: '#fff', fontSize: 15, fontWeight: 700,
-                    cursor: 'pointer', opacity: processing ? 0.6 : 1, flexShrink: 0,
-                  }}
+                  className="h-12 px-9 rounded-[10px] border-none bg-primary text-white text-[15px] font-bold cursor-pointer shrink-0 hover:bg-blue-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {processing ? 'Processing...' : 'Pay Now'}
                 </button>
-                <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>
+                <p className="text-xs text-slate-400 leading-relaxed">
                   By clicking Pay Now, you agree to our{' '}
-                  <a href="#" style={{ color: '#137fec', textDecoration: 'underline' }}>Terms of Service</a>{' '}
-                  and{' '}
-                  <a href="#" style={{ color: '#137fec', textDecoration: 'underline' }}>Refund Policy</a>.
+                  <a href="#" className="text-primary underline">Terms of Service</a>{' '}and{' '}
+                  <a href="#" className="text-primary underline">Refund Policy</a>.
                 </p>
               </div>
             </form>
           </div>
         </div>
 
-        {/* ─── RIGHT COLUMN: Order Summary ─── */}
-        <div style={{ ...card, overflow: 'hidden', position: 'sticky', top: 24 }}>
+        {/* RIGHT COLUMN: Order Summary */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden sticky top-6">
           {/* Route image header */}
-          <div style={{
-            height: 140, position: 'relative',
-            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
-            display: 'flex', alignItems: 'flex-end', padding: 16,
-          }}>
-            {/* Bus illustration overlay */}
-            <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}>
+          <div className="h-[140px] relative bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 flex items-end p-4">
+            <div className="absolute inset-0 opacity-15">
               <svg width="100%" height="100%" viewBox="0 0 340 140" fill="none">
                 <rect x="60" y="40" width="120" height="70" rx="8" fill="#fff"/>
                 <rect x="65" y="48" width="30" height="25" rx="3" fill="#87ceeb"/>
@@ -333,98 +211,74 @@ export default function PaymentPage() {
                 <circle cx="155" cy="115" r="10" fill="#333"/>
               </svg>
             </div>
-
             <div>
-              <span style={{
-                fontSize: 10, fontWeight: 700, color: '#fff', background: '#16a34a',
-                padding: '3px 10px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '0.04em',
-              }}>
-                Active Route
-              </span>
-              <h3 style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: '6px 0 0', textShadow: '0 1px 4px rgba(0,0,0,0.2)' }}>
-                {booking.routeName}
-              </h3>
+              <span className="text-[10px] font-bold text-white bg-green-600 px-2.5 py-0.5 rounded uppercase tracking-wide">Active Route</span>
+              <h3 className="text-xl font-extrabold text-white mt-1.5 drop-shadow">{booking.routeName}</h3>
             </div>
           </div>
 
           {/* Booking details */}
-          <div style={{ padding: '20px 20px 16px' }}>
-            {/* Student */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <User style={{ width: 16, height: 16, color: '#137fec', flexShrink: 0 }} />
+          <div className="px-5 pt-5 pb-4">
+            <div className="flex items-center gap-2.5 mb-3.5">
+              <User className="w-4 h-4 text-primary shrink-0" />
               <div>
-                <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Student</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#1e293b' }}>{booking.studentName}</div>
+                <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">Student</div>
+                <div className="text-sm font-semibold text-slate-800">{booking.studentName}</div>
               </div>
             </div>
-
-            {/* Schedule */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 14 }}>
-              <Clock style={{ width: 16, height: 16, color: '#f59e0b', flexShrink: 0, marginTop: 2 }} />
+            <div className="flex items-start gap-2.5 mb-3.5">
+              <Clock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Schedule</div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#1e293b', lineHeight: 1.6 }}>
+                <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">Schedule</div>
+                <div className="text-[13px] font-medium text-slate-800 leading-relaxed">
                   {booking.schedulePickup}<br />
                   {booking.scheduleDropoff}
                 </div>
               </div>
             </div>
-
-            {/* Stops */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <MapPin style={{ width: 16, height: 16, color: '#8b5cf6', flexShrink: 0 }} />
+            <div className="flex items-center gap-2.5">
+              <MapPin className="w-4 h-4 text-violet-500 shrink-0" />
               <div>
-                <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Stops</div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#1e293b' }}>{booking.stops}</div>
+                <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">Stops</div>
+                <div className="text-[13px] font-medium text-slate-800">{booking.stops}</div>
               </div>
             </div>
           </div>
 
-          {/* Divider */}
-          <div style={{ height: 1, background: '#e2e8f0', margin: '0 20px' }} />
+          <div className="h-px bg-slate-200 mx-5" />
 
           {/* Pricing Breakdown */}
-          <div style={{ padding: '16px 20px 20px' }}>
-            <h4 style={{ fontSize: 14, fontWeight: 700, color: '#1e293b', margin: '0 0 14px' }}>Pricing Breakdown</h4>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+          <div className="px-5 pt-4 pb-5">
+            <h4 className="text-sm font-bold text-slate-800 mb-3.5">Pricing Breakdown</h4>
+            <div className="flex flex-col gap-2.5 text-[13px]">
+              <div className="flex justify-between text-slate-600">
                 <span>Monthly Base Fare</span>
-                <span style={{ fontWeight: 600, color: '#1e293b' }}>${booking.baseFare.toFixed(2)}</span>
+                <span className="font-semibold text-slate-800">${booking.baseFare.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+              <div className="flex justify-between text-slate-600">
                 <span>Early Booking Discount</span>
-                <span style={{ fontWeight: 600, color: '#16a34a' }}>-${Math.abs(booking.discount).toFixed(2)}</span>
+                <span className="font-semibold text-green-600">-${Math.abs(booking.discount).toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+              <div className="flex justify-between text-slate-600">
                 <span>Service Fee ({(booking.serviceFeeRate * 100).toFixed(1)}%)</span>
-                <span style={{ fontWeight: 600, color: '#1e293b' }}>${serviceFee.toFixed(2)}</span>
+                <span className="font-semibold text-slate-800">${serviceFee.toFixed(2)}</span>
               </div>
             </div>
 
-            {/* Divider */}
-            <div style={{ height: 1, background: '#e2e8f0', margin: '14px 0' }} />
+            <div className="h-px bg-slate-200 my-3.5" />
 
-            {/* Total */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>Total Amount</span>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#137fec' }}>${total.toFixed(2)}</div>
-                <div style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  USD Per Month
-                </div>
+            <div className="flex justify-between items-baseline">
+              <span className="text-sm font-bold text-slate-800">Total Amount</span>
+              <div className="text-right">
+                <div className="text-2xl font-extrabold text-primary">${total.toFixed(2)}</div>
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">USD Per Month</div>
               </div>
             </div>
 
             {/* SSL badge */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8, marginTop: 16,
-              padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0',
-            }}>
-              <Shield style={{ width: 16, height: 16, color: '#94a3b8', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.4 }}>
-                Secure 256-bit SSL Encrypted Payment
-              </span>
+            <div className="flex items-center gap-2 mt-4 px-3.5 py-2.5 bg-slate-50 rounded-lg border border-slate-200">
+              <Shield className="w-4 h-4 text-slate-400 shrink-0" />
+              <span className="text-xs text-slate-400 leading-snug">Secure 256-bit SSL Encrypted Payment</span>
             </div>
           </div>
         </div>

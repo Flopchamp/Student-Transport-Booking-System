@@ -33,57 +33,51 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f6f7f8', fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className="min-h-screen flex flex-col bg-bg font-sans">
       {/* Header */}
-      <header style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', padding: '16px 80px', backgroundColor: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', backgroundColor: '#137fec', borderRadius: '8px', color: '#fff' }}>
+      <header className="flex w-full items-center justify-between border-b border-border px-6 md:px-20 py-4 bg-white">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg text-white">
             <Bus size={20} />
           </div>
-          <h2 style={{ color: '#0f172a', fontSize: '18px', fontWeight: 800, lineHeight: '1.25', letterSpacing: '-0.01em' }}>EduTrans</h2>
+          <h2 className="text-lg font-extrabold text-text leading-tight tracking-tight">EduTrans</h2>
         </div>
-        <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', height: '40px', width: '40px', backgroundColor: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer' }}>
+        <button className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 text-slate-500 border-none cursor-pointer hover:bg-slate-200 transition-colors">
           <HelpCircle size={20} />
         </button>
       </header>
 
       {/* Main Content */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '48px 24px' }}>
-        <div style={{ width: '100%', maxWidth: '480px', backgroundColor: '#fff', padding: '32px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+      <main className="flex-1 flex flex-col justify-center items-center w-full px-6 py-12">
+        <div className="w-full max-w-[480px] bg-white p-8 rounded-xl border border-border shadow-sm">
           {/* Title */}
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h1 style={{ color: '#0f172a', fontSize: '30px', fontWeight: 700, lineHeight: '1.2', marginBottom: '8px' }}>Welcome Back</h1>
-            <p style={{ color: '#64748b', fontSize: '16px', fontWeight: 400 }}>Please enter your details to sign in</p>
+          <div className="text-center mb-8">
+            <h1 className="text-text text-3xl font-bold leading-tight mb-2">Welcome Back</h1>
+            <p className="text-text-secondary text-base">Please enter your details to sign in</p>
           </div>
 
           {/* Role Toggle */}
-          <div style={{ display: 'flex', marginBottom: '32px' }}>
-            <div style={{ display: 'flex', height: '48px', flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: '8px', backgroundColor: '#f1f5f9', padding: '4px' }}>
+          <div className="flex mb-8">
+            <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-slate-100 p-1">
               <button
                 type="button"
                 onClick={() => setActiveTab('parent')}
-                style={{
-                  display: 'flex', height: '100%', flex: 1, alignItems: 'center', justifyContent: 'center',
-                  borderRadius: '6px', padding: '0 16px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
-                  transition: 'all 0.2s',
-                  backgroundColor: activeTab === 'parent' ? '#fff' : 'transparent',
-                  boxShadow: activeTab === 'parent' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
-                  color: activeTab === 'parent' ? '#137fec' : '#64748b',
-                }}
+                className={`flex h-full flex-1 items-center justify-center rounded-md px-4 border-none cursor-pointer text-sm font-semibold transition-all ${
+                  activeTab === 'parent'
+                    ? 'bg-white shadow-sm text-primary'
+                    : 'bg-transparent text-slate-500 hover:text-slate-700'
+                }`}
               >
                 Parent
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('admin')}
-                style={{
-                  display: 'flex', height: '100%', flex: 1, alignItems: 'center', justifyContent: 'center',
-                  borderRadius: '6px', padding: '0 16px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
-                  transition: 'all 0.2s',
-                  backgroundColor: activeTab === 'admin' ? '#fff' : 'transparent',
-                  boxShadow: activeTab === 'admin' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
-                  color: activeTab === 'admin' ? '#137fec' : '#64748b',
-                }}
+                className={`flex h-full flex-1 items-center justify-center rounded-md px-4 border-none cursor-pointer text-sm font-semibold transition-all ${
+                  activeTab === 'admin'
+                    ? 'bg-white shadow-sm text-primary'
+                    : 'bg-transparent text-slate-500 hover:text-slate-700'
+                }`}
               >
                 Admin
               </button>
@@ -92,9 +86,9 @@ export default function LoginPage() {
 
           {/* Error Message */}
           {error && (
-            <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '20px', height: '20px', backgroundColor: '#fee2e2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ color: '#ef4444', fontSize: '12px', fontWeight: 700 }}>!</span>
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm flex items-center gap-2">
+              <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                <span className="text-red-500 text-xs font-bold">!</span>
               </div>
               {error}
             </div>
@@ -103,12 +97,12 @@ export default function LoginPage() {
           {/* Login Form */}
           <form onSubmit={handleSubmit}>
             {/* Email Field */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-              <label htmlFor="email" style={{ color: '#0f172a', fontSize: '14px', fontWeight: 600 }}>
+            <div className="flex flex-col gap-2 mb-5">
+              <label htmlFor="email" className="text-text text-sm font-semibold">
                 Email Address
               </label>
-              <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '20px', fontFamily: "'Material Symbols Outlined'", pointerEvents: 'none' }}>mail</span>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">mail</span>
                 <input
                   id="email"
                   type="email"
@@ -116,30 +110,23 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="student@university.edu"
                   required
-                  style={{
-                    display: 'flex', width: '100%', borderRadius: '8px', color: '#0f172a',
-                    border: '1px solid #e2e8f0', backgroundColor: '#fff', height: '48px',
-                    paddingLeft: '48px', paddingRight: '16px', fontSize: '14px', fontWeight: 400,
-                    outline: 'none', transition: 'all 0.2s', fontFamily: 'inherit',
-                  }}
-                  onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px #137fec'; e.target.style.borderColor = 'transparent'; }}
-                  onBlur={(e) => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = '#e2e8f0'; }}
+                  className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label htmlFor="password" style={{ color: '#0f172a', fontSize: '14px', fontWeight: 600 }}>
+            <div className="flex flex-col gap-2 mb-5">
+              <div className="flex justify-between items-center">
+                <label htmlFor="password" className="text-text text-sm font-semibold">
                   Password
                 </label>
-                <button type="button" style={{ color: '#137fec', fontSize: '12px', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <button type="button" className="text-primary text-xs font-semibold bg-transparent border-none cursor-pointer p-0 hover:underline">
                   Forgot Password?
                 </button>
               </div>
-              <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '20px', fontFamily: "'Material Symbols Outlined'", pointerEvents: 'none' }}>lock</span>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">lock</span>
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -147,19 +134,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  style={{
-                    display: 'flex', width: '100%', borderRadius: '8px', color: '#0f172a',
-                    border: '1px solid #e2e8f0', backgroundColor: '#fff', height: '48px',
-                    paddingLeft: '48px', paddingRight: '48px', fontSize: '14px', fontWeight: 400,
-                    outline: 'none', transition: 'all 0.2s', fontFamily: 'inherit',
-                  }}
-                  onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px #137fec'; e.target.style.borderColor = 'transparent'; }}
-                  onBlur={(e) => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = '#e2e8f0'; }}
+                  className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-12 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 bg-transparent border-none cursor-pointer p-0 flex hover:text-slate-600"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -167,15 +147,15 @@ export default function LoginPage() {
             </div>
 
             {/* Remember Me */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', marginBottom: '20px' }}>
+            <div className="flex items-center gap-2 py-1 mb-5">
               <input
                 type="checkbox"
                 id="remember"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                style={{ width: '16px', height: '16px', borderRadius: '4px', accentColor: '#137fec', cursor: 'pointer' }}
+                className="w-4 h-4 rounded accent-primary cursor-pointer"
               />
-              <label htmlFor="remember" style={{ color: '#475569', fontSize: '14px', cursor: 'pointer' }}>
+              <label htmlFor="remember" className="text-slate-500 text-sm cursor-pointer">
                 Remember me
               </label>
             </div>
@@ -184,19 +164,13 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              style={{
-                width: '100%', display: 'flex', height: '48px', alignItems: 'center', justifyContent: 'center',
-                borderRadius: '8px', backgroundColor: '#137fec', color: '#fff', fontSize: '16px', fontWeight: 700,
-                border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s', boxShadow: '0 4px 6px rgba(19,127,236,0.2)',
-                opacity: isSubmitting ? 0.6 : 1, marginTop: '8px', fontFamily: 'inherit',
-              }}
-              onMouseEnter={(e) => { if (!isSubmitting) (e.target as HTMLButtonElement).style.backgroundColor = '#1172d4'; }}
-              onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.backgroundColor = '#137fec'; }}
+              className={`w-full flex h-12 items-center justify-center rounded-lg bg-primary text-white text-base font-bold border-none cursor-pointer transition-all shadow-md shadow-primary/20 mt-2 hover:bg-primary/90 ${
+                isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+              }`}
             >
               {isSubmitting ? (
                 <>
-                  <div style={{ width: '20px', height: '20px', border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginRight: '8px' }} />
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                   Signing in...
                 </>
               ) : (
@@ -206,28 +180,25 @@ export default function LoginPage() {
           </form>
 
           {/* Need an account */}
-          <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
-            <p style={{ color: '#64748b', fontSize: '14px' }}>
+          <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+            <p className="text-slate-500 text-sm">
               Need an account?{' '}
-              <a href="#" style={{ color: '#137fec', fontWeight: 600, textDecoration: 'none' }}
-                onMouseEnter={(e) => { (e.target as HTMLAnchorElement).style.textDecoration = 'underline'; }}
-                onMouseLeave={(e) => { (e.target as HTMLAnchorElement).style.textDecoration = 'none'; }}
-              >Contact school administration</a>
+              <a href="#" className="text-primary font-semibold no-underline hover:underline">Contact school administration</a>
             </p>
           </div>
         </div>
 
         {/* Bottom Links */}
-        <div style={{ marginTop: '32px', display: 'flex', gap: '24px' }}>
-          <a href="#" style={{ color: '#94a3b8', fontSize: '12px', textDecoration: 'none' }}>Privacy Policy</a>
-          <a href="#" style={{ color: '#94a3b8', fontSize: '12px', textDecoration: 'none' }}>Terms of Service</a>
-          <a href="#" style={{ color: '#94a3b8', fontSize: '12px', textDecoration: 'none' }}>Contact Support</a>
+        <div className="mt-8 flex gap-6">
+          <a href="#" className="text-slate-400 text-xs no-underline hover:text-slate-600 transition-colors">Privacy Policy</a>
+          <a href="#" className="text-slate-400 text-xs no-underline hover:text-slate-600 transition-colors">Terms of Service</a>
+          <a href="#" className="text-slate-400 text-xs no-underline hover:text-slate-600 transition-colors">Contact Support</a>
         </div>
       </main>
 
       {/* Footer */}
-      <footer style={{ width: '100%', padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>
-        © 2024 Student Transport Solutions. All rights reserved.
+      <footer className="w-full py-6 text-center text-slate-400 text-xs">
+        &copy; {new Date().getFullYear()} Student Transport Solutions. All rights reserved.
       </footer>
     </div>
   );

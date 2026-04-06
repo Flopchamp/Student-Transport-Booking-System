@@ -39,108 +39,76 @@ export default function ParentLayout() {
     navigate('/login');
   };
 
-  const linkStyle = (isActive: boolean): React.CSSProperties => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: '10px 12px',
-    borderRadius: 8,
-    fontSize: 14,
-    fontWeight: isActive ? 600 : 500,
-    color: isActive ? '#137fec' : '#64748b',
-    background: isActive ? '#eff6ff' : 'transparent',
-    textDecoration: 'none',
-    transition: 'all 0.15s',
-    cursor: 'pointer',
-  });
-
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', background: '#f8fafc', fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen flex bg-bg">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 40 }}
-          className="lg:hidden"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300`}
-        style={{
-          width: 240,
-          background: '#ffffff',
-          borderRight: '1px solid #e2e8f0',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          height: '100vh',
-          zIndex: 50,
-          flexShrink: 0,
-        }}
+        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-60 bg-surface border-r border-border flex flex-col shrink-0 transition-transform duration-300 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
       >
         {/* Logo */}
-        <div style={{ padding: '20px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, background: '#137fec', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Bus style={{ width: 20, height: 20, color: '#fff' }} />
+        <div className="px-5 pt-5 pb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-primary rounded-[10px] flex items-center justify-center">
+              <Bus className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>EduTrans</div>
-              <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.2 }}>Portal</div>
+              <div className="text-base font-bold text-text leading-tight">EduTrans</div>
+              <div className="text-[11px] text-text-muted leading-tight">Portal</div>
             </div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden"
-            style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer' }}
+            className="lg:hidden p-1 rounded-md border-none bg-transparent cursor-pointer hover:bg-gray-100"
           >
-            <X style={{ width: 20, height: 20, color: '#64748b' }} />
+            <X className="w-5 h-5 text-text-secondary" />
           </button>
         </div>
 
         {/* Main Navigation */}
-        <nav style={{ flex: 1, padding: '8px 12px', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <nav className="flex-1 px-3 py-2 overflow-y-auto">
+          <div className="flex flex-col gap-0.5">
             {mainNav.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                style={({ isActive }) => linkStyle(isActive)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm no-underline transition-all duration-150 cursor-pointer ${
+                    isActive
+                      ? 'font-semibold text-primary bg-blue-50'
+                      : 'font-medium text-text-secondary hover:bg-gray-50'
+                  }`
+                }
               >
-                <item.icon style={{ width: 20, height: 20 }} />
+                <item.icon className="w-5 h-5" />
                 {item.label}
               </NavLink>
             ))}
           </div>
 
           {/* Account Section */}
-          <div style={{ marginTop: 28 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '8px 12px' }}>
+          <div className="mt-7">
+            <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider px-3 py-2">
               Account
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div className="flex flex-col gap-0.5">
               {accountNav.map((item) => (
                 <a
                   key={item.label}
                   href={item.path}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: '#64748b',
-                    textDecoration: 'none',
-                  }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary no-underline hover:bg-gray-50 transition-colors"
                 >
-                  <item.icon style={{ width: 20, height: 20 }} />
+                  <item.icon className="w-5 h-5" />
                   {item.label}
                 </a>
               ))}
@@ -149,121 +117,62 @@ export default function ParentLayout() {
         </nav>
 
         {/* User Card */}
-        <div style={{ padding: 12, borderTop: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px' }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <User style={{ width: 18, height: 18, color: '#f59e0b' }} />
+        <div className="p-3 border-t border-border">
+          <div className="flex items-center gap-2.5 px-2 py-2">
+            <div className="w-9 h-9 rounded-full bg-warning-light flex items-center justify-center shrink-0">
+              <User className="w-4.5 h-4.5 text-warning" />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold text-text truncate">
                 {user?.first_name} {user?.last_name}
               </div>
-              <div style={{ fontSize: 11, color: '#94a3b8' }}>Parent Account</div>
+              <div className="text-[11px] text-text-muted">Parent Account</div>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '10px 12px',
-              marginTop: 4,
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 500,
-              color: '#ef4444',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 mt-1 rounded-lg text-[13px] font-medium text-danger bg-transparent border-none cursor-pointer hover:bg-danger-light transition-colors"
           >
-            <LogOut style={{ width: 18, height: 18 }} />
+            <LogOut className="w-4.5 h-4.5" />
             Logout
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }} className="sidebar-offset">
+      <div className="flex-1 flex flex-col min-h-screen">
         {/* Top Bar */}
-        <header style={{
-          height: 64,
-          background: '#ffffff',
-          borderBottom: '1px solid #e2e8f0',
-          padding: '0 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          position: 'sticky',
-          top: 0,
-          zIndex: 30,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <header className="h-16 bg-surface border-b border-border px-6 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden"
-              style={{ padding: 8, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer' }}
+              className="lg:hidden p-2 rounded-lg border-none bg-transparent cursor-pointer hover:bg-gray-100 transition-colors"
             >
-              <Menu style={{ width: 20, height: 20, color: '#64748b' }} />
+              <Menu className="w-5 h-5 text-text-secondary" />
             </button>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', margin: 0 }}>Dashboard Overview</h2>
+            <h2 className="text-lg font-bold text-text m-0">Dashboard Overview</h2>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="flex items-center gap-3">
             {/* Search */}
-            <div style={{ position: 'relative' }} className="hidden md:block">
-              <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#94a3b8' }} />
+            <div className="relative hidden md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
               <input
                 placeholder="Search activities..."
-                style={{
-                  width: 220,
-                  height: 38,
-                  paddingLeft: 36,
-                  paddingRight: 12,
-                  fontSize: 13,
-                  border: '1px solid #e2e8f0',
-                  borderRadius: 8,
-                  background: '#f8fafc',
-                  outline: 'none',
-                  color: '#1e293b',
-                }}
+                className="w-55 h-9.5 pl-9 pr-3 text-[13px] border border-border rounded-lg bg-bg outline-none text-text"
               />
             </div>
 
             {/* Notification Bell */}
-            <button style={{
-              position: 'relative',
-              width: 38,
-              height: 38,
-              borderRadius: 8,
-              border: '1px solid #e2e8f0',
-              background: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}>
-              <Bell style={{ width: 18, height: 18, color: '#64748b' }} />
-              <span style={{
-                position: 'absolute',
-                top: 6,
-                right: 6,
-                width: 8,
-                height: 8,
-                background: '#ef4444',
-                borderRadius: '50%',
-                border: '2px solid #fff',
-              }} />
+            <button className="relative w-9.5 h-9.5 rounded-lg border border-border bg-surface flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
+              <Bell className="w-4.5 h-4.5 text-text-secondary" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border-2 border-white" />
             </button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main style={{ flex: 1, padding: 24 }}>
+        <main className="flex-1 p-6">
           <Outlet />
         </main>
       </div>

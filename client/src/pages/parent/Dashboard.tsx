@@ -45,7 +45,6 @@ export default function ParentDashboard() {
 
       const rawStudents = studentsRes.data.data;
       const rawBookings = bookingsRes.data.data;
-      // API returns { students: [...] } and { bookings: [...] } inside data
       const studentData = Array.isArray(rawStudents) ? rawStudents : (rawStudents?.students || []);
       const bookingData = Array.isArray(rawBookings) ? rawBookings : (rawBookings?.bookings || []);
 
@@ -71,134 +70,103 @@ export default function ParentDashboard() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
-        <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-[300px]">
+        <div className="w-8 h-8 border-[3px] border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   const notifications = [
-    { emoji: '📍', bg: '#eff6ff', title: 'Pickup Completed', time: '10m ago', desc: `${user?.first_name || 'Sarah'} Miller was picked up at 07:45 AM from Stop 4.` },
-    { emoji: '💳', bg: '#fef3c7', title: 'Payment Reminder', time: '2h ago', desc: 'Next monthly subscription payment is due in 3 days.', link: 'Pay Now' },
-    { emoji: '✅', bg: '#d1fae5', title: 'Route Update', time: 'Yesterday', desc: 'A new stop has been added to Route A-12 near your location.' },
-    { emoji: '🔵', bg: '#eff6ff', title: 'System Update', time: '2 days ago', desc: 'New dashboard features are now live. Check the guide.' },
+    { emoji: '📍', bg: 'bg-blue-50', title: 'Pickup Completed', time: '10m ago', desc: `${user?.first_name || 'Sarah'} Miller was picked up at 07:45 AM from Stop 4.` },
+    { emoji: '💳', bg: 'bg-amber-50', title: 'Payment Reminder', time: '2h ago', desc: 'Next monthly subscription payment is due in 3 days.', link: 'Pay Now' },
+    { emoji: '✅', bg: 'bg-green-50', title: 'Route Update', time: 'Yesterday', desc: 'A new stop has been added to Route A-12 near your location.' },
+    { emoji: '🔵', bg: 'bg-blue-50', title: 'System Update', time: '2 days ago', desc: 'New dashboard features are now live. Check the guide.' },
   ];
 
-  const card: React.CSSProperties = {
-    background: '#fff',
-    borderRadius: 12,
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-  };
+  const cardClass = 'bg-white rounded-xl border border-border shadow-sm';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div className="flex flex-col gap-6">
 
       {/* ───── Stat Cards ───── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        {/* Registered Students */}
-        <div style={{ ...card, padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Users style={{ width: 22, height: 22, color: '#137fec' }} />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className={`${cardClass} p-5 flex items-center gap-4`}>
+          <div className="w-11 h-11 rounded-[10px] bg-blue-50 flex items-center justify-center">
+            <Users className="w-[22px] h-[22px] text-primary" />
           </div>
           <div>
-            <div style={{ fontSize: 13, color: '#64748b', marginBottom: 2 }}>Registered Students</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#1e293b' }}>{stats.totalStudents}</div>
+            <div className="text-[13px] text-slate-500 mb-0.5">Registered Students</div>
+            <div className="text-[28px] font-bold text-slate-800">{stats.totalStudents}</div>
           </div>
         </div>
 
-        {/* Active Routes */}
-        <div style={{ ...card, padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <MapPin style={{ width: 22, height: 22, color: '#10b981' }} />
+        <div className={`${cardClass} p-5 flex items-center gap-4`}>
+          <div className="w-11 h-11 rounded-[10px] bg-green-100 flex items-center justify-center">
+            <MapPin className="w-[22px] h-[22px] text-emerald-500" />
           </div>
           <div>
-            <div style={{ fontSize: 13, color: '#64748b', marginBottom: 2 }}>Active Routes</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#1e293b' }}>{stats.activeRoutes}</div>
+            <div className="text-[13px] text-slate-500 mb-0.5">Active Routes</div>
+            <div className="text-[28px] font-bold text-slate-800">{stats.activeRoutes}</div>
           </div>
         </div>
 
-        {/* Payment Status */}
-        <div style={{ ...card, padding: 20, display: 'flex', alignItems: 'center', gap: 16, background: stats.paymentStatus === 'Paid' ? '#fffbeb' : '#fff' }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CreditCard style={{ width: 22, height: 22, color: '#f59e0b' }} />
+        <div className={`${cardClass} p-5 flex items-center gap-4 ${stats.paymentStatus === 'Paid' ? 'bg-amber-50' : ''}`}>
+          <div className="w-11 h-11 rounded-[10px] bg-amber-100 flex items-center justify-center">
+            <CreditCard className="w-[22px] h-[22px] text-amber-500" />
           </div>
           <div>
-            <div style={{ fontSize: 13, color: '#64748b', marginBottom: 2 }}>Payment Status</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#1e293b' }}>{stats.paymentStatus}</div>
+            <div className="text-[13px] text-slate-500 mb-0.5">Payment Status</div>
+            <div className="text-[28px] font-bold text-slate-800">{stats.paymentStatus}</div>
           </div>
         </div>
       </div>
 
       {/* ───── Two-Column Layout ───── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
 
         {/* LEFT COLUMN */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="flex flex-col gap-6">
 
           {/* Quick Actions */}
-          <div style={{ ...card, padding: 24 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1e293b', margin: '0 0 16px' }}>Quick Actions</h3>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <Link to="/students" state={{ openAddModal: true }} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-                background: '#10b981', color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 600,
-                textDecoration: 'none',
-              }}>
-                <Plus style={{ width: 16, height: 16 }} /> Add Student
+          <div className={`${cardClass} p-6`}>
+            <h3 className="text-base font-semibold text-slate-800 mb-4">Quick Actions</h3>
+            <div className="flex gap-3">
+              <Link to="/students" state={{ openAddModal: true }} className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold no-underline hover:bg-emerald-600 transition-colors">
+                <Plus className="w-4 h-4" /> Add Student
               </Link>
-              <Link to="/book-transport" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-                background: '#fff', color: '#1e293b', borderRadius: 8, fontSize: 14, fontWeight: 600,
-                border: '1px solid #e2e8f0', textDecoration: 'none',
-              }}>
-                <Bus style={{ width: 16, height: 16 }} /> Book Transport
+              <Link to="/book-transport" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-800 rounded-lg text-sm font-semibold border border-border no-underline hover:bg-gray-50 transition-colors">
+                <Bus className="w-4 h-4" /> Book Transport
               </Link>
             </div>
           </div>
 
           {/* Live Trip Tracking */}
-          <div style={{ ...card, padding: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1e293b', margin: 0 }}>Live Trip Tracking</h3>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500,
-                color: '#10b981', background: '#d1fae5', padding: '4px 10px', borderRadius: 20,
-              }}>
-                <span style={{ width: 6, height: 6, background: '#10b981', borderRadius: '50%', display: 'inline-block' }} />
+          <div className={`${cardClass} p-6`}>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-base font-semibold text-slate-800 m-0">Live Trip Tracking</h3>
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-500 bg-green-100 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block" />
                 In Transit
               </span>
             </div>
-            <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px' }}>Route A-12 • Afternoon Drop-off</p>
+            <p className="text-[13px] text-slate-500 mb-4">Route A-12 • Afternoon Drop-off</p>
 
-            {/* Map Placeholder */}
-            <div style={{
-              background: '#f1f5f9', borderRadius: 12, height: 220, display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', position: 'relative',
-            }}>
-              <div style={{
-                width: 48, height: 48, background: '#137fec', borderRadius: '50%', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', marginBottom: 8,
-                boxShadow: '0 2px 8px rgba(19,127,236,0.3)',
-              }}>
-                <Bus style={{ width: 24, height: 24, color: '#fff' }} />
+            <div className="bg-slate-100 rounded-xl h-[220px] flex flex-col items-center justify-center border border-border relative">
+              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-2 shadow-md shadow-primary/30">
+                <Bus className="w-6 h-6 text-white" />
               </div>
-              <div style={{
-                background: '#fff', padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-                color: '#1e293b', boxShadow: '0 1px 4px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0',
-              }}>
+              <div className="bg-white px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-800 shadow-sm border border-border">
                 ETA: 12 mins
               </div>
             </div>
 
-            {/* Driver Info */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 16, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontSize: 13 }}>
-                <User style={{ width: 16, height: 16 }} />
-                <span>Driver: <strong style={{ color: '#1e293b' }}>John Thompson</strong></span>
+            <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-2 text-slate-500 text-[13px]">
+                <User className="w-4 h-4" />
+                <span>Driver: <strong className="text-slate-800">John Thompson</strong></span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#137fec', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-                <Phone style={{ width: 14, height: 14 }} />
+              <div className="flex items-center gap-1.5 text-primary text-[13px] font-medium cursor-pointer hover:underline">
+                <Phone className="w-3.5 h-3.5" />
                 Contact Driver
               </div>
             </div>
@@ -206,31 +174,27 @@ export default function ParentDashboard() {
         </div>
 
         {/* RIGHT COLUMN – Notifications */}
-        <div style={{ ...card, padding: 24, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1e293b', margin: 0 }}>Notifications</h3>
-            <span style={{ fontSize: 13, color: '#137fec', fontWeight: 500, cursor: 'pointer' }}>Mark all read</span>
+        <div className={`${cardClass} p-6 flex flex-col`}>
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-base font-semibold text-slate-800 m-0">Notifications</h3>
+            <span className="text-[13px] text-primary font-medium cursor-pointer hover:underline">Mark all read</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
+          <div className="flex flex-col gap-4 flex-1">
             {notifications.map((n, i) => (
-              <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%', background: n.bg,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 14, flexShrink: 0, marginTop: 2,
-                }}>
+              <div key={i} className="flex gap-3 items-start">
+                <div className={`w-8 h-8 rounded-full ${n.bg} flex items-center justify-center text-sm shrink-0 mt-0.5`}>
                   {n.emoji}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{n.title}</span>
-                    <span style={{ fontSize: 11, color: '#94a3b8' }}>{n.time}</span>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[13px] font-semibold text-slate-800">{n.title}</span>
+                    <span className="text-[11px] text-slate-400">{n.time}</span>
                   </div>
-                  <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5, margin: 0 }}>{n.desc}</p>
+                  <p className="text-xs text-slate-500 leading-relaxed m-0">{n.desc}</p>
                   {n.link && (
-                    <a href="#" style={{ fontSize: 12, color: '#137fec', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 2, marginTop: 4 }}>
-                      {n.link} <ChevronRight style={{ width: 12, height: 12 }} />
+                    <a href="#" className="text-xs text-primary font-semibold no-underline inline-flex items-center gap-0.5 mt-1 hover:underline">
+                      {n.link} <ChevronRight className="w-3 h-3" />
                     </a>
                   )}
                 </div>
@@ -238,8 +202,8 @@ export default function ParentDashboard() {
             ))}
           </div>
 
-          <div style={{ textAlign: 'center', paddingTop: 16, borderTop: '1px solid #f1f5f9', marginTop: 16 }}>
-            <a href="#" style={{ fontSize: 13, color: '#137fec', fontWeight: 500, textDecoration: 'none' }}>
+          <div className="text-center pt-4 border-t border-slate-100 mt-4">
+            <a href="#" className="text-[13px] text-primary font-medium no-underline hover:underline">
               View All Notifications
             </a>
           </div>
@@ -248,77 +212,40 @@ export default function ParentDashboard() {
 
       {/* ───── Your Students ───── */}
       <div>
-        <h3 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', margin: '0 0 16px' }}>Your Students</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+        <h3 className="text-lg font-bold text-slate-800 mb-4">Your Students</h3>
+        <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4">
           {students.length > 0 ? students.map((student) => (
-            <div key={student.id} style={{ ...card, padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', fontWeight: 700, fontSize: 16, flexShrink: 0,
-                background: '#dbeafe', color: '#137fec',
-              }}>
+            <div key={student.id} className={`${cardClass} p-5 flex items-center gap-4`}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-base shrink-0 bg-blue-100 text-primary">
                 {student.first_name[0]}{student.last_name[0]}
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: '#1e293b' }}>
-                    {student.first_name} {student.last_name}
-                  </span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>
-                    Grade {student.grade}
-                  </span>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[15px] font-semibold text-slate-800">{student.first_name} {student.last_name}</span>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase">Grade {student.grade}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6, fontSize: 12, color: '#64748b' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <MapPin style={{ width: 13, height: 13 }} /> Route A-12
+                <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-[13px] h-[13px]" /> {student.school_name || 'Route A-12'}
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                    <span style={{ color: '#10b981', fontWeight: 500 }}>Confirmed</span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                    <span className="text-emerald-500 font-medium">Active</span>
                   </span>
                 </div>
               </div>
-              <button style={{ padding: 4, background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
-                <MoreVertical style={{ width: 18, height: 18 }} />
+              <button className="p-1 bg-transparent border-none cursor-pointer text-slate-400 hover:text-slate-600">
+                <MoreVertical className="w-[18px] h-[18px]" />
               </button>
             </div>
           )) : (
-            <>
-              <div style={{ ...card, padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, color: '#137fec', flexShrink: 0 }}>SM</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: '#1e293b' }}>Sarah Miller</span>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Grade 4</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6, fontSize: 12, color: '#64748b' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin style={{ width: 13, height: 13 }} /> Route A-12</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                      <span style={{ color: '#10b981', fontWeight: 500 }}>Confirmed</span>
-                    </span>
-                  </div>
-                </div>
-                <button style={{ padding: 4, background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><MoreVertical style={{ width: 18, height: 18 }} /></button>
-              </div>
-              <div style={{ ...card, padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, color: '#f59e0b', flexShrink: 0 }}>LM</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: '#1e293b' }}>Leo Miller</span>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Grade 1</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6, fontSize: 12, color: '#64748b' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin style={{ width: 13, height: 13 }} /> Route B-05</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#94a3b8', display: 'inline-block' }} />
-                      <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Booking Pending</span>
-                    </span>
-                  </div>
-                </div>
-                <button style={{ padding: 4, background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><MoreVertical style={{ width: 18, height: 18 }} /></button>
-              </div>
-            </>
+            <div className={`${cardClass} p-8 text-center col-span-full`}>
+              <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 mb-4">No students registered yet.</p>
+              <Link to="/students" state={{ openAddModal: true }} className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold no-underline hover:bg-primary/90 transition-colors">
+                <Plus className="w-4 h-4" /> Add Your First Student
+              </Link>
+            </div>
           )}
         </div>
       </div>

@@ -16,13 +16,13 @@ import {
 } from 'lucide-react';
 import type { Booking } from '../../types';
 
-/* ─── Status colours ─── */
+/* ─── Status colours (Tailwind classes) ─── */
 const statusConfig: Record<string, { bg: string; text: string; border: string; dot: string; label: string }> = {
-  pending:     { bg: '#fffbeb', text: '#b45309', border: '#fde68a', dot: '#f59e0b', label: 'Pending' },
-  confirmed:   { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe', dot: '#3b82f6', label: 'Confirmed' },
-  in_progress: { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0', dot: '#22c55e', label: 'In Progress' },
-  completed:   { bg: '#f8fafc', text: '#475569', border: '#e2e8f0', dot: '#94a3b8', label: 'Completed' },
-  cancelled:   { bg: '#fef2f2', text: '#dc2626', border: '#fecaca', dot: '#ef4444', label: 'Cancelled' },
+  pending:     { bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400',  label: 'Pending' },
+  confirmed:   { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-500',   label: 'Confirmed' },
+  in_progress: { bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-500',  label: 'In Progress' },
+  completed:   { bg: 'bg-slate-50',  text: 'text-slate-600',  border: 'border-slate-200',  dot: 'bg-slate-400',  label: 'Completed' },
+  cancelled:   { bg: 'bg-red-50',    text: 'text-red-600',    border: 'border-red-200',    dot: 'bg-red-500',    label: 'Cancelled' },
 };
 
 export default function MyBookings() {
@@ -33,9 +33,7 @@ export default function MyBookings() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+  useEffect(() => { fetchBookings(); }, []);
 
   const fetchBookings = async () => {
     try {
@@ -71,88 +69,37 @@ export default function MyBookings() {
     return matchesSearch && matchesStatus;
   });
 
-  /* ─── Styles ─── */
-  const card: React.CSSProperties = {
-    background: '#fff',
-    borderRadius: 12,
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-  };
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    height: 44,
-    padding: '0 14px 0 42px',
-    fontSize: 14,
-    border: '1px solid #e2e8f0',
-    borderRadius: 10,
-    background: '#fff',
-    outline: 'none',
-    color: '#1e293b',
-  };
-  const selectStyle: React.CSSProperties = {
-    height: 44,
-    padding: '0 36px 0 14px',
-    fontSize: 14,
-    border: '1px solid #e2e8f0',
-    borderRadius: 10,
-    background: '#fff',
-    outline: 'none',
-    color: '#1e293b',
-    appearance: 'none' as React.CSSProperties['appearance'],
-    backgroundImage:
-      'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2394a3b8\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")',
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 12px center',
-    cursor: 'pointer',
-  };
-  const thStyle: React.CSSProperties = {
-    textAlign: 'left',
-    padding: '12px 16px',
-    fontSize: 11,
-    fontWeight: 600,
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    whiteSpace: 'nowrap',
-  };
-  const tdStyle: React.CSSProperties = {
-    padding: '14px 16px',
-    fontSize: 14,
-    color: '#475569',
-    whiteSpace: 'nowrap',
-  };
-
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
-        <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-[300px]">
+        <div className="w-8 h-8 border-[3px] border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* ═══ Header ═══ */}
+    <div className="flex flex-col gap-6">
+      {/* ─── Header ─── */}
       <div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', margin: 0 }}>My Bookings</h1>
-        <p style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>View and manage your transport bookings</p>
+        <h1 className="text-2xl font-bold text-slate-800">My Bookings</h1>
+        <p className="text-sm text-slate-500 mt-1">View and manage your transport bookings</p>
       </div>
 
-      {/* ═══ Search & Filter ═══ */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 260, position: 'relative' }}>
-          <Search style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#94a3b8' }} />
+      {/* ─── Search & Filter ─── */}
+      <div className="flex gap-3 items-center flex-wrap">
+        <div className="flex-1 min-w-[260px] relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by reference or location..."
-            style={inputStyle}
+            className="w-full h-11 pl-10 pr-3.5 text-sm border border-slate-200 rounded-[10px] bg-white outline-none text-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          style={selectStyle}
+          className="h-11 px-3.5 pr-9 text-sm border border-slate-200 rounded-[10px] bg-white text-slate-800 outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-primary"
         >
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
@@ -163,19 +110,14 @@ export default function MyBookings() {
         </select>
       </div>
 
-      {/* ═══ Content ═══ */}
+      {/* ─── Content ─── */}
       {filteredBookings.length === 0 ? (
-        /* ─── Empty State ─── */
-        <div style={{ ...card, padding: '60px 24px', textAlign: 'center' }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: 16, background: '#f1f5f9',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 20px',
-          }}>
-            <Calendar style={{ width: 36, height: 36, color: '#cbd5e1' }} />
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm py-[60px] px-6 text-center">
+          <div className="w-[72px] h-[72px] rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
+            <Calendar className="w-9 h-9 text-slate-300" />
           </div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', margin: '0 0 6px' }}>No bookings found</h3>
-          <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 24px' }}>
+          <h3 className="text-lg font-bold text-slate-800 mb-1.5">No bookings found</h3>
+          <p className="text-sm text-slate-400 mb-6">
             {search || statusFilter !== 'all'
               ? 'Try adjusting your search or filters'
               : 'Book your first transport to get started'}
@@ -183,101 +125,72 @@ export default function MyBookings() {
           {!(search || statusFilter !== 'all') && (
             <button
               onClick={() => navigate('/book-transport')}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '12px 28px', borderRadius: 10, fontSize: 14, fontWeight: 600,
-                background: '#137fec', color: '#fff', border: 'none', cursor: 'pointer',
-              }}
+              className="inline-flex items-center gap-2 px-7 py-3 rounded-[10px] text-sm font-semibold bg-primary text-white border-none cursor-pointer hover:bg-blue-600 transition"
             >
-              <Bus style={{ width: 18, height: 18 }} />
+              <Bus className="w-[18px] h-[18px]" />
               Book Transport
-              <ArrowRight style={{ width: 16, height: 16 }} />
+              <ArrowRight className="w-4 h-4" />
             </button>
           )}
         </div>
       ) : (
-        /* ─── Bookings Table ─── */
-        <div style={{ ...card, overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
               <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={thStyle}>Reference</th>
-                  <th style={thStyle}>Student</th>
-                  <th style={thStyle}>Route</th>
-                  <th style={thStyle}>Type</th>
-                  <th style={thStyle}>Date</th>
-                  <th style={thStyle}>Status</th>
-                  <th style={thStyle}>Fare</th>
-                  <th style={thStyle}>Actions</th>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  {['Reference', 'Student', 'Route', 'Type', 'Date', 'Status', 'Fare', 'Actions'].map((h) => (
+                    <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredBookings.map((booking) => {
                   const sc = statusConfig[booking.status] || statusConfig.pending;
                   return (
-                    <tr key={booking.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 600, color: '#1e293b', fontSize: 13 }}>
+                    <tr key={booking.id} className="border-b border-slate-100">
+                      <td className="px-4 py-3.5 text-[13px] font-mono font-semibold text-slate-800 whitespace-nowrap">
                         {booking.booking_reference}
                       </td>
-                      <td style={tdStyle}>
-                        {booking.Student
-                          ? `${booking.Student.first_name} ${booking.Student.last_name}`
-                          : '—'}
+                      <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">
+                        {booking.Student ? `${booking.Student.first_name} ${booking.Student.last_name}` : '—'}
                       </td>
-                      <td style={tdStyle}>
+                      <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">
                         {booking.Route?.name || booking.Route?.route_name || '—'}
                       </td>
-                      <td style={{ ...tdStyle, textTransform: 'capitalize' }}>
+                      <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap capitalize">
                         {booking.booking_type.replace('_', ' ')}
                       </td>
-                      <td style={tdStyle}>
-                        {new Date(booking.start_date).toLocaleDateString('en-US', {
-                          month: 'short', day: 'numeric', year: 'numeric',
-                        })}
+                      <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">
+                        {new Date(booking.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
-                      <td style={tdStyle}>
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 6,
-                          padding: '4px 12px', borderRadius: 20,
-                          fontSize: 12, fontWeight: 600,
-                          background: sc.bg, color: sc.text, border: `1px solid ${sc.border}`,
-                        }}>
-                          <span style={{
-                            width: 6, height: 6, borderRadius: '50%', background: sc.dot,
-                          }} />
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${sc.bg} ${sc.text} ${sc.border}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
                           {sc.label}
                         </span>
                       </td>
-                      <td style={{ ...tdStyle, fontWeight: 600, color: '#1e293b' }}>
+                      <td className="px-4 py-3.5 text-sm font-semibold text-slate-800 whitespace-nowrap">
                         ${booking.fare_amount ? Number(booking.fare_amount).toFixed(2) : '0.00'}
                       </td>
-                      <td style={tdStyle}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <div className="flex items-center gap-1">
                           <button
                             onClick={() => setSelectedBooking(booking)}
                             title="View Details"
-                            style={{
-                              width: 32, height: 32, borderRadius: 8,
-                              border: '1px solid #e2e8f0', background: '#fff',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              cursor: 'pointer',
-                            }}
+                            className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50 transition"
                           >
-                            <Eye style={{ width: 15, height: 15, color: '#64748b' }} />
+                            <Eye className="w-[15px] h-[15px] text-slate-500" />
                           </button>
                           {['pending', 'confirmed'].includes(booking.status) && (
                             <button
                               onClick={() => handleCancel(booking.id)}
                               title="Cancel Booking"
-                              style={{
-                                width: 32, height: 32, borderRadius: 8,
-                                border: '1px solid #fecaca', background: '#fff',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer',
-                              }}
+                              className="w-8 h-8 rounded-lg border border-red-200 bg-white flex items-center justify-center cursor-pointer hover:bg-red-50 transition"
                             >
-                              <XCircle style={{ width: 15, height: 15, color: '#ef4444' }} />
+                              <XCircle className="w-[15px] h-[15px] text-red-500" />
                             </button>
                           )}
                         </div>
@@ -290,103 +203,64 @@ export default function MyBookings() {
           </div>
 
           {/* Pagination footer */}
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '12px 16px', borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#94a3b8',
-          }}>
+          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 text-[13px] text-slate-400">
             <span>Showing {filteredBookings.length} booking{filteredBookings.length !== 1 ? 's' : ''}</span>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button style={{
-                width: 32, height: 32, borderRadius: 6, border: '1px solid #e2e8f0',
-                background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-              }}>
-                <ChevronLeft style={{ width: 16, height: 16, color: '#94a3b8' }} />
+            <div className="flex gap-1">
+              <button className="w-8 h-8 rounded-md border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50">
+                <ChevronLeft className="w-4 h-4 text-slate-400" />
               </button>
-              <button style={{
-                width: 32, height: 32, borderRadius: 6, border: '1px solid #e2e8f0',
-                background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-              }}>
-                <ChevronRight style={{ width: 16, height: 16, color: '#94a3b8' }} />
+              <button className="w-8 h-8 rounded-md border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50">
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ═══ Booking Detail Modal ═══ */}
+      {/* ─── Booking Detail Modal ─── */}
       {selectedBooking && (() => {
         const sc = statusConfig[selectedBooking.status] || statusConfig.pending;
         return (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            {/* Backdrop */}
-            <div
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)' }}
-              onClick={() => setSelectedBooking(null)}
-            />
-
-            {/* Modal Card */}
-            <div style={{
-              position: 'relative', background: '#fff', borderRadius: 16,
-              boxShadow: '0 20px 60px rgba(0,0,0,0.15)', width: '100%', maxWidth: 480,
-              maxHeight: '90vh', overflowY: 'auto',
-            }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/45" onClick={() => setSelectedBooking(null)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[480px] max-h-[90vh] overflow-y-auto">
               {/* Header */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '16px 24px', borderBottom: '1px solid #e2e8f0',
-              }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', margin: 0 }}>Booking Details</h2>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <h2 className="text-lg font-bold text-slate-800">Booking Details</h2>
                 <button
                   onClick={() => setSelectedBooking(null)}
-                  style={{
-                    width: 32, height: 32, borderRadius: 8, border: '1px solid #e2e8f0',
-                    background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer',
-                  }}
+                  className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50"
                 >
-                  <X style={{ width: 16, height: 16, color: '#64748b' }} />
+                  <X className="w-4 h-4 text-slate-500" />
                 </button>
               </div>
 
               {/* Body */}
-              <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div className="p-6 flex flex-col gap-5">
                 {/* Reference + Status */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="flex items-center justify-between">
                   <div>
-                    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
-                      Reference
-                    </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', fontFamily: 'monospace' }}>
-                      {selectedBooking.booking_reference}
-                    </div>
+                    <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Reference</div>
+                    <div className="text-[15px] font-bold text-slate-800 font-mono">{selectedBooking.booking_reference}</div>
                   </div>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '5px 14px', borderRadius: 20,
-                    fontSize: 12, fontWeight: 600,
-                    background: sc.bg, color: sc.text, border: `1px solid ${sc.border}`,
-                  }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: sc.dot }} />
+                  <span className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold border ${sc.bg} ${sc.text} ${sc.border}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
                     {sc.label}
                   </span>
                 </div>
 
                 {/* Student Info */}
                 {selectedBooking.Student && (
-                  <div style={{ padding: 16, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{
-                        width: 40, height: 40, borderRadius: '50%', background: '#dbeafe',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 700, fontSize: 14, color: '#137fec',
-                      }}>
+                  <div className="p-4 bg-slate-50 rounded-[10px] border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-sm text-primary">
                         {selectedBooking.Student.first_name[0]}{selectedBooking.Student.last_name[0]}
                       </div>
                       <div>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: '#1e293b' }}>
+                        <div className="text-[15px] font-semibold text-slate-800">
                           {selectedBooking.Student.first_name} {selectedBooking.Student.last_name}
                         </div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>
+                        <div className="text-[13px] text-slate-500">
                           {selectedBooking.Student.school_name || 'Student'}
                         </div>
                       </div>
@@ -395,65 +269,58 @@ export default function MyBookings() {
                 )}
 
                 {/* Route / Stops */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#475569' }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <MapPin style={{ width: 14, height: 14, color: '#22c55e' }} />
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2.5 text-sm text-slate-600">
+                    <div className="w-7 h-7 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                      <MapPin className="w-3.5 h-3.5 text-green-500" />
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>Pickup</div>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: '#1e293b' }}>{selectedBooking.pickup_location}</div>
+                      <div className="text-[11px] text-slate-400 font-semibold">Pickup</div>
+                      <div className="text-sm font-medium text-slate-800">{selectedBooking.pickup_location}</div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#475569' }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <MapPin style={{ width: 14, height: 14, color: '#ef4444' }} />
+                  <div className="flex items-center gap-2.5 text-sm text-slate-600">
+                    <div className="w-7 h-7 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                      <MapPin className="w-3.5 h-3.5 text-red-500" />
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>Drop-off</div>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: '#1e293b' }}>{selectedBooking.dropoff_location}</div>
+                      <div className="text-[11px] text-slate-400 font-semibold">Drop-off</div>
+                      <div className="text-sm font-medium text-slate-800">{selectedBooking.dropoff_location}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Details Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Type</div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1e293b', textTransform: 'capitalize' }}>
-                      {selectedBooking.booking_type.replace('_', ' ')}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Type</div>
+                    <div className="text-sm font-semibold text-slate-800 capitalize">{selectedBooking.booking_type.replace('_', ' ')}</div>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Date</div>
+                    <div className="text-sm font-semibold text-slate-800">
+                      {new Date(selectedBooking.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
                   </div>
-                  <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Date</div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1e293b' }}>
-                      {new Date(selectedBooking.start_date).toLocaleDateString('en-US', {
-                        month: 'short', day: 'numeric', year: 'numeric',
-                      })}
-                    </div>
-                  </div>
-                  <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Pickup Time</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: '#1e293b' }}>
-                      <Clock style={{ width: 14, height: 14, color: '#64748b' }} />
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Pickup Time</div>
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                      <Clock className="w-3.5 h-3.5 text-slate-500" />
                       {selectedBooking.pickup_time}
                     </div>
                   </div>
-                  <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Route</div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1e293b' }}>
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Route</div>
+                    <div className="text-sm font-semibold text-slate-800">
                       {selectedBooking.Route?.name || selectedBooking.Route?.route_name || '—'}
                     </div>
                   </div>
                 </div>
 
                 {/* Fare */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '16px 20px', background: '#eff6ff', borderRadius: 10, border: '1px solid #dbeafe',
-                }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#1e293b' }}>Total Fare</span>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: '#137fec' }}>
+                <div className="flex items-center justify-between px-5 py-4 bg-blue-50 rounded-[10px] border border-blue-100">
+                  <span className="text-sm font-semibold text-slate-800">Total Fare</span>
+                  <span className="text-[22px] font-extrabold text-primary">
                     ${selectedBooking.fare_amount ? Number(selectedBooking.fare_amount).toFixed(2) : '0.00'}
                   </span>
                 </div>
@@ -465,11 +332,7 @@ export default function MyBookings() {
                       handleCancel(selectedBooking.id);
                       setSelectedBooking(null);
                     }}
-                    style={{
-                      width: '100%', padding: '12px 0', borderRadius: 10,
-                      fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                      background: '#fff', color: '#ef4444', border: '1px solid #fecaca',
-                    }}
+                    className="w-full py-3 rounded-[10px] text-sm font-semibold cursor-pointer bg-white text-red-500 border border-red-200 hover:bg-red-50 transition"
                   >
                     Cancel Booking
                   </button>
