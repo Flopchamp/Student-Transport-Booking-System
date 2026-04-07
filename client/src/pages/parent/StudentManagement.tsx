@@ -4,7 +4,6 @@ import api from '../../lib/api';
 import {
   Plus,
   Search,
-  X,
   MapPin,
   Phone,
   Camera,
@@ -15,6 +14,7 @@ import {
   Users,
 } from 'lucide-react';
 import type { Student } from '../../types';
+import Modal from '../../components/ui/Modal';
 
 export default function StudentManagement() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -237,24 +237,12 @@ export default function StudentManagement() {
       )}
 
       {/* ─── Add/Edit Modal ─── */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[520px] max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="px-6 py-5 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-800">
-                {editingStudent ? 'Edit Student' : 'Add New Student'}
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center cursor-pointer border-none hover:bg-slate-200 transition"
-              >
-                <X className="w-[18px] h-[18px] text-slate-500" />
-              </button>
-            </div>
-
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingStudent ? 'Edit Student' : 'Add New Student'}
+        maxWidth="max-w-[520px]"
+      >
             <form onSubmit={handleSubmit} className="px-6 pb-6">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-[13px] mb-4">
@@ -365,9 +353,7 @@ export default function StudentManagement() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

@@ -5,12 +5,13 @@ import {
   MapPin,
   Truck,
   Calendar,
-  TrendingUp,
   DollarSign,
   UserCheck,
   ArrowUpRight,
 } from 'lucide-react';
 import type { Booking, Driver } from '../../types';
+import StatCard from '../../components/ui/StatCard';
+import StatusBadge from '../../components/ui/StatusBadge';
 
 interface AdminStats {
   totalStudents: number;
@@ -85,26 +86,6 @@ export default function AdminDashboard() {
     { label: 'Revenue', value: `$${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+18%' },
   ];
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      pending: 'bg-yellow-50 text-yellow-700',
-      confirmed: 'bg-blue-50 text-blue-700',
-      in_progress: 'bg-green-50 text-green-700',
-      completed: 'bg-gray-100 text-gray-700',
-      cancelled: 'bg-red-50 text-red-700',
-    };
-    return styles[status] || styles.pending;
-  };
-
-  const getDriverStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      active: 'bg-green-100 text-green-700',
-      on_leave: 'bg-yellow-100 text-yellow-700',
-      inactive: 'bg-gray-100 text-gray-700',
-    };
-    return styles[status] || styles.inactive;
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -124,19 +105,15 @@ export default function AdminDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {statCards.map((stat) => (
-          <div key={stat.label} className="card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 ${stat.bg} rounded-lg flex items-center justify-center`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
-              </div>
-              <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
-                <TrendingUp className="w-3 h-3" />
-                {stat.trend}
-              </span>
-            </div>
-            <p className="text-2xl font-bold text-text">{stat.value}</p>
-            <p className="text-sm text-text-secondary mt-0.5">{stat.label}</p>
-          </div>
+          <StatCard
+            key={stat.label}
+            icon={stat.icon}
+            label={stat.label}
+            value={stat.value}
+            iconBg={stat.bg}
+            iconColor={stat.color}
+            trend={stat.trend}
+          />
         ))}
       </div>
 
@@ -174,9 +151,7 @@ export default function AdminDashboard() {
                         {booking.Student ? `${booking.Student.first_name} ${booking.Student.last_name}` : '-'}
                       </td>
                       <td className="px-6 py-3">
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(booking.status)}`}>
-                          {booking.status.replace('_', ' ')}
-                        </span>
+                        <StatusBadge status={booking.status} domain="booking" />
                       </td>
                       <td className="px-6 py-3 text-sm font-medium text-text">
                         ${booking.fare_amount?.toLocaleString()}
@@ -203,7 +178,7 @@ export default function AdminDashboard() {
             ) : (
               drivers.map((driver) => (
                 <div key={driver.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
-                  <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                     <span className="text-xs font-bold text-primary">
                       {driver.first_name[0]}{driver.last_name[0]}
                     </span>
@@ -216,9 +191,7 @@ export default function AdminDashboard() {
                       {driver.total_trips} trips • ⭐ {driver.rating?.toFixed(1) || 'N/A'}
                     </p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getDriverStatusBadge(driver.status)}`}>
-                    {driver.status.replace('_', ' ')}
-                  </span>
+                  <StatusBadge status={driver.status} domain="driver" />
                 </div>
               ))
             )}

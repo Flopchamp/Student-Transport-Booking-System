@@ -6,7 +6,6 @@ import {
   Search,
   Eye,
   XCircle,
-  X,
   MapPin,
   Clock,
   Bus,
@@ -15,15 +14,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import type { Booking } from '../../types';
-
-/* ─── Status colours (Tailwind classes) ─── */
-const statusConfig: Record<string, { bg: string; text: string; border: string; dot: string; label: string }> = {
-  pending:     { bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400',  label: 'Pending' },
-  confirmed:   { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-500',   label: 'Confirmed' },
-  in_progress: { bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-500',  label: 'In Progress' },
-  completed:   { bg: 'bg-slate-50',  text: 'text-slate-600',  border: 'border-slate-200',  dot: 'bg-slate-400',  label: 'Completed' },
-  cancelled:   { bg: 'bg-red-50',    text: 'text-red-600',    border: 'border-red-200',    dot: 'bg-red-500',    label: 'Cancelled' },
-};
+import StatusBadge from '../../components/ui/StatusBadge';
+import Modal from '../../components/ui/Modal';
 
 export default function MyBookings() {
   const navigate = useNavigate();
@@ -147,9 +139,7 @@ export default function MyBookings() {
                 </tr>
               </thead>
               <tbody>
-                {filteredBookings.map((booking) => {
-                  const sc = statusConfig[booking.status] || statusConfig.pending;
-                  return (
+                {filteredBookings.map((booking) => (
                     <tr key={booking.id} className="border-b border-slate-100">
                       <td className="px-4 py-3.5 text-[13px] font-mono font-semibold text-slate-800 whitespace-nowrap">
                         {booking.booking_reference}
@@ -167,10 +157,7 @@ export default function MyBookings() {
                         {new Date(booking.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
                       <td className="px-4 py-3.5 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${sc.bg} ${sc.text} ${sc.border}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                          {sc.label}
-                        </span>
+                        <StatusBadge status={booking.status} domain="booking" showDot withBorder />
                       </td>
                       <td className="px-4 py-3.5 text-sm font-semibold text-slate-800 whitespace-nowrap">
                         ${booking.fare_amount ? Number(booking.fare_amount).toFixed(2) : '0.00'}
@@ -196,8 +183,7 @@ export default function MyBookings() {
                         </div>
                       </td>
                     </tr>
-                  );
-                })}
+                ))}
               </tbody>
             </table>
           </div>
@@ -218,24 +204,13 @@ export default function MyBookings() {
       )}
 
       {/* ─── Booking Detail Modal ─── */}
-      {selectedBooking && (() => {
-        const sc = statusConfig[selectedBooking.status] || statusConfig.pending;
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black/45" onClick={() => setSelectedBooking(null)} />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[480px] max-h-[90vh] overflow-y-auto">
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-                <h2 className="text-lg font-bold text-slate-800">Booking Details</h2>
-                <button
-                  onClick={() => setSelectedBooking(null)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50"
-                >
-                  <X className="w-4 h-4 text-slate-500" />
-                </button>
-              </div>
-
-              {/* Body */}
+      <Modal
+        open={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        title="Booking Details"
+        maxWidth="max-w-[480px]"
+      >
+        {selectedBooking && (
               <div className="p-6 flex flex-col gap-5">
                 {/* Reference + Status */}
                 <div className="flex items-center justify-between">
@@ -243,10 +218,7 @@ export default function MyBookings() {
                     <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Reference</div>
                     <div className="text-[15px] font-bold text-slate-800 font-mono">{selectedBooking.booking_reference}</div>
                   </div>
-                  <span className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold border ${sc.bg} ${sc.text} ${sc.border}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                    {sc.label}
-                  </span>
+                  <StatusBadge status={selectedBooking.status} domain="booking" showDot withBorder />
                 </div>
 
                 {/* Student Info */}
@@ -338,10 +310,8 @@ export default function MyBookings() {
                   </button>
                 )}
               </div>
-            </div>
-          </div>
-        );
-      })()}
+        )}
+      </Modal>
     </div>
   );
 }

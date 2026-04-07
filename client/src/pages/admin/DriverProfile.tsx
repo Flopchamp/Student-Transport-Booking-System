@@ -16,6 +16,7 @@ import {
   User,
 } from 'lucide-react';
 import type { Driver } from '../../types';
+import StatusBadge from '../../components/ui/StatusBadge';
 
 export default function DriverProfile() {
   const { id } = useParams<{ id: string }>();
@@ -37,15 +38,6 @@ export default function DriverProfile() {
     fetchDriver();
   }, [id]);
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, { bg: string; text: string }> = {
-      active: { bg: 'bg-green-100', text: 'text-green-700' },
-      on_leave: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
-      inactive: { bg: 'bg-gray-100', text: 'text-gray-700' },
-    };
-    return styles[status] || styles.inactive;
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -66,8 +58,6 @@ export default function DriverProfile() {
     );
   }
 
-  const statusStyle = getStatusBadge(driver.status);
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Back Button */}
@@ -83,8 +73,8 @@ export default function DriverProfile() {
       <div className="card p-6">
         <div className="flex flex-col md:flex-row md:items-start gap-6">
           {/* Avatar */}
-          <div className="flex-shrink-0">
-            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <div className="shrink-0">
+            <div className="w-24 h-24 rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
               <span className="text-3xl font-bold text-white">
                 {driver.first_name[0]}{driver.last_name[0]}
               </span>
@@ -97,9 +87,7 @@ export default function DriverProfile() {
               <h1 className="text-2xl font-bold text-text">
                 {driver.first_name} {driver.last_name}
               </h1>
-              <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
-                {driver.status.replace('_', ' ')}
-              </span>
+              <StatusBadge status={driver.status} domain="driver" />
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
@@ -125,7 +113,7 @@ export default function DriverProfile() {
           </div>
 
           {/* Quick Stats */}
-          <div className="flex gap-4 sm:gap-6 flex-shrink-0">
+          <div className="flex gap-4 sm:gap-6 shrink-0">
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
@@ -170,9 +158,7 @@ export default function DriverProfile() {
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-sm text-text-muted">Status</span>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
-                {driver.status.replace('_', ' ')}
-              </span>
+              <StatusBadge status={driver.status} domain="driver" />
             </div>
           </div>
         </div>

@@ -7,9 +7,11 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  X,
 } from 'lucide-react';
 import type { Booking } from '../../types';
+import Modal from '../../components/ui/Modal';
+import StatusBadge from '../../components/ui/StatusBadge';
+import StatCard from '../../components/ui/StatCard';
 
 export default function BookingManagement() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -40,17 +42,6 @@ export default function BookingManagement() {
     } catch (err) {
       console.error('Failed to update status:', err);
     }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-      confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
-      in_progress: 'bg-green-50 text-green-700 border-green-200',
-      completed: 'bg-gray-100 text-gray-700 border-gray-200',
-      cancelled: 'bg-red-50 text-red-700 border-red-200',
-    };
-    return styles[status] || styles.pending;
   };
 
   const filteredBookings = bookings.filter((b) => {
@@ -84,50 +75,10 @@ export default function BookingManagement() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{bookings.length}</p>
-              <p className="text-xs text-text-muted">Total Bookings</p>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
-              <Clock className="w-5 h-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{pendingCount}</p>
-              <p className="text-xs text-text-muted">Pending</p>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{confirmedCount}</p>
-              <p className="text-xs text-text-muted">Confirmed</p>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{completedCount}</p>
-              <p className="text-xs text-text-muted">Completed</p>
-            </div>
-          </div>
-        </div>
+        <StatCard icon={Calendar} label="Total Bookings" value={bookings.length} iconBg="bg-blue-50" iconColor="text-blue-600" />
+        <StatCard icon={Clock} label="Pending" value={pendingCount} iconBg="bg-yellow-50" iconColor="text-yellow-600" />
+        <StatCard icon={CheckCircle} label="Confirmed" value={confirmedCount} iconBg="bg-green-50" iconColor="text-green-600" />
+        <StatCard icon={CheckCircle} label="Completed" value={completedCount} iconBg="bg-gray-50" iconColor="text-gray-600" />
       </div>
 
       {/* Search & Filter */}
@@ -199,9 +150,7 @@ export default function BookingManagement() {
                       {new Date(booking.start_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(booking.status)}`}>
-                        {booking.status.replace('_', ' ')}
-                      </span>
+                      <StatusBadge status={booking.status} domain="booking" withBorder />
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-text">
                       ${booking.fare_amount?.toLocaleString()}
@@ -244,27 +193,21 @@ export default function BookingManagement() {
       </div>
 
       {/* Booking Detail Modal */}
-      {selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setSelectedBooking(null)} />
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md animate-fade-in">
-            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-text">Booking Details</h2>
-              <button onClick={() => setSelectedBooking(null)} className="p-1 rounded-lg hover:bg-gray-100">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
+      <Modal
+        open={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        title="Booking Details"
+        maxWidth="max-w-md"
+      >
+        {selectedBooking && (
+          <div className="p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-muted">Reference</span>
                 <span className="text-sm font-mono font-medium">{selectedBooking.booking_reference}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-muted">Status</span>
-                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(selectedBooking.status)}`}>
-                  {selectedBooking.status.replace('_', ' ')}
-                </span>
+                <StatusBadge status={selectedBooking.status} domain="booking" withBorder />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-muted">Parent</span>
@@ -321,9 +264,8 @@ export default function BookingManagement() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

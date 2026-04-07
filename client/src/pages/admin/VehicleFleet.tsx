@@ -6,11 +6,13 @@ import {
   Search,
   Edit2,
   Trash2,
-  X,
   Shield,
   Wrench,
 } from 'lucide-react';
 import type { Vehicle } from '../../types';
+import Modal from '../../components/ui/Modal';
+import StatusBadge from '../../components/ui/StatusBadge';
+import StatCard from '../../components/ui/StatCard';
 
 export default function VehicleFleet() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -116,15 +118,6 @@ export default function VehicleFleet() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      active: 'bg-green-50 text-green-700',
-      maintenance: 'bg-yellow-50 text-yellow-700',
-      retired: 'bg-gray-100 text-gray-600',
-    };
-    return styles[status] || styles.active;
-  };
-
   const filteredVehicles = vehicles.filter(
     (v) =>
       v.vehicle_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -164,50 +157,10 @@ export default function VehicleFleet() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Truck className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{vehicles.length}</p>
-              <p className="text-xs text-text-muted">Total Vehicles</p>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{activeCount}</p>
-              <p className="text-xs text-text-muted">Active</p>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
-              <Wrench className="w-5 h-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{maintenanceCount}</p>
-              <p className="text-xs text-text-muted">In Maintenance</p>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-              <Truck className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{totalCapacity}</p>
-              <p className="text-xs text-text-muted">Total Capacity</p>
-            </div>
-          </div>
-        </div>
+        <StatCard icon={Truck} label="Total Vehicles" value={vehicles.length} iconBg="bg-blue-50" iconColor="text-blue-600" />
+        <StatCard icon={Shield} label="Active" value={activeCount} iconBg="bg-green-50" iconColor="text-green-600" />
+        <StatCard icon={Wrench} label="In Maintenance" value={maintenanceCount} iconBg="bg-yellow-50" iconColor="text-yellow-600" />
+        <StatCard icon={Truck} label="Total Capacity" value={totalCapacity} iconBg="bg-purple-50" iconColor="text-purple-600" />
       </div>
 
       {/* Search */}
@@ -263,9 +216,7 @@ export default function VehicleFleet() {
                       {vehicle.insurance_expiry ? new Date(vehicle.insurance_expiry).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(vehicle.status)}`}>
-                        {vehicle.status}
-                      </span>
+                      <StatusBadge status={vehicle.status} domain="vehicle" />
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
@@ -292,19 +243,12 @@ export default function VehicleFleet() {
       </div>
 
       {/* Add/Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in">
-            <div className="sticky top-0 bg-white px-6 py-4 border-b border-border flex items-center justify-between rounded-t-2xl z-10">
-              <h2 className="text-lg font-semibold text-text">
-                {editingVehicle ? 'Edit Vehicle' : 'Add New Vehicle'}
-              </h2>
-              <button onClick={() => setShowModal(false)} className="p-1 rounded-lg hover:bg-gray-100">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingVehicle ? 'Edit Vehicle' : 'Add New Vehicle'}
+        maxWidth="max-w-lg"
+      >
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>
@@ -433,9 +377,7 @@ export default function VehicleFleet() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

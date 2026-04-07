@@ -7,13 +7,15 @@ import {
   Search,
   Edit2,
   Trash2,
-  X,
   Star,
   Phone,
   Mail,
   Eye,
 } from 'lucide-react';
 import type { Driver } from '../../types';
+import Modal from '../../components/ui/Modal';
+import StatusBadge from '../../components/ui/StatusBadge';
+import StatCard from '../../components/ui/StatCard';
 
 export default function DriverManagement() {
   const navigate = useNavigate();
@@ -125,15 +127,6 @@ export default function DriverManagement() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      active: 'bg-green-50 text-green-700',
-      on_leave: 'bg-yellow-50 text-yellow-700',
-      inactive: 'bg-gray-100 text-gray-600',
-    };
-    return styles[status] || styles.inactive;
-  };
-
   const filteredDrivers = drivers.filter(
     (d) =>
       d.first_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -175,50 +168,10 @@ export default function DriverManagement() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-              <UserCheck className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{drivers.length}</p>
-              <p className="text-xs text-text-muted">Total Drivers</p>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-              <UserCheck className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{activeCount}</p>
-              <p className="text-xs text-text-muted">Active</p>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
-              <UserCheck className="w-5 h-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{onLeaveCount}</p>
-              <p className="text-xs text-text-muted">On Leave</p>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-              <Star className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-text">{avgRating}</p>
-              <p className="text-xs text-text-muted">Avg Rating</p>
-            </div>
-          </div>
-        </div>
+        <StatCard icon={UserCheck} label="Total Drivers" value={drivers.length} iconBg="bg-blue-50" iconColor="text-blue-600" />
+        <StatCard icon={UserCheck} label="Active" value={activeCount} iconBg="bg-green-50" iconColor="text-green-600" />
+        <StatCard icon={UserCheck} label="On Leave" value={onLeaveCount} iconBg="bg-yellow-50" iconColor="text-yellow-600" />
+        <StatCard icon={Star} label="Avg Rating" value={avgRating} iconBg="bg-purple-50" iconColor="text-purple-600" />
       </div>
 
       {/* Search */}
@@ -295,9 +248,7 @@ export default function DriverManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(driver.status)}`}>
-                        {driver.status.replace('_', ' ')}
-                      </span>
+                      <StatusBadge status={driver.status} domain="driver" />
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
@@ -333,19 +284,12 @@ export default function DriverManagement() {
       </div>
 
       {/* Add/Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in">
-            <div className="sticky top-0 bg-white px-6 py-4 border-b border-border flex items-center justify-between rounded-t-2xl z-10">
-              <h2 className="text-lg font-semibold text-text">
-                {editingDriver ? 'Edit Driver' : 'Add New Driver'}
-              </h2>
-              <button onClick={() => setShowModal(false)} className="p-1 rounded-lg hover:bg-gray-100">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingDriver ? 'Edit Driver' : 'Add New Driver'}
+        maxWidth="max-w-lg"
+      >
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>
@@ -493,9 +437,7 @@ export default function DriverManagement() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

@@ -12,6 +12,9 @@ import {
   Bus,
 } from 'lucide-react';
 import type { Route } from '../../types';
+import DataTable from '../../components/ui/DataTable';
+import Modal from '../../components/ui/Modal';
+import StatusBadge from '../../components/ui/StatusBadge';
 
 export default function RouteManagement() {
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -129,6 +132,63 @@ export default function RouteManagement() {
       (r.end_location || '').toLowerCase().includes(search.toLowerCase())
   );
 
+  const routeColumns = [
+    {
+      key: 'route',
+      header: 'Route',
+      render: (route: Route) => <p className="text-sm font-medium text-text">{route.name}</p>,
+    },
+    {
+      key: 'from_to',
+      header: 'From → To',
+      render: (route: Route) => (
+        <span className="text-sm text-text-secondary">
+          {route.start_location} → {route.end_location}
+        </span>
+      ),
+    },
+    {
+      key: 'distance',
+      header: 'Distance',
+      render: (route: Route) => <span className="text-sm text-text-secondary">{route.distance_km} km</span>,
+    },
+    {
+      key: 'duration',
+      header: 'Duration',
+      render: (route: Route) => <span className="text-sm text-text-secondary">{route.estimated_duration_min} min</span>,
+    },
+    {
+      key: 'fare',
+      header: 'Fare',
+      render: (route: Route) => <span className="text-sm font-medium text-text">${route.price?.toLocaleString()}</span>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (route: Route) => <StatusBadge status={route.is_active ? 'active' : 'inactive'} domain="route" />,
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (route: Route) => (
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleOpenModal(route)}
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <Edit2 className="w-4 h-4 text-gray-500" />
+          </button>
+          <button
+            onClick={() => handleDelete(route.id)}
+            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            <Trash2 className="w-4 h-4 text-red-400" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -170,73 +230,16 @@ export default function RouteManagement() {
 
       <div className="flex gap-6">
         {/* Route Table */}
-        <div className={`${selectedRoute ? 'flex-1' : 'w-full'} card overflow-hidden`}>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-border">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Route</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">From → To</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Distance</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Duration</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Fare</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Status</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRoutes.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center">
-                      <MapPin className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-text-muted">No routes found</p>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredRoutes.map((route) => (
-                    <tr
-                      key={route.id}
-                      className={`border-t border-border cursor-pointer transition-colors ${
-                        selectedRoute?.id === route.id ? 'bg-blue-50' : 'hover:bg-gray-50'
-                      }`}
-                      onClick={() => setSelectedRoute(route)}
-                    >
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-text">{route.name}</p>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-secondary">
-                        {route.start_location} → {route.end_location}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-secondary">{route.distance_km} km</td>
-                      <td className="px-6 py-4 text-sm text-text-secondary">{route.estimated_duration_min} min</td>
-                      <td className="px-6 py-4 text-sm font-medium text-text">${route.price?.toLocaleString()}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${route.is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                          {route.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => handleOpenModal(route)}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4 text-gray-500" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(route.id)}
-                            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-400" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className={`${selectedRoute ? 'flex-1' : 'w-full'}`}>
+          <DataTable
+            columns={routeColumns}
+            data={filteredRoutes}
+            rowKey={(route) => route.id}
+            emptyMessage="No routes found"
+            emptyIcon={<MapPin className="w-10 h-10 text-gray-300 mx-auto mb-2" />}
+            onRowClick={(route) => setSelectedRoute(route)}
+            rowClassName={(route) => `border-t border-border cursor-pointer transition-colors ${selectedRoute?.id === route.id ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+          />
         </div>
 
         {/* Route Detail Panel */}
@@ -302,19 +305,12 @@ export default function RouteManagement() {
       </div>
 
       {/* Add/Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in">
-            <div className="sticky top-0 bg-white px-6 py-4 border-b border-border flex items-center justify-between rounded-t-2xl z-10">
-              <h2 className="text-lg font-semibold text-text">
-                {editingRoute ? 'Edit Route' : 'Add New Route'}
-              </h2>
-              <button onClick={() => setShowModal(false)} className="p-1 rounded-lg hover:bg-gray-100">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingRoute ? 'Edit Route' : 'Add New Route'}
+        maxWidth="max-w-lg"
+      >
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>
@@ -424,9 +420,7 @@ export default function RouteManagement() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }
