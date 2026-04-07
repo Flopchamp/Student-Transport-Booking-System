@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import api from '../../lib/api';
 import {
   MapPin,
@@ -104,6 +105,7 @@ export default function RouteManagement() {
       } else {
         await api.post('/routes', payload);
       }
+      toast.success(editingRoute ? 'Route updated' : 'Route added');
       setShowModal(false);
       fetchRoutes();
     } catch (err: unknown) {
@@ -118,6 +120,7 @@ export default function RouteManagement() {
     if (!confirm('Are you sure you want to delete this route?')) return;
     try {
       await api.delete(`/routes/${id}`);
+      toast.success('Route removed');
       if (selectedRoute?.id === id) setSelectedRoute(null);
       fetchRoutes();
     } catch (err) {

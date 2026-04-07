@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../../lib/api';
 import {
   Plus,
@@ -84,6 +85,7 @@ export default function StudentManagement() {
       } else {
         await api.post('/students', formData);
       }
+      toast.success(editingStudent ? 'Student updated' : 'Student added');
       setShowModal(false);
       fetchStudents();
     } catch (err: unknown) {
@@ -98,6 +100,7 @@ export default function StudentManagement() {
     if (!confirm('Are you sure you want to remove this student?')) return;
     try {
       await api.delete(`/students/${id}`);
+      toast.success('Student removed');
       fetchStudents();
     } catch (err) {
       console.error('Failed to delete student:', err);

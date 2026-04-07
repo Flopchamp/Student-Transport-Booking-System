@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../../lib/api';
 import {
   UserCheck,
@@ -107,6 +108,7 @@ export default function DriverManagement() {
       } else {
         await api.post('/drivers', payload);
       }
+      toast.success(editingDriver ? 'Driver updated' : 'Driver added');
       setShowModal(false);
       fetchDrivers();
     } catch (err: unknown) {
@@ -121,6 +123,7 @@ export default function DriverManagement() {
     if (!confirm('Are you sure you want to delete this driver?')) return;
     try {
       await api.delete(`/drivers/${id}`);
+      toast.success('Driver removed');
       fetchDrivers();
     } catch (err) {
       console.error('Failed to delete driver:', err);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import api from '../../lib/api';
 import {
   Calendar,
@@ -38,6 +39,7 @@ export default function BookingManagement() {
   const handleStatusChange = async (id: string, status: string) => {
     try {
       await api.patch(`/bookings/${id}/status`, { status });
+      toast.success('Booking status updated');
       fetchBookings();
     } catch (err) {
       console.error('Failed to update status:', err);

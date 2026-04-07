@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import api from '../../lib/api';
 import {
   Truck,
@@ -98,6 +99,7 @@ export default function VehicleFleet() {
       } else {
         await api.post('/vehicles', payload);
       }
+      toast.success(editingVehicle ? 'Vehicle updated' : 'Vehicle added');
       setShowModal(false);
       fetchVehicles();
     } catch (err: unknown) {
@@ -112,6 +114,7 @@ export default function VehicleFleet() {
     if (!confirm('Are you sure you want to delete this vehicle?')) return;
     try {
       await api.delete(`/vehicles/${id}`);
+      toast.success('Vehicle removed');
       fetchVehicles();
     } catch (err) {
       console.error('Failed to delete vehicle:', err);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../../lib/api';
 import {
   Calendar,
@@ -43,6 +44,7 @@ export default function MyBookings() {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
     try {
       await api.patch(`/bookings/${id}/status`, { status: 'cancelled' });
+      toast.success('Booking cancelled');
       fetchBookings();
     } catch (err) {
       console.error('Failed to cancel booking:', err);

@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import api from '../lib/api';
+import toast from 'react-hot-toast';
 
 export interface User {
   id: string;
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('user', JSON.stringify(loggedInUser));
     setToken(newToken);
     setUser(loggedInUser);
+    toast.success(`Welcome back, ${loggedInUser.first_name}!`);
     return loggedInUser;
   }, []);
 
@@ -91,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('user', JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
+    toast.success('Account created successfully!');
   }, []);
 
   const logout = useCallback(() => {

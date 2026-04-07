@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../../lib/api';
 import {
   ArrowLeft,
@@ -87,6 +88,7 @@ export default function PaymentPage() {
       const payment = res.data.data?.payment;
 
       if (res.data.success) {
+        toast.success('Payment successful!');
         setPaymentSuccess(true);
         setPaymentRef(payment?.transaction_reference || '');
       } else {

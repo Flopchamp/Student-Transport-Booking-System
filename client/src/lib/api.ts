@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const api = axios.create({
   baseURL: '/api/v1',
@@ -14,15 +15,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally — redirect to login
+// Handle errors globally — show toast + redirect on 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const message = error.response?.data?.message || error.message || 'Something went wrong';
+
+    if (status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
+    } else if (status === 403) {
+      toast.error('You do not have permission to perform this action');
+    } else if (status === 404) {
+      toast.error('The requested resource was not found');
+    } else if (status === 409) {
+      toast.error(message);
+    } else if (status === 422 || status === 400) {
+      toast.error(message);
+    } else if (status && status >= 500) {
+      toast.error('Server error — please try again later');
+    } else if (!error.response) {
+      toast.error('Network error — check your connection');
     }
+
     return Promise.reject(error);
   }
 );
