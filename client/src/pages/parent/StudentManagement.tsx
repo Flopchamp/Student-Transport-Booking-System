@@ -114,14 +114,7 @@ export default function StudentManagement() {
       s.school_name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  /* Demo data when no real students */
-  const demoStudents = [
-    { id: 1, first_name: 'Sarah', last_name: 'Jenkins', grade: '6-A', school_name: 'Greenwood Academy', pickup_address: '24 Elm Street', emergency_contact_phone: '+1 555 0001', route: 'Morning Route #3', status: 'Active' },
-    { id: 2, first_name: 'Chloe', last_name: 'Jenkins', grade: '4-B', school_name: 'Greenwood Academy', pickup_address: '24 Elm Street', emergency_contact_phone: '+1 555 0001', route: 'Bus Stop #5, North Ave', status: 'Active' },
-    { id: 3, first_name: 'Marcus', last_name: 'Jenkins', grade: '2', school_name: 'Lincoln Elementary', pickup_address: '24 Elm Street', emergency_contact_phone: '+1 555 0001', route: 'Afternoon Shuttle', status: 'Pending' },
-  ];
-
-  const displayStudents = filteredStudents.length > 0 ? filteredStudents : (students.length === 0 ? demoStudents : []);
+  const displayStudents = search ? filteredStudents : students;
 
   const avatarBgs = ['bg-blue-100', 'bg-green-100', 'bg-amber-100', 'bg-violet-100', 'bg-pink-100'];
   const avatarTexts = ['text-primary', 'text-emerald-500', 'text-amber-500', 'text-violet-500', 'text-pink-500'];
@@ -180,8 +173,7 @@ export default function StudentManagement() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {displayStudents.map((student: (typeof demoStudents)[0] | Student) => {
-            const isReal = 'date_of_birth' in student;
+          {displayStudents.map((student) => {
             const initials = student.first_name[0] + student.last_name[0];
             const colorIdx = Math.abs(String(student.id || '').split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0)) % avatarBgs.length;
 
@@ -209,7 +201,7 @@ export default function StudentManagement() {
                     </span>
                     <span className="flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5" />
-                      {'route' in student ? (student as (typeof demoStudents)[0]).route : student.pickup_address}
+                      {student.pickup_address}
                     </span>
                   </div>
                 </div>
@@ -218,21 +210,19 @@ export default function StudentManagement() {
                 <a
                   href="#"
                   className="flex items-center gap-1 text-[13px] font-semibold text-primary whitespace-nowrap hover:underline"
-                  onClick={(e) => { e.preventDefault(); handleOpenModal(isReal ? (student as Student) : undefined); }}
+                  onClick={(e) => { e.preventDefault(); handleOpenModal(student); }}
                 >
                   View Profile <ChevronRight className="w-3.5 h-3.5" />
                 </a>
 
                 {/* Actions */}
-                {isReal && (
-                  <button
-                    onClick={() => handleDelete((student as Student).id)}
+                <button
+                    onClick={() => handleDelete(student.id)}
                     className="p-1.5 bg-transparent border-none cursor-pointer text-slate-400 hover:text-slate-600"
                     title="More options"
                   >
-                    <MoreVertical className="w-[18px] h-[18px]" />
+                    <MoreVertical className="w-4.5 h-4.5" />
                   </button>
-                )}
               </div>
             );
           })}

@@ -4,25 +4,6 @@ import api from '../../lib/api';
 import { Search, Bus, Users as UsersIcon, MapPin } from 'lucide-react';
 import type { Route } from '../../types';
 
-/* ─── demo routes shown when API returns none ─── */
-const demoRoutes = [
-  {
-    id: 'demo-1', name: 'Downtown Express', routeNumber: '102',
-    start_location: 'Main Square Station, 7:15 AM', end_location: 'Central Academy High, 7:55 AM',
-    driverName: 'Marcus Chen', capacity: 32, seatsLeft: 12, badgeColor: 'bg-red-600', price: 0,
-  },
-  {
-    id: 'demo-2', name: 'Westside Shuttle', routeNumber: '205',
-    start_location: 'Sunset & 5th Ave, 7:30 AM', end_location: 'Lincoln Elementary, 8:10 AM',
-    driverName: 'Elena Rodriguez', capacity: 16, seatsLeft: 4, badgeColor: 'bg-primary', capacityLabel: '16 Seats (Mini)', price: 0,
-  },
-  {
-    id: 'demo-3', name: 'North Park Loop', routeNumber: '308',
-    start_location: 'Community Library, 7:00 AM', end_location: 'St. Jude Middle School, 7:45 AM',
-    driverName: 'John Smith', capacity: 0, seatsLeft: 0, badgeColor: 'bg-green-600', price: 0,
-  },
-];
-
 const badgeBgClasses = ['bg-red-600', 'bg-primary', 'bg-green-600', 'bg-amber-500', 'bg-violet-500'];
 
 export default function BookTransport() {
@@ -60,8 +41,7 @@ export default function BookTransport() {
       (r.end_location || '').toLowerCase().includes(search.toLowerCase()),
   );
 
-  const useDemo = routes.length === 0;
-  const displayRoutes = useDemo ? demoRoutes : filteredRoutes;
+  const displayRoutes = filteredRoutes;
 
   if (loading) {
     return (
@@ -135,34 +115,27 @@ export default function BookTransport() {
 
       {/* ─── Route Cards ─── */}
       {displayRoutes.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-[60px] text-center">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-15 text-center">
           <MapPin className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-lg font-semibold text-slate-800 mb-1">No routes found</h3>
           <p className="text-sm text-slate-400">{search ? 'Try a different search term' : 'No routes available at the moment'}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-5">
-          {displayRoutes.map((item, idx) => {
-            const isReal = 'is_active' in item;
-            const route = isReal ? (item as Route) : null;
-            const demo = !isReal ? (item as (typeof demoRoutes)[0]) : null;
-
-            const name = route?.name || demo?.name || '';
-            const routeNumber = demo?.routeNumber || String(idx + 102);
-            const pickup = route?.start_location || demo?.start_location || '';
-            const dropoff = route?.end_location || demo?.end_location || '';
-            const driverName = demo?.driverName || (route?.Driver?.first_name ? `${route.Driver.first_name} ${route.Driver.last_name || ''}`.trim() : 'Assigned Driver');
-            const capacity = demo?.capacity ?? route?.Vehicle?.capacity ?? 32;
-            const seatsLeft = demo?.seatsLeft ?? Math.max(0, capacity - Math.floor(Math.random() * capacity));
-            const capacityLabel = demo?.capacityLabel || `${capacity} Seats`;
-            const bColor = demo?.badgeColor || badgeBgClasses[idx % badgeBgClasses.length];
-            const isWaitlist = seatsLeft === 0;
-            const isLow = seatsLeft > 0 && seatsLeft <= 5;
+          {displayRoutes.map((route, idx) => {
+            const name = route.name || '';
+            const routeNumber = route.route_number || String(idx + 1);
+            const pickup = route.start_location || '';
+            const dropoff = route.end_location || '';
+            const driverName = route.Driver?.first_name ? `${route.Driver.first_name} ${route.Driver.last_name || ''}`.trim() : 'Assigned Driver';
+            const capacity = route.Vehicle?.capacity ?? 0;
+            const capacityLabel = `${capacity} Seats`;
+            const bColor = badgeBgClasses[idx % badgeBgClasses.length];
 
             return (
-              <div key={demo?.id || route?.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm flex overflow-hidden min-h-[180px]">
+              <div key={route.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm flex overflow-hidden min-h-45">
                 {/* Left image placeholder */}
-                <div className="w-[220px] min-h-full shrink-0 relative bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center hidden md:flex">
+                <div className="w-55 min-h-full shrink-0 relative bg-linear-to-br from-blue-100 to-blue-200 hidden md:flex items-center justify-center">
                   <div className="absolute inset-0 opacity-15">
                     <svg width="100%" height="100%" viewBox="0 0 220 200" fill="none">
                       <path d="M0 80 Q55 40 110 80 T220 80" stroke="#137fec" strokeWidth="2" fill="none" />
@@ -182,10 +155,6 @@ export default function BookTransport() {
                   <div>
                     <div className="flex items-start justify-between mb-4">
                       <h3 className="text-lg font-bold text-slate-800">{name}</h3>
-                      <span className={`text-xs font-bold tracking-wide uppercase whitespace-nowrap
-                        ${isWaitlist ? 'text-slate-400' : isLow ? 'text-amber-500' : 'text-primary'}`}>
-                        {isWaitlist ? 'WAITLIST ONLY' : `${seatsLeft} SEATS LEFT`}
-                      </span>
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -222,18 +191,12 @@ export default function BookTransport() {
                       )}
                     </div>
 
-                    {isWaitlist ? (
-                      <button className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100 transition cursor-pointer">
-                        Join Waitlist
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => { if (route) handleBookRoute(route); }}
-                        className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-primary text-white border-none hover:bg-blue-600 transition cursor-pointer shadow-sm"
-                      >
-                        Book Now →
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleBookRoute(route)}
+                      className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-primary text-white border-none hover:bg-blue-600 transition cursor-pointer shadow-sm"
+                    >
+                      Book Now →
+                    </button>
                   </div>
                 </div>
               </div>

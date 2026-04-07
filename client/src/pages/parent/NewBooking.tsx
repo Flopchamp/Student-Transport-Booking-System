@@ -15,26 +15,6 @@ import {
 } from 'lucide-react';
 import type { Route, Student, Vehicle } from '../../types';
 
-/* ─── Demo data when API returns nothing ─── */
-const demoStudents = [
-  { id: 1, first_name: 'Leo', last_name: 'Thompson', grade: '5-A', school_name: 'Central Academy High' },
-  { id: 2, first_name: 'Mia', last_name: 'Thompson', grade: '3-B', school_name: 'Lincoln Elementary' },
-];
-
-const demoStops = [
-  { name: 'Maple St. Station', time: '07:15 AM' },
-  { name: 'Oak Avenue Square', time: '07:30 AM' },
-  { name: 'Riverside Park East', time: '07:45 AM' },
-];
-
-const demoVehicle = {
-  name: 'Transit-Pro B12',
-  desc: '*Priority Education Route*',
-  driver: 'Michael Vance',
-  filled: 24,
-  capacity: 32,
-};
-
 export default function NewBooking() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,9 +27,9 @@ export default function NewBooking() {
   const [loading, setLoading] = useState(true);
 
   // Selections
-  const [selectedStudent, setSelectedStudent] = useState<Student | (typeof demoStudents)[0] | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedRoute] = useState<Route | null>(passedRoute);
-  const [selectedStop, setSelectedStop] = useState<string>(demoStops[0].name);
+  const [selectedStop, setSelectedStop] = useState<string>('');
   const [bookingType, setBookingType] = useState('round_trip');
   const [startDate, setStartDate] = useState('');
   const [pickupTime, setPickupTime] = useState('07:15');
@@ -107,7 +87,7 @@ export default function NewBooking() {
   };
 
   /* ─── Which items to display ─── */
-  const displayStudents = students.length > 0 ? students : demoStudents;
+  const displayStudents = students;
 
   // Route stops
   const routeStops: { name: string; time: string }[] =
@@ -116,7 +96,7 @@ export default function NewBooking() {
           name: typeof s === 'string' ? s : (s as { name?: string }).name || `Stop ${i + 1}`,
           time: `07:${String(15 + i * 15).padStart(2, '0')} AM`,
         }))
-      : demoStops;
+      : [];
 
   // Vehicle for the route
   const routeVehicle = selectedRoute?.Vehicle || (vehicles.length > 0 ? vehicles[0] : null);
@@ -217,7 +197,19 @@ export default function NewBooking() {
           <p className="text-sm text-slate-500 mb-5">Choose which child you're booking transport for</p>
 
           <div className="flex flex-col gap-3">
-            {displayStudents.map((s) => {
+            {displayStudents.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-500">No students registered yet.</p>
+                <button
+                  onClick={() => navigate('/students', { state: { openAddModal: true } })}
+                  className="mt-3 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold border-none cursor-pointer hover:bg-blue-700 transition"
+                >
+                  <Plus className="w-4 h-4" /> Add Your First Student
+                </button>
+              </div>
+            ) : (
+            displayStudents.map((s) => {
               const isSelected = selectedStudent?.id === s.id;
               const initials = s.first_name[0] + s.last_name[0];
               return (
@@ -246,7 +238,8 @@ export default function NewBooking() {
                   </div>
                 </div>
               );
-            })}
+            })
+            )}
           </div>
 
           {/* Add new student link */}
@@ -362,22 +355,22 @@ export default function NewBooking() {
                 SELECTED VEHICLE
               </div>
               <h4 className="text-lg font-bold text-slate-800 mb-0.5">
-                {routeVehicle ? `${routeVehicle.make} ${routeVehicle.model}` : demoVehicle.name}
+                {routeVehicle ? `${routeVehicle.make} ${routeVehicle.model}` : 'No vehicle assigned'}
               </h4>
               <p className="text-[13px] text-slate-500 italic mb-3">
-                {routeVehicle ? `${routeVehicle.vehicle_type}` : demoVehicle.desc}
+                {routeVehicle ? `${routeVehicle.vehicle_type}` : 'Vehicle details pending'}
               </p>
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="bg-white rounded-lg px-3 py-2">
                   <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Driver</div>
                   <div className="text-sm font-semibold text-slate-800">
-                    {routeVehicle?.Driver ? `${routeVehicle.Driver.first_name} ${routeVehicle.Driver.last_name}` : demoVehicle.driver}
+                    {routeVehicle?.Driver ? `${routeVehicle.Driver.first_name} ${routeVehicle.Driver.last_name}` : 'TBD'}
                   </div>
                 </div>
                 <div className="bg-white rounded-lg px-3 py-2">
                   <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Capacity</div>
                   <div className="text-sm font-semibold text-slate-800">
-                    {routeVehicle ? `${routeVehicle.capacity} Seats` : `${demoVehicle.filled} / ${demoVehicle.capacity} Seats`}
+                    {routeVehicle ? `${routeVehicle.capacity} Seats` : '—'}
                   </div>
                 </div>
               </div>
