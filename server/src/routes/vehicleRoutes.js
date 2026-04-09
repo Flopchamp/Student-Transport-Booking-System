@@ -17,13 +17,13 @@ const {
 
 const router = Router();
 
-// All vehicle routes require authentication + admin role
-router.use(protect, authorize('admin'));
+// Read routes — any authenticated user
+router.get('/', protect, listVehiclesValidator, validate, getVehicles);
+router.get('/:id', protect, vehicleIdValidator, validate, getVehicle);
 
-router.post('/', createVehicleValidator, validate, createVehicle);
-router.get('/', listVehiclesValidator, validate, getVehicles);
-router.get('/:id', vehicleIdValidator, validate, getVehicle);
-router.put('/:id', updateVehicleValidator, validate, updateVehicle);
-router.delete('/:id', vehicleIdValidator, validate, deleteVehicle);
+// Write routes — admin only
+router.post('/', protect, authorize('admin'), createVehicleValidator, validate, createVehicle);
+router.put('/:id', protect, authorize('admin'), updateVehicleValidator, validate, updateVehicle);
+router.delete('/:id', protect, authorize('admin'), vehicleIdValidator, validate, deleteVehicle);
 
 module.exports = router;
