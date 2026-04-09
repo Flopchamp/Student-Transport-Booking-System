@@ -51,8 +51,10 @@ export default function AdminDashboard() {
         api.get('/bookings').catch(() => ({ data: { data: [], pagination: { total: 0 } } })),
       ]);
 
-      const bookingData = bookingsRes.data.data || [];
-      const driverData = driversRes.data.data || [];
+      const rawBookings = bookingsRes.data.data;
+      const rawDrivers = driversRes.data.data;
+      const bookingData = Array.isArray(rawBookings) ? rawBookings : (rawBookings?.bookings || []);
+      const driverData = Array.isArray(rawDrivers) ? rawDrivers : (rawDrivers?.drivers || []);
 
       setRecentBookings(bookingData.slice(0, 5));
       setDrivers(driverData.slice(0, 6));
@@ -62,9 +64,9 @@ export default function AdminDashboard() {
         .reduce((sum: number, b: Booking) => sum + (b.fare_amount || 0), 0);
 
       setStats({
-        totalStudents: studentsRes.data.pagination?.total || studentsRes.data.data?.length || 0,
-        totalRoutes: routesRes.data.pagination?.total || routesRes.data.data?.length || 0,
-        totalVehicles: vehiclesRes.data.pagination?.total || vehiclesRes.data.data?.length || 0,
+        totalStudents: studentsRes.data.pagination?.total || (Array.isArray(studentsRes.data.data) ? studentsRes.data.data : studentsRes.data.data?.students)?.length || 0,
+        totalRoutes: routesRes.data.pagination?.total || (Array.isArray(routesRes.data.data) ? routesRes.data.data : routesRes.data.data?.routes)?.length || 0,
+        totalVehicles: vehiclesRes.data.pagination?.total || (Array.isArray(vehiclesRes.data.data) ? vehiclesRes.data.data : vehiclesRes.data.data?.vehicles)?.length || 0,
         totalDrivers: driversRes.data.pagination?.total || driverData.length || 0,
         totalBookings: bookingsRes.data.pagination?.total || bookingData.length || 0,
         activeBookings: bookingData.filter((b: Booking) => ['confirmed', 'in_progress'].includes(b.status)).length,
