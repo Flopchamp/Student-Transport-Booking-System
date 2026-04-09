@@ -48,7 +48,8 @@ export default function DriverManagement() {
   const fetchDrivers = async () => {
     try {
       const res = await api.get('/drivers');
-      setDrivers(res.data.data || []);
+      const raw = res.data.data;
+      setDrivers(Array.isArray(raw) ? raw : (raw?.drivers || []));
     } catch (err) {
       console.error('Failed to fetch drivers:', err);
     } finally {
