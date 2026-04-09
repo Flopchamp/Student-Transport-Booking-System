@@ -139,8 +139,8 @@ export default function DriverManagement() {
       (d.phone || '').includes(search)
   );
 
-  const activeCount = drivers.filter((d) => d.status === 'active').length;
-  const onLeaveCount = drivers.filter((d) => d.status === 'on_leave').length;
+  const activeCount = drivers.filter((d) => d.status === 'available').length;
+  const onLeaveCount = drivers.filter((d) => d.status === 'off_duty').length;
   const avgRating = drivers.length
     ? (drivers.reduce((sum, d) => sum + (d.rating || 0), 0) / drivers.length).toFixed(1)
     : '0.0';
