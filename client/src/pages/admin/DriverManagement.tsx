@@ -12,8 +12,9 @@ import {
   Phone,
   Mail,
   Eye,
+  Truck,
 } from 'lucide-react';
-import type { Driver } from '../../types';
+import type { Driver, Vehicle } from '../../types';
 import Modal from '../../components/ui/Modal';
 import StatusBadge from '../../components/ui/StatusBadge';
 import StatCard from '../../components/ui/StatCard';
@@ -40,6 +41,13 @@ export default function DriverManagement() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Vehicle assignment state
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assigningDriver, setAssigningDriver] = useState<Driver | null>(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     fetchDrivers();
@@ -131,6 +139,51 @@ export default function DriverManagement() {
     }
   };
 
+  // ---- Vehicle assignment ----
+  const fetchVehicles = async () => {
+    try {
+      const res = await api.get('/vehicles');
+      const raw = res.data.data;
+      setVehicles(Array.isArray(raw) ? raw : (raw?.vehicles || []));
+    } catch (err) {
+      console.error('Failed to fetch vehicles:', err);
+    }
+  };
+
+  const handleOpenAssignModal = (driver: Driver) => {
+    setAssigningDriver(driver);
+    setSelectedVehicleId(driver.vehicle_id || '');
+    setError('');
+    fetchVehicles();
+    setShowAssignModal(true);
+  };
+
+  const handleAssignVehicle = async () => {
+    if (!assigningDriver) return;
+    setAssigning(true);
+    setError('');
+    try {
+      await api.patch(`/drivers/${assigningDriver.id}/assign-vehicle`, {
+        vehicle_id: selectedVehicleId || null,
+      });
+      toast.success(selectedVehicleId ? 'Vehicle assigned successfully' : 'Vehicle unassigned');
+      setShowAssignModal(false);
+      fetchDrivers();
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to assign vehicle');
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  // Get vehicle IDs already assigned to other drivers (to show as unavailable)
+  const assignedVehicleIds = new Set(
+    drivers
+      .filter((d) => d.vehicle_id && d.id !== assigningDriver?.id)
+      .map((d) => d.vehicle_id!)
+  );
+
   const filteredDrivers = drivers.filter(
     (d) =>
       (d.first_name || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -203,6 +256,7 @@ export default function DriverManagement() {
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">License</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Experience</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Rating</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Vehicle</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Status</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Actions</th>
               </tr>
@@ -210,7 +264,7 @@ export default function DriverManagement() {
             <tbody>
               {filteredDrivers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <UserCheck className="w-10 h-10 text-gray-300 mx-auto mb-2" />
                     <p className="text-sm text-text-muted">No drivers found</p>
                   </td>
@@ -252,6 +306,18 @@ export default function DriverManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
+                      {driver.vehicle_id && (driver.vehicle || driver.Vehicle) ? (
+                        <div className="flex items-center gap-1.5 text-sm">
+                          <Truck className="w-3.5 h-3.5 text-blue-500" />
+                          <span className="text-text-secondary">
+                            {(driver.vehicle || driver.Vehicle)!.plate_number}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-text-muted italic">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
                       <StatusBadge status={driver.status} domain="driver" />
                     </td>
                     <td className="px-6 py-4">
@@ -262,6 +328,13 @@ export default function DriverManagement() {
                           title="View Profile"
                         >
                           <Eye className="w-4 h-4 text-gray-500" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenAssignModal(driver)}
+                          className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                          title="Assign Vehicle"
+                        >
+                          <Truck className="w-4 h-4 text-blue-500" />
                         </button>
                         <button
                           onClick={() => handleOpenModal(driver)}
@@ -441,6 +514,73 @@ export default function DriverManagement() {
                 </button>
               </div>
             </form>
+      </Modal>
+
+      {/* Assign Vehicle Modal */}
+      <Modal
+        open={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        title={`Assign Vehicle — ${assigningDriver?.first_name ?? ''} ${assigningDriver?.last_name ?? ''}`}
+        maxWidth="max-w-md"
+      >
+        <div className="p-6 space-y-4">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Select Vehicle</label>
+            <select
+              value={selectedVehicleId}
+              onChange={(e) => setSelectedVehicleId(e.target.value)}
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              <option value="">— No vehicle (unassign) —</option>
+              {vehicles.map((v) => {
+                const taken = assignedVehicleIds.has(v.id);
+                return (
+                  <option key={v.id} value={v.id} disabled={taken}>
+                    {v.plate_number} — {v.make} {v.model} ({v.capacity} seats)
+                    {taken ? ' [assigned]' : ''}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          {selectedVehicleId && (() => {
+            const v = vehicles.find((v) => v.id === selectedVehicleId);
+            if (!v) return null;
+            return (
+              <div className="bg-blue-50 rounded-lg p-3 text-sm space-y-1">
+                <p className="font-medium text-blue-800">
+                  <Truck className="w-4 h-4 inline mr-1" />
+                  {v.make} {v.model} ({v.year})
+                </p>
+                <p className="text-blue-600">Plate: {v.plate_number}</p>
+                <p className="text-blue-600">Capacity: {v.capacity} seats</p>
+              </div>
+            );
+          })()}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAssignModal(false)}
+              className="flex-1 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleAssignVehicle}
+              disabled={assigning}
+              className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-60"
+            >
+              {assigning ? 'Saving...' : selectedVehicleId ? 'Assign Vehicle' : 'Unassign Vehicle'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
