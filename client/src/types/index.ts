@@ -98,19 +98,21 @@ export interface Driver {
   phone: string;
   license_number: string;
   license_expiry: string;
-  experience_years: number;
+  vehicle_id?: string;
+  status: 'available' | 'on_trip' | 'off_duty';
+  is_active: boolean;
+  profile_photo?: string;
+  experience_years?: number;
   address?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
-  status: 'active' | 'on_leave' | 'inactive';
-  rating: number;
-  total_trips: number;
-  vehicle_id?: string;
+  rating?: number;
+  total_trips?: number;
   route_id?: string;
-  is_active: boolean;
   createdAt: string;
   updatedAt: string;
   Vehicle?: Vehicle;
+  vehicle?: Vehicle;
   Route?: Route;
 }
 
