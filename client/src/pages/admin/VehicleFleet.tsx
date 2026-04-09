@@ -42,7 +42,8 @@ export default function VehicleFleet() {
   const fetchVehicles = async () => {
     try {
       const res = await api.get('/vehicles');
-      setVehicles(res.data.data || []);
+      const raw = res.data.data;
+      setVehicles(Array.isArray(raw) ? raw : (raw?.vehicles || []));
     } catch (err) {
       console.error('Failed to fetch vehicles:', err);
     } finally {
