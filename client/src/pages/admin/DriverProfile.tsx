@@ -28,7 +28,8 @@ export default function DriverProfile() {
     const fetchDriver = async () => {
       try {
         const res = await api.get(`/drivers/${id}`);
-        setDriver(res.data.data);
+        const raw = res.data.data;
+        setDriver(raw?.driver || raw);
       } catch (err) {
         console.error('Failed to fetch driver:', err);
       } finally {
@@ -76,7 +77,7 @@ export default function DriverProfile() {
           <div className="shrink-0">
             <div className="w-24 h-24 rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
               <span className="text-3xl font-bold text-white">
-                {driver.first_name[0]}{driver.last_name[0]}
+                {driver.first_name?.[0]}{driver.last_name?.[0]}
               </span>
             </div>
           </div>
@@ -122,11 +123,11 @@ export default function DriverProfile() {
               <p className="text-xs text-text-muted">Rating</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-text">{driver.total_trips}</p>
+              <p className="text-2xl font-bold text-text">{driver.total_trips ?? 0}</p>
               <p className="text-xs text-text-muted">Total Trips</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-text">{driver.experience_years}</p>
+              <p className="text-2xl font-bold text-text">{driver.experience_years ?? 'N/A'}</p>
               <p className="text-xs text-text-muted">Years Exp.</p>
             </div>
           </div>
@@ -154,7 +155,7 @@ export default function DriverProfile() {
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-sm text-text-muted">Experience</span>
-              <span className="text-sm text-text">{driver.experience_years} years</span>
+              <span className="text-sm text-text">{driver.experience_years ?? 'N/A'} years</span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-sm text-text-muted">Status</span>
@@ -185,7 +186,7 @@ export default function DriverProfile() {
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="p-4 bg-blue-50 rounded-xl text-center">
                 <Clock className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-blue-700">{driver.total_trips}</p>
+                <p className="text-lg font-bold text-blue-700">{driver.total_trips ?? 0}</p>
                 <p className="text-xs text-blue-500">Total Trips</p>
               </div>
               <div className="p-4 bg-green-50 rounded-xl text-center">
@@ -203,19 +204,19 @@ export default function DriverProfile() {
             <Truck className="w-5 h-5 text-primary" />
             Assigned Vehicle
           </h3>
-          {driver.Vehicle ? (
+          {(driver.vehicle || driver.Vehicle) ? (
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="text-sm text-text-muted">Vehicle</span>
-                <span className="text-sm font-medium text-text">{driver.Vehicle.make} {driver.Vehicle.model}</span>
+                <span className="text-sm font-medium text-text">{(driver.vehicle || driver.Vehicle)!.make} {(driver.vehicle || driver.Vehicle)!.model}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="text-sm text-text-muted">Plate Number</span>
-                <span className="text-sm font-mono text-text">{driver.Vehicle.plate_number}</span>
+                <span className="text-sm font-mono text-text">{(driver.vehicle || driver.Vehicle)!.plate_number}</span>
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-sm text-text-muted">Capacity</span>
-                <span className="text-sm text-text">{driver.Vehicle.capacity} seats</span>
+                <span className="text-sm text-text">{(driver.vehicle || driver.Vehicle)!.capacity} seats</span>
               </div>
             </div>
           ) : (
@@ -236,11 +237,7 @@ export default function DriverProfile() {
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="text-sm text-text-muted">Route</span>
-                <span className="text-sm font-medium text-text">{driver.Route.route_name}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-sm text-text-muted">Number</span>
-                <span className="text-sm text-text">#{driver.Route.route_number}</span>
+                <span className="text-sm font-medium text-text">{driver.Route.name || driver.Route.route_name}</span>
               </div>
               <div className="p-3 bg-gray-50 rounded-lg mt-2">
                 <div className="flex items-center gap-2 text-sm text-text-secondary">
