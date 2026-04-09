@@ -8,7 +8,6 @@ import {
   Eye,
   XCircle,
   MapPin,
-  Clock,
   Bus,
   ArrowRight,
   ChevronLeft,
@@ -43,7 +42,7 @@ export default function MyBookings() {
   const handleCancel = async (id: string) => {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
     try {
-      await api.patch(`/bookings/${id}/status`, { status: 'cancelled' });
+      await api.patch(`/bookings/${id}/cancel`);
       toast.success('Booking cancelled');
       fetchBookings();
     } catch (err) {
@@ -53,12 +52,12 @@ export default function MyBookings() {
 
   const filteredBookings = bookings.filter((b) => {
     const ref = b.booking_reference || '';
-    const pickup = b.pickup_location || '';
-    const dropoff = b.dropoff_location || '';
+    const routeName = b.route?.name || '';
+    const studentName = b.student ? `${b.student.first_name} ${b.student.last_name}` : '';
     const matchesSearch =
       ref.toLowerCase().includes(search.toLowerCase()) ||
-      pickup.toLowerCase().includes(search.toLowerCase()) ||
-      dropoff.toLowerCase().includes(search.toLowerCase());
+      routeName.toLowerCase().includes(search.toLowerCase()) ||
+      studentName.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -98,7 +97,6 @@ export default function MyBookings() {
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
-          <option value="in_progress">In Progress</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
         </select>
@@ -133,7 +131,7 @@ export default function MyBookings() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  {['Reference', 'Student', 'Route', 'Type', 'Date', 'Status', 'Fare', 'Actions'].map((h) => (
+                  {['Reference', 'Student', 'Route', 'Date', 'Status', 'Amount', 'Actions'].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
                       {h}
                     </th>
@@ -147,13 +145,10 @@ export default function MyBookings() {
                         {booking.booking_reference}
                       </td>
                       <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">
-                        {booking.Student ? `${booking.Student.first_name} ${booking.Student.last_name}` : '—'}
+                        {booking.student ? `${booking.student.first_name} ${booking.student.last_name}` : '—'}
                       </td>
                       <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">
-                        {booking.Route?.name || booking.Route?.route_name || '—'}
-                      </td>
-                      <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap capitalize">
-                        {booking.booking_type.replace('_', ' ')}
+                        {booking.route?.name || '—'}
                       </td>
                       <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">
                         {new Date(booking.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -162,7 +157,7 @@ export default function MyBookings() {
                         <StatusBadge status={booking.status} domain="booking" showDot withBorder />
                       </td>
                       <td className="px-4 py-3.5 text-sm font-semibold text-slate-800 whitespace-nowrap">
-                        ${booking.fare_amount ? Number(booking.fare_amount).toFixed(2) : '0.00'}
+                        ${Number(booking.amount || 0).toFixed(2)}
                       </td>
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1">
@@ -224,18 +219,18 @@ export default function MyBookings() {
                 </div>
 
                 {/* Student Info */}
-                {selectedBooking.Student && (
+                {selectedBooking.student && (
                   <div className="p-4 bg-slate-50 rounded-[10px] border border-slate-200">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-sm text-primary">
-                        {selectedBooking.Student.first_name[0]}{selectedBooking.Student.last_name[0]}
+                        {selectedBooking.student.first_name[0]}{selectedBooking.student.last_name[0]}
                       </div>
                       <div>
                         <div className="text-[15px] font-semibold text-slate-800">
-                          {selectedBooking.Student.first_name} {selectedBooking.Student.last_name}
+                          {selectedBooking.student.first_name} {selectedBooking.student.last_name}
                         </div>
                         <div className="text-[13px] text-slate-500">
-                          {selectedBooking.Student.school_name || 'Student'}
+                          {selectedBooking.student.school_name || 'Student'}
                         </div>
                       </div>
                     </div>
@@ -250,7 +245,7 @@ export default function MyBookings() {
                     </div>
                     <div>
                       <div className="text-[11px] text-slate-400 font-semibold">Pickup</div>
-                      <div className="text-sm font-medium text-slate-800">{selectedBooking.pickup_location}</div>
+                      <div className="text-sm font-medium text-slate-800">{selectedBooking.route?.start_location || '—'}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5 text-sm text-slate-600">
@@ -259,7 +254,7 @@ export default function MyBookings() {
                     </div>
                     <div>
                       <div className="text-[11px] text-slate-400 font-semibold">Drop-off</div>
-                      <div className="text-sm font-medium text-slate-800">{selectedBooking.dropoff_location}</div>
+                      <div className="text-sm font-medium text-slate-800">{selectedBooking.route?.end_location || '—'}</div>
                     </div>
                   </div>
                 </div>
@@ -267,8 +262,8 @@ export default function MyBookings() {
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-slate-50 rounded-lg">
-                    <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Type</div>
-                    <div className="text-sm font-semibold text-slate-800 capitalize">{selectedBooking.booking_type.replace('_', ' ')}</div>
+                    <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Pickup Time</div>
+                    <div className="text-sm font-semibold text-slate-800">{selectedBooking.pickup_time || '—'}</div>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg">
                     <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Date</div>
@@ -277,16 +272,15 @@ export default function MyBookings() {
                     </div>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg">
-                    <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Pickup Time</div>
-                    <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
-                      <Clock className="w-3.5 h-3.5 text-slate-500" />
-                      {selectedBooking.pickup_time}
+                    <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Amount</div>
+                    <div className="text-sm font-semibold text-slate-800">
+                      ${Number(selectedBooking.amount || 0).toFixed(2)}
                     </div>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg">
                     <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Route</div>
                     <div className="text-sm font-semibold text-slate-800">
-                      {selectedBooking.Route?.name || selectedBooking.Route?.route_name || '—'}
+                      {selectedBooking.route?.name || '—'}
                     </div>
                   </div>
                 </div>
@@ -295,7 +289,7 @@ export default function MyBookings() {
                 <div className="flex items-center justify-between px-5 py-4 bg-blue-50 rounded-[10px] border border-blue-100">
                   <span className="text-sm font-semibold text-slate-800">Total Fare</span>
                   <span className="text-[22px] font-extrabold text-primary">
-                    ${selectedBooking.fare_amount ? Number(selectedBooking.fare_amount).toFixed(2) : '0.00'}
+                    ${Number(selectedBooking.amount || 0).toFixed(2)}
                   </span>
                 </div>
 

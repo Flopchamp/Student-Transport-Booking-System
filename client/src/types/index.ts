@@ -26,21 +26,19 @@ export interface AuthResponse {
 // ============================================
 export interface Student {
   id: string;
-  user_id: string;
+  parent_id: string;
   first_name: string;
   last_name: string;
   date_of_birth: string;
   grade: string;
   school_name: string;
   pickup_address: string;
-  dropoff_address: string;
+  pickup_lat?: number;
+  pickup_lng?: number;
   special_needs?: string;
-  emergency_contact_name: string;
-  emergency_contact_phone: string;
   is_active: boolean;
   createdAt: string;
   updatedAt: string;
-  User?: User;
 }
 
 // ============================================
@@ -122,31 +120,26 @@ export interface Driver {
 export interface Booking {
   id: string;
   booking_reference: string;
-  user_id: string;
-  parent_id?: string;
+  parent_id: string;
   student_id: string;
   route_id: string;
   vehicle_id?: string;
   driver_id?: string;
-  booking_type: 'one_way' | 'round_trip';
   start_date: string;
   end_date?: string;
   pickup_time: string;
   dropoff_time?: string;
-  pickup_location: string;
-  dropoff_location: string;
-  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   amount: number;
-  fare_amount?: number;
   notes?: string;
   createdAt: string;
   updatedAt: string;
-  User?: User;
-  Student?: Student;
-  Route?: Route;
-  parent?: User;
+  // Sequelize returns lowercase association aliases
   student?: Student;
   route?: Route;
+  parent?: User;
+  vehicle?: Vehicle;
+  driver?: Driver;
 }
 
 // ============================================

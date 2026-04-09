@@ -6,7 +6,6 @@ import {
   Plus,
   Search,
   MapPin,
-  Phone,
   Camera,
   Home,
   Info,
@@ -25,8 +24,7 @@ export default function StudentManagement() {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [formData, setFormData] = useState({
     first_name: '', last_name: '', date_of_birth: '', grade: '', school_name: '',
-    pickup_address: '', dropoff_address: '', special_needs: '',
-    emergency_contact_name: '', emergency_contact_phone: '',
+    pickup_address: '', special_needs: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -40,7 +38,7 @@ export default function StudentManagement() {
       setShowModal(true);
       setEditingStudent(null);
       setError('');
-      setFormData({ first_name: '', last_name: '', date_of_birth: '', grade: '', school_name: '', pickup_address: '', dropoff_address: '', special_needs: '', emergency_contact_name: '', emergency_contact_phone: '' });
+      setFormData({ first_name: '', last_name: '', date_of_birth: '', grade: '', school_name: '', pickup_address: '', special_needs: '' });
       window.history.replaceState({}, '');
     }
   }, [location.state]);
@@ -64,12 +62,11 @@ export default function StudentManagement() {
         first_name: student.first_name, last_name: student.last_name,
         date_of_birth: student.date_of_birth?.split('T')[0] || '', grade: student.grade,
         school_name: student.school_name, pickup_address: student.pickup_address,
-        dropoff_address: student.dropoff_address, special_needs: student.special_needs || '',
-        emergency_contact_name: student.emergency_contact_name, emergency_contact_phone: student.emergency_contact_phone,
+        special_needs: student.special_needs || '',
       });
     } else {
       setEditingStudent(null);
-      setFormData({ first_name: '', last_name: '', date_of_birth: '', grade: '', school_name: '', pickup_address: '', dropoff_address: '', special_needs: '', emergency_contact_name: '', emergency_contact_phone: '' });
+      setFormData({ first_name: '', last_name: '', date_of_birth: '', grade: '', school_name: '', pickup_address: '', special_needs: '' });
     }
     setError('');
     setShowModal(true);
@@ -196,10 +193,6 @@ export default function StudentManagement() {
                   </div>
                   <div className="flex items-center gap-4 text-[13px] text-slate-500">
                     <span className="flex items-center gap-1">
-                      <Phone className="w-3.5 h-3.5" />
-                      {student.emergency_contact_phone || '+1 555 0001'}
-                    </span>
-                    <span className="flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5" />
                       {student.pickup_address}
                     </span>
@@ -325,16 +318,16 @@ export default function StudentManagement() {
                 </div>
               </div>
 
-              {/* Home Address */}
+              {/* Pickup Address */}
               <div className="mb-4">
-                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Home Address (Drop-off)</label>
+                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Pickup Address</label>
                 <div className="relative">
                   <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
                   <input
                     type="text"
-                    value={formData.dropoff_address}
-                    onChange={(e) => setFormData({ ...formData, dropoff_address: e.target.value, pickup_address: e.target.value })}
-                    placeholder="Enter residential address"
+                    value={formData.pickup_address}
+                    onChange={(e) => setFormData({ ...formData, pickup_address: e.target.value })}
+                    placeholder="Enter pickup address"
                     className="w-full h-11 pl-10 pr-3.5 text-sm border border-slate-200 rounded-lg bg-white outline-none text-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   />

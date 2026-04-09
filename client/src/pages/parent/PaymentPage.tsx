@@ -116,7 +116,7 @@ export default function PaymentPage() {
   const booking = selectedBooking;
   const baseFare = booking?.route?.price
     ? Number(booking.route.price)
-    : (booking ? Number(booking.amount || booking.fare_amount || 0) : 0);
+    : (booking ? Number(booking.amount || 0) : 0);
   const discount = -10.0;
   const serviceFeeRate = 0.025;
   const serviceFee = +(baseFare * serviceFeeRate).toFixed(2);
@@ -217,7 +217,7 @@ export default function PaymentPage() {
                   </div>
                 </div>
                 <div className="text-base font-bold text-blue-600">
-                  ${Number(b.amount || b.fare_amount || 0).toFixed(2)}
+                  ${Number(b.amount || 0).toFixed(2)}
                 </div>
               </div>
             ))}

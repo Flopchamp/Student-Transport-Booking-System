@@ -13,7 +13,7 @@ import {
   CheckCircle,
   Settings,
 } from 'lucide-react';
-import type { Route, Student, Vehicle } from '../../types';
+import type { Route, Student } from '../../types';
 
 export default function NewBooking() {
   const navigate = useNavigate();
@@ -23,7 +23,6 @@ export default function NewBooking() {
   const [step, setStep] = useState(passedRoute ? 1 : 0);
   const [students, setStudents] = useState<Student[]>([]);
   const [, setAvailableRoutes] = useState<Route[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Selections
@@ -45,17 +44,14 @@ export default function NewBooking() {
 
   const fetchData = async () => {
     try {
-      const [studentsRes, routesRes, vehiclesRes] = await Promise.all([
+      const [studentsRes, routesRes] = await Promise.all([
         api.get('/students').catch(() => ({ data: { data: {} } })),
         api.get('/routes').catch(() => ({ data: { data: {} } })),
-        api.get('/vehicles').catch(() => ({ data: { data: {} } })),
       ]);
       const rawS = studentsRes.data.data;
       const rawR = routesRes.data.data;
-      const rawV = vehiclesRes.data.data;
       setStudents(Array.isArray(rawS) ? rawS : (rawS?.students || []));
       setAvailableRoutes(Array.isArray(rawR) ? rawR : (rawR?.routes || []));
-      setVehicles(Array.isArray(rawV) ? rawV : (rawV?.vehicles || []));
     } catch (err) {
       console.error('Failed to fetch data:', err);
     } finally {
@@ -71,11 +67,10 @@ export default function NewBooking() {
       await api.post('/bookings', {
         student_id: selectedStudent.id,
         route_id: selectedRoute.id,
-        booking_type: bookingType,
         start_date: startDate || new Date().toISOString().split('T')[0],
         pickup_time: pickupTime,
-        pickup_location: selectedStop || selectedRoute.start_location,
-        dropoff_location: selectedRoute.end_location,
+        dropoff_time: bookingType === 'round_trip' ? '15:45' : undefined,
+        notes: selectedStop ? `Pickup stop: ${selectedStop}` : undefined,
       });
       setSuccess(true);
     } catch (err: unknown) {
@@ -98,8 +93,8 @@ export default function NewBooking() {
         }))
       : [];
 
-  // Vehicle for the route
-  const routeVehicle = selectedRoute?.Vehicle || (vehicles.length > 0 ? vehicles[0] : null);
+  // Vehicle info is not available from the route — assigned by admin after booking
+  const routeVehicle: { make?: string; model?: string; plate_number?: string; capacity?: number; Driver?: { first_name: string; last_name: string } } | null = null;
 
   /* ─── Steps ─── */
   const steps = [
@@ -111,7 +106,7 @@ export default function NewBooking() {
 
   const canGoNext = (): boolean => {
     if (step === 0) return !!selectedStudent;
-    if (step === 1) return !!selectedRoute && !!selectedStop;
+    if (step === 1) return !!selectedRoute && (!!selectedStop || routeStops.length === 0);
     if (step === 2) return true;
     return true;
   };
