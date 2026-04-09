@@ -254,17 +254,41 @@ export default function StudentManagement() {
                 </div>
               </div>
 
-              {/* Full Name */}
+              {/* Name */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">First Name</label>
+                  <input
+                    type="text"
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    placeholder="First name"
+                    className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white outline-none text-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                    minLength={2}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Last Name</label>
+                  <input
+                    type="text"
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    placeholder="Last name"
+                    className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white outline-none text-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                    minLength={2}
+                  />
+                </div>
+              </div>
+
+              {/* Date of Birth */}
               <div className="mb-4">
-                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Full Name</label>
+                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Date of Birth</label>
                 <input
-                  type="text"
-                  value={formData.first_name ? `${formData.first_name} ${formData.last_name}` : ''}
-                  onChange={(e) => {
-                    const parts = e.target.value.split(' ');
-                    setFormData({ ...formData, first_name: parts[0] || '', last_name: parts.slice(1).join(' ') || '' });
-                  }}
-                  placeholder="Enter student's full name"
+                  type="date"
+                  value={formData.date_of_birth}
+                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                   className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white outline-none text-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
                 />
@@ -316,8 +340,6 @@ export default function StudentManagement() {
                   />
                 </div>
               </div>
-
-              <input type="hidden" value={formData.date_of_birth || '2015-01-01'} />
 
               {/* Info Box */}
               <div className="flex gap-3 p-4 bg-blue-50 rounded-[10px] mb-6 items-start">
