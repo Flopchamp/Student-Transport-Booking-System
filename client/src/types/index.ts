@@ -72,17 +72,14 @@ export interface Route {
 // ============================================
 export interface Vehicle {
   id: string;
-  vehicle_number: string;
-  vehicle_type: string;
+  plate_number: string;
   make: string;
   model: string;
   year: number;
   capacity: number;
-  license_plate: string;
   insurance_expiry: string;
-  last_maintenance_date?: string;
-  next_maintenance_date?: string;
-  status: 'active' | 'maintenance' | 'retired';
+  last_inspection_date?: string;
+  status: 'active' | 'maintenance' | 'inactive';
   is_active: boolean;
   createdAt: string;
   updatedAt: string;

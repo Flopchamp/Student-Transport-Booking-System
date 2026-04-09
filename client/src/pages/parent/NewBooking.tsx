@@ -358,7 +358,7 @@ export default function NewBooking() {
                 {routeVehicle ? `${routeVehicle.make} ${routeVehicle.model}` : 'No vehicle assigned'}
               </h4>
               <p className="text-[13px] text-slate-500 italic mb-3">
-                {routeVehicle ? `${routeVehicle.vehicle_type}` : 'Vehicle details pending'}
+                {routeVehicle ? `${routeVehicle.plate_number}` : 'Vehicle details pending'}
               </p>
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="bg-white rounded-lg px-3 py-2">

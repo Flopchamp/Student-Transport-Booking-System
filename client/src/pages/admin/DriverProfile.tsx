@@ -210,12 +210,8 @@ export default function DriverProfile() {
                 <span className="text-sm font-medium text-text">{driver.Vehicle.make} {driver.Vehicle.model}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-sm text-text-muted">Number</span>
-                <span className="text-sm text-text">{driver.Vehicle.vehicle_number}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-sm text-text-muted">License Plate</span>
-                <span className="text-sm font-mono text-text">{driver.Vehicle.license_plate}</span>
+                <span className="text-sm text-text-muted">Plate Number</span>
+                <span className="text-sm font-mono text-text">{driver.Vehicle.plate_number}</span>
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-sm text-text-muted">Capacity</span>

@@ -48,10 +48,11 @@ export default function BookingManagement() {
   };
 
   const filteredBookings = bookings.filter((b) => {
+    const s = search.toLowerCase();
     const matchesSearch =
-      b.booking_reference.toLowerCase().includes(search.toLowerCase()) ||
-      b.pickup_location.toLowerCase().includes(search.toLowerCase()) ||
-      b.dropoff_location.toLowerCase().includes(search.toLowerCase());
+      (b.booking_reference || '').toLowerCase().includes(s) ||
+      (b.pickup_location || '').toLowerCase().includes(s) ||
+      (b.dropoff_location || '').toLowerCase().includes(s);
     const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

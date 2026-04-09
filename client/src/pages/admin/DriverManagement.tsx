@@ -133,10 +133,10 @@ export default function DriverManagement() {
 
   const filteredDrivers = drivers.filter(
     (d) =>
-      d.first_name.toLowerCase().includes(search.toLowerCase()) ||
-      d.last_name.toLowerCase().includes(search.toLowerCase()) ||
-      d.email.toLowerCase().includes(search.toLowerCase()) ||
-      d.phone.includes(search)
+      (d.first_name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (d.last_name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (d.email || '').toLowerCase().includes(search.toLowerCase()) ||
+      (d.phone || '').includes(search)
   );
 
   const activeCount = drivers.filter((d) => d.status === 'active').length;

@@ -22,13 +22,11 @@ export default function VehicleFleet() {
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [formData, setFormData] = useState({
-    vehicle_number: '',
-    vehicle_type: 'bus',
+    plate_number: '',
     make: '',
     model: '',
     year: '',
     capacity: '',
-    license_plate: '',
     insurance_expiry: '',
     status: 'active',
   });
@@ -55,26 +53,22 @@ export default function VehicleFleet() {
     if (vehicle) {
       setEditingVehicle(vehicle);
       setFormData({
-        vehicle_number: vehicle.vehicle_number,
-        vehicle_type: vehicle.vehicle_type,
+        plate_number: vehicle.plate_number,
         make: vehicle.make,
         model: vehicle.model,
         year: vehicle.year?.toString() || '',
         capacity: vehicle.capacity?.toString() || '',
-        license_plate: vehicle.license_plate,
         insurance_expiry: vehicle.insurance_expiry?.split('T')[0] || '',
         status: vehicle.status,
       });
     } else {
       setEditingVehicle(null);
       setFormData({
-        vehicle_number: '',
-        vehicle_type: 'bus',
+        plate_number: '',
         make: '',
         model: '',
         year: '',
         capacity: '',
-        license_plate: '',
         insurance_expiry: '',
         status: 'active',
       });
@@ -123,11 +117,14 @@ export default function VehicleFleet() {
   };
 
   const filteredVehicles = vehicles.filter(
-    (v) =>
-      v.vehicle_number.toLowerCase().includes(search.toLowerCase()) ||
-      v.make.toLowerCase().includes(search.toLowerCase()) ||
-      v.model.toLowerCase().includes(search.toLowerCase()) ||
-      v.license_plate.toLowerCase().includes(search.toLowerCase())
+    (v) => {
+      const s = search.toLowerCase();
+      return (
+        (v.plate_number || '').toLowerCase().includes(s) ||
+        (v.make || '').toLowerCase().includes(s) ||
+        (v.model || '').toLowerCase().includes(s)
+      );
+    }
   );
 
   const activeCount = vehicles.filter((v) => v.status === 'active').length;
@@ -210,11 +207,11 @@ export default function VehicleFleet() {
                     <td className="px-6 py-4">
                       <div>
                         <p className="text-sm font-medium text-text">{vehicle.make} {vehicle.model}</p>
-                        <p className="text-xs text-text-muted">#{vehicle.vehicle_number} • {vehicle.year}</p>
+                        <p className="text-xs text-text-muted">#{vehicle.plate_number} • {vehicle.year}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-mono text-text">{vehicle.license_plate}</td>
-                    <td className="px-6 py-4 text-sm text-text-secondary capitalize">{vehicle.vehicle_type}</td>
+                    <td className="px-6 py-4 text-sm font-mono text-text">{vehicle.plate_number}</td>
+                    <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.make}</td>
                     <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.capacity} seats</td>
                     <td className="px-6 py-4 text-sm text-text-secondary">
                       {vehicle.insurance_expiry ? new Date(vehicle.insurance_expiry).toLocaleDateString() : '-'}
@@ -260,30 +257,15 @@ export default function VehicleFleet() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Plate Number</label>
                   <input
                     type="text"
-                    value={formData.vehicle_number}
-                    onChange={(e) => setFormData({ ...formData, vehicle_number: e.target.value })}
+                    value={formData.plate_number}
+                    onChange={(e) => setFormData({ ...formData, plate_number: e.target.value })}
                     className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
-                  <select
-                    value={formData.vehicle_type}
-                    onChange={(e) => setFormData({ ...formData, vehicle_type: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  >
-                    <option value="bus">Bus</option>
-                    <option value="minibus">Minibus</option>
-                    <option value="van">Van</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Make</label>
                   <input
@@ -343,23 +325,12 @@ export default function VehicleFleet() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
-                  <input
-                    type="text"
-                    value={formData.license_plate}
-                    onChange={(e) => setFormData({ ...formData, license_plate: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Insurance Expiry</label>
                   <input
                     type="date"
                     value={formData.insurance_expiry}
                     onChange={(e) => setFormData({ ...formData, insurance_expiry: e.target.value })}
                     className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
                   />
                 </div>
               </div>
