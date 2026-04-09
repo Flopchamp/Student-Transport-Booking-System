@@ -28,7 +28,8 @@ export default function BookingManagement() {
   const fetchBookings = async () => {
     try {
       const res = await api.get('/bookings');
-      setBookings(res.data.data || []);
+      const raw = res.data.data;
+      setBookings(Array.isArray(raw) ? raw : (raw?.bookings || []));
     } catch (err) {
       console.error('Failed to fetch bookings:', err);
     } finally {
