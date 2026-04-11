@@ -8,7 +8,6 @@ import {
   Search,
   Edit2,
   Trash2,
-  Star,
   Phone,
   Mail,
   Eye,
@@ -33,11 +32,7 @@ export default function DriverManagement() {
     phone: '',
     license_number: '',
     license_expiry: '',
-    experience_years: '',
-    address: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
-    status: 'active',
+    status: 'available',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -75,10 +70,6 @@ export default function DriverManagement() {
         phone: driver.phone,
         license_number: driver.license_number,
         license_expiry: driver.license_expiry?.split('T')[0] || '',
-        experience_years: driver.experience_years?.toString() || '',
-        address: driver.address || '',
-        emergency_contact_name: driver.emergency_contact_name || '',
-        emergency_contact_phone: driver.emergency_contact_phone || '',
         status: driver.status,
       });
     } else {
@@ -90,11 +81,7 @@ export default function DriverManagement() {
         phone: '',
         license_number: '',
         license_expiry: '',
-        experience_years: '',
-        address: '',
-        emergency_contact_name: '',
-        emergency_contact_phone: '',
-        status: 'active',
+        status: 'available',
       });
     }
     setError('');
@@ -106,10 +93,7 @@ export default function DriverManagement() {
     setSubmitting(true);
     setError('');
 
-    const payload = {
-      ...formData,
-      experience_years: parseInt(formData.experience_years),
-    };
+    const payload = formData;
 
     try {
       if (editingDriver) {
@@ -194,9 +178,6 @@ export default function DriverManagement() {
 
   const activeCount = drivers.filter((d) => d.status === 'available').length;
   const onLeaveCount = drivers.filter((d) => d.status === 'off_duty').length;
-  const avgRating = drivers.length
-    ? (drivers.reduce((sum, d) => sum + (d.rating || 0), 0) / drivers.length).toFixed(1)
-    : '0.0';
 
   if (loading) {
     return (
@@ -224,11 +205,10 @@ export default function DriverManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard icon={UserCheck} label="Total Drivers" value={drivers.length} iconBg="bg-blue-50" iconColor="text-blue-600" />
         <StatCard icon={UserCheck} label="Active" value={activeCount} iconBg="bg-green-50" iconColor="text-green-600" />
-        <StatCard icon={UserCheck} label="On Leave" value={onLeaveCount} iconBg="bg-yellow-50" iconColor="text-yellow-600" />
-        <StatCard icon={Star} label="Avg Rating" value={avgRating} iconBg="bg-purple-50" iconColor="text-purple-600" />
+        <StatCard icon={UserCheck} label="Off Duty" value={onLeaveCount} iconBg="bg-yellow-50" iconColor="text-yellow-600" />
       </div>
 
       {/* Search */}
@@ -281,7 +261,7 @@ export default function DriverManagement() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-text">{driver.first_name} {driver.last_name}</p>
-                          <p className="text-xs text-text-muted">{driver.total_trips} trips</p>
+                          <p className="text-xs text-text-muted">{driver.license_number}</p>
                         </div>
                       </div>
                     </td>
@@ -298,19 +278,13 @@ export default function DriverManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-text-secondary font-mono">{driver.license_number}</td>
-                    <td className="px-6 py-4 text-sm text-text-secondary">{driver.experience_years} years</td>
+                    <td className="px-6 py-4 text-sm text-text-secondary">{driver.license_number}</td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span className="text-sm font-medium text-text">{driver.rating?.toFixed(1) || 'N/A'}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {driver.vehicle_id && (driver.vehicle || driver.Vehicle) ? (
+                      {driver.vehicle_id && driver.vehicle ? (
                         <div className="flex items-center gap-1.5 text-sm">
                           <Truck className="w-3.5 h-3.5 text-blue-500" />
                           <span className="text-text-secondary">
-                            {(driver.vehicle || driver.Vehicle)!.plate_number}
+                            {driver.vehicle.plate_number}
                           </span>
                         </div>
                       ) : (
@@ -441,60 +415,17 @@ export default function DriverManagement() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Experience (years)</label>
-                  <input
-                    type="number"
-                    value={formData.experience_years}
-                    onChange={(e) => setFormData({ ...formData, experience_years: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  >
-                    <option value="active">Active</option>
-                    <option value="on_leave">On Leave</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
-                  <input
-                    type="text"
-                    value={formData.emergency_contact_name}
-                    onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Phone</label>
-                  <input
-                    type="tel"
-                    value={formData.emergency_contact_phone}
-                    onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
+                >
+                  <option value="available">Available</option>
+                  <option value="on_trip">On Trip</option>
+                  <option value="off_duty">Off Duty</option>
+                </select>
               </div>
 
               <div className="flex gap-3 pt-2">

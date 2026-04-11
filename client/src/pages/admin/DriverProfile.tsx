@@ -116,19 +116,18 @@ export default function DriverProfile() {
           {/* Quick Stats */}
           <div className="flex gap-4 sm:gap-6 shrink-0">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                <span className="text-2xl font-bold text-text">{driver.rating?.toFixed(1) || 'N/A'}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-text">{driver.status}</span>
               </div>
-              <p className="text-xs text-text-muted">Rating</p>
+              <p className="text-xs text-text-muted">Status</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-text">{driver.total_trips ?? 0}</p>
-              <p className="text-xs text-text-muted">Total Trips</p>
+              <p className="text-2xl font-bold text-text">{driver.license_number}</p>
+              <p className="text-xs text-text-muted">License</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-text">{driver.experience_years ?? 'N/A'}</p>
-              <p className="text-xs text-text-muted">Years Exp.</p>
+              <p className="text-2xl font-bold text-text">{new Date(driver.license_expiry).toLocaleDateString()}</p>
+              <p className="text-xs text-text-muted">Expiry</p>
             </div>
           </div>
         </div>

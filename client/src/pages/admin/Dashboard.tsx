@@ -61,7 +61,7 @@ export default function AdminDashboard() {
 
       const revenue = bookingData
         .filter((b: Booking) => b.status === 'completed' || b.status === 'confirmed')
-        .reduce((sum: number, b: Booking) => sum + (b.fare_amount || 0), 0);
+        .reduce((sum: number, b: Booking) => sum + (b.amount || 0), 0);
 
       setStats({
         totalStudents: studentsRes.data.pagination?.total || (Array.isArray(studentsRes.data.data) ? studentsRes.data.data : studentsRes.data.data?.students)?.length || 0,
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
         totalVehicles: vehiclesRes.data.pagination?.total || (Array.isArray(vehiclesRes.data.data) ? vehiclesRes.data.data : vehiclesRes.data.data?.vehicles)?.length || 0,
         totalDrivers: driversRes.data.pagination?.total || driverData.length || 0,
         totalBookings: bookingsRes.data.pagination?.total || bookingData.length || 0,
-        activeBookings: bookingData.filter((b: Booking) => ['confirmed', 'in_progress'].includes(b.status)).length,
+        activeBookings: bookingData.filter((b: Booking) => b.status === 'confirmed').length,
         revenue,
       });
     } catch (error) {
@@ -150,13 +150,13 @@ export default function AdminDashboard() {
                     <tr key={booking.id} className="border-t border-border hover:bg-gray-50">
                       <td className="px-6 py-3 text-sm font-mono text-text">{booking.booking_reference}</td>
                       <td className="px-6 py-3 text-sm text-text">
-                        {booking.Student ? `${booking.Student.first_name} ${booking.Student.last_name}` : '-'}
+                        {booking.student ? `${booking.student.first_name} ${booking.student.last_name}` : '-'}
                       </td>
                       <td className="px-6 py-3">
                         <StatusBadge status={booking.status} domain="booking" />
                       </td>
                       <td className="px-6 py-3 text-sm font-medium text-text">
-                        ${booking.fare_amount?.toLocaleString()}
+                        ${booking.amount?.toLocaleString() || '0'}
                       </td>
                     </tr>
                   ))
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                       {driver.first_name} {driver.last_name}
                     </p>
                     <p className="text-xs text-text-muted">
-                      {driver.total_trips} trips • ⭐ {driver.rating?.toFixed(1) || 'N/A'}
+                      {driver.phone} • {driver.license_number}
                     </p>
                   </div>
                   <StatusBadge status={driver.status} domain="driver" />

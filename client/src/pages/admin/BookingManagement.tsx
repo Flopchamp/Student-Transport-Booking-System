@@ -51,8 +51,9 @@ export default function BookingManagement() {
     const s = search.toLowerCase();
     const matchesSearch =
       (b.booking_reference || '').toLowerCase().includes(s) ||
-      (b.pickup_location || '').toLowerCase().includes(s) ||
-      (b.dropoff_location || '').toLowerCase().includes(s);
+      (b.route?.start_location || '').toLowerCase().includes(s) ||
+      (b.route?.end_location || '').toLowerCase().includes(s) ||
+      (`${b.student?.first_name || ''} ${b.student?.last_name || ''}`.toLowerCase().includes(s));
     const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -106,7 +107,6 @@ export default function BookingManagement() {
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
-            <option value="in_progress">In Progress</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
@@ -142,13 +142,13 @@ export default function BookingManagement() {
                   <tr key={booking.id} className="border-t border-border hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-mono text-text">{booking.booking_reference}</td>
                     <td className="px-6 py-4 text-sm text-text">
-                      {booking.User ? `${booking.User.first_name} ${booking.User.last_name}` : '-'}
+                      {booking.parent ? `${booking.parent.first_name} ${booking.parent.last_name}` : '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-text">
-                      {booking.Student ? `${booking.Student.first_name} ${booking.Student.last_name}` : '-'}
+                      {booking.student ? `${booking.student.first_name} ${booking.student.last_name}` : '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-text-secondary">
-                      {booking.Route?.name || '-'}
+                      {booking.route?.name || '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-text-secondary">
                       {new Date(booking.start_date).toLocaleDateString()}
@@ -157,7 +157,7 @@ export default function BookingManagement() {
                       <StatusBadge status={booking.status} domain="booking" withBorder />
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-text">
-                      ${booking.fare_amount?.toLocaleString()}
+                      ${Number(booking.amount || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
@@ -216,23 +216,23 @@ export default function BookingManagement() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-muted">Parent</span>
                 <span className="text-sm text-text">
-                  {selectedBooking.User ? `${selectedBooking.User.first_name} ${selectedBooking.User.last_name}` : '-'}
+                  {selectedBooking.parent ? `${selectedBooking.parent.first_name} ${selectedBooking.parent.last_name}` : '-'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-muted">Student</span>
                 <span className="text-sm text-text">
-                  {selectedBooking.Student ? `${selectedBooking.Student.first_name} ${selectedBooking.Student.last_name}` : '-'}
+                  {selectedBooking.student ? `${selectedBooking.student.first_name} ${selectedBooking.student.last_name}` : '-'}
                 </span>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span className="text-text-secondary">{selectedBooking.pickup_location}</span>
+                  <span className="text-text-secondary">{selectedBooking.route?.start_location || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <div className="w-2 h-2 bg-red-500 rounded-full" />
-                  <span className="text-text-secondary">{selectedBooking.dropoff_location}</span>
+                  <span className="text-text-secondary">{selectedBooking.route?.end_location || 'N/A'}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
@@ -241,7 +241,7 @@ export default function BookingManagement() {
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-border">
                 <span className="text-sm font-medium text-text">Total Fare</span>
-                <span className="text-lg font-bold text-primary">${selectedBooking.fare_amount?.toLocaleString()}</span>
+                <span className="text-lg font-bold text-primary">${Number(selectedBooking.amount || 0).toLocaleString()}</span>
               </div>
 
               {/* Actions */}

@@ -47,22 +47,20 @@ export interface Student {
 export interface Route {
   id: string;
   name: string;
-  route_name?: string;
-  route_number?: string;
   description?: string;
   start_location: string;
+  start_lat?: number;
+  start_lng?: number;
   end_location: string;
-  stops: string[];
-  distance_km: number;
-  estimated_duration_min: number;
-  estimated_duration_minutes?: number;
+  end_lat?: number;
+  end_lng?: number;
+  stops: Array<string | { name?: string; address?: string; lat?: number; lng?: number; order?: number }>;
+  distance_km?: number;
+  estimated_duration_min?: number;
   price: number;
-  fare_amount?: number;
   is_active: boolean;
   createdAt: string;
   updatedAt: string;
-  Vehicle?: Vehicle;
-  Driver?: Driver;
 }
 
 // ============================================
@@ -81,8 +79,7 @@ export interface Vehicle {
   is_active: boolean;
   createdAt: string;
   updatedAt: string;
-  Driver?: Driver;
-  Route?: Route;
+  driver?: Driver;
 }
 
 // ============================================
@@ -100,18 +97,9 @@ export interface Driver {
   status: 'available' | 'on_trip' | 'off_duty';
   is_active: boolean;
   profile_photo?: string;
-  experience_years?: number;
-  address?: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  rating?: number;
-  total_trips?: number;
-  route_id?: string;
   createdAt: string;
   updatedAt: string;
-  Vehicle?: Vehicle;
   vehicle?: Vehicle;
-  Route?: Route;
 }
 
 // ============================================
@@ -147,16 +135,21 @@ export interface Booking {
 // ============================================
 export interface Payment {
   id: string;
+  payment_reference: string;
   booking_id: string;
-  user_id: string;
+  parent_id: string;
   amount: number;
-  payment_method: 'credit_card' | 'mpesa' | 'bank_transfer';
-  transaction_reference?: string;
+  currency: string;
+  payment_method: 'mpesa' | 'stripe';
   status: 'pending' | 'completed' | 'failed' | 'refunded';
+  transaction_id?: string;
+  mpesa_receipt?: string;
   paid_at?: string;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
-  Booking?: Booking;
+  booking?: Booking;
+  parent?: User;
 }
 
 // ============================================

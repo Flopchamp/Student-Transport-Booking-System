@@ -214,7 +214,7 @@ const deleteDriver = catchAsync(async (req, res) => {
 
   // Soft-delete: deactivate instead of destroying
   driver.is_active = false;
-  driver.status = 'inactive';
+  driver.status = 'off_duty';
   await driver.save();
 
   ApiResponse.success(res, null, 'Driver deleted successfully');
