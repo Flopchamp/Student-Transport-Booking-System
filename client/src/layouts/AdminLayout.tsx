@@ -13,7 +13,6 @@ import {
   X,
   Bell,
   ChevronDown,
-  Settings,
   User,
 } from 'lucide-react';
 
@@ -95,14 +94,6 @@ export default function AdminLayout() {
 
         {/* Settings & User */}
         <div className="p-3 border-t border-white/10">
-          <NavLink
-            to="/admin/settings"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <Settings className="w-5 h-5" />
-            Settings
-          </NavLink>
-
           <div className="flex items-center gap-3 px-3 py-2 mt-2">
             <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
               <User className="w-5 h-5 text-primary-light" />
