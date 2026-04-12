@@ -10,8 +10,6 @@ import {
   MapPin,
   Bus,
   ArrowRight,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import type { Booking } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -157,7 +155,7 @@ export default function MyBookings() {
                         <StatusBadge status={booking.status} domain="booking" showDot withBorder />
                       </td>
                       <td className="px-4 py-3.5 text-sm font-semibold text-slate-800 whitespace-nowrap">
-                        ${Number(booking.amount || 0).toFixed(2)}
+                        KES {Number(booking.amount || 0).toLocaleString()}
                       </td>
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1">
@@ -185,17 +183,9 @@ export default function MyBookings() {
             </table>
           </div>
 
-          {/* Pagination footer */}
+          {/* Footer */}
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 text-[13px] text-slate-400">
             <span>Showing {filteredBookings.length} booking{filteredBookings.length !== 1 ? 's' : ''}</span>
-            <div className="flex gap-1">
-              <button className="w-8 h-8 rounded-md border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50">
-                <ChevronLeft className="w-4 h-4 text-slate-400" />
-              </button>
-              <button className="w-8 h-8 rounded-md border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50">
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -274,7 +264,7 @@ export default function MyBookings() {
                   <div className="p-3 bg-slate-50 rounded-lg">
                     <div className="text-[11px] text-slate-400 font-semibold uppercase mb-1">Amount</div>
                     <div className="text-sm font-semibold text-slate-800">
-                      ${Number(selectedBooking.amount || 0).toFixed(2)}
+                      KES {Number(selectedBooking.amount || 0).toLocaleString()}
                     </div>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg">
@@ -289,7 +279,7 @@ export default function MyBookings() {
                 <div className="flex items-center justify-between px-5 py-4 bg-blue-50 rounded-[10px] border border-blue-100">
                   <span className="text-sm font-semibold text-slate-800">Total Fare</span>
                   <span className="text-[22px] font-extrabold text-primary">
-                    ${Number(selectedBooking.amount || 0).toFixed(2)}
+                    KES {Number(selectedBooking.amount || 0).toLocaleString()}
                   </span>
                 </div>
 
