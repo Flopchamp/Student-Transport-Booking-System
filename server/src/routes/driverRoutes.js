@@ -14,6 +14,7 @@ const {
   updateDriver,
   deleteDriver,
   assignVehicle,
+  assignRoute,
 } = require('../controllers/driverController');
 
 const router = Router();
@@ -27,5 +28,6 @@ router.get('/:id', driverIdValidator, validate, getDriver);
 router.put('/:id', updateDriverValidator, validate, updateDriver);
 router.delete('/:id', driverIdValidator, validate, deleteDriver);
 router.patch('/:id/assign-vehicle', driverIdValidator, validate, assignVehicle);
+router.patch('/:id/assign-route', driverIdValidator, validate, assignRoute);
 
 module.exports = router;
