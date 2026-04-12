@@ -185,8 +185,8 @@ export default function VehicleFleet() {
             <thead>
               <tr className="bg-gray-50 border-b border-border">
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Vehicle</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">License Plate</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Type</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Plate Number</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Year</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Capacity</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Insurance</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Status</th>
@@ -211,7 +211,7 @@ export default function VehicleFleet() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-mono text-text">{vehicle.plate_number}</td>
-                    <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.make}</td>
+                    <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.year}</td>
                     <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.capacity} seats</td>
                     <td className="px-6 py-4 text-sm text-text-secondary">
                       {vehicle.insurance_expiry ? new Date(vehicle.insurance_expiry).toLocaleDateString() : '-'}
@@ -318,7 +318,7 @@ export default function VehicleFleet() {
                   >
                     <option value="active">Active</option>
                     <option value="maintenance">Maintenance</option>
-                    <option value="retired">Retired</option>
+                    <option value="inactive">Inactive</option>
                   </select>
                 </div>
               </div>
