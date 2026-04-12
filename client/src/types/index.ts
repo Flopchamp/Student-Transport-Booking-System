@@ -94,12 +94,14 @@ export interface Driver {
   license_number: string;
   license_expiry: string;
   vehicle_id?: string;
+  route_id?: string;
   status: 'available' | 'on_trip' | 'off_duty';
   is_active: boolean;
   profile_photo?: string;
   createdAt: string;
   updatedAt: string;
   vehicle?: Vehicle;
+  route?: Route;
 }
 
 // ============================================
