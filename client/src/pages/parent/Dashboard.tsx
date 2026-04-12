@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import {
   Users,
@@ -8,12 +7,10 @@ import {
   CreditCard,
   Plus,
   Bus,
-  Phone,
-  User,
-  ChevronRight,
-  MoreVertical,
+  Calendar,
 } from 'lucide-react';
 import type { Student, Booking } from '../../types';
+import StatusBadge from '../../components/ui/StatusBadge';
 
 interface DashboardStats {
   totalStudents: number;
@@ -22,14 +19,13 @@ interface DashboardStats {
 }
 
 export default function ParentDashboard() {
-  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
     activeRoutes: 0,
     paymentStatus: 'Paid',
   });
   const [students, setStudents] = useState<Student[]>([]);
-  const [, setRecentBookings] = useState<Booking[]>([]);
+  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,7 +54,7 @@ export default function ParentDashboard() {
 
       setStats({
         totalStudents: studentData.length,
-        activeRoutes: activeRouteCount || 1,
+        activeRoutes: activeRouteCount,
         paymentStatus: hasPending ? 'Pending' : 'Paid',
       });
     } catch (error) {
@@ -75,13 +71,6 @@ export default function ParentDashboard() {
       </div>
     );
   }
-
-  const notifications = [
-    { emoji: '📍', bg: 'bg-blue-50', title: 'Pickup Completed', time: '10m ago', desc: `${user?.first_name || 'Sarah'} Miller was picked up at 07:45 AM from Stop 4.` },
-    { emoji: '💳', bg: 'bg-amber-50', title: 'Payment Reminder', time: '2h ago', desc: 'Next monthly subscription payment is due in 3 days.', link: 'Pay Now' },
-    { emoji: '✅', bg: 'bg-green-50', title: 'Route Update', time: 'Yesterday', desc: 'A new stop has been added to Route A-12 near your location.' },
-    { emoji: '🔵', bg: 'bg-blue-50', title: 'System Update', time: '2 days ago', desc: 'New dashboard features are now live. Check the guide.' },
-  ];
 
   const cardClass = 'bg-white rounded-xl border border-border shadow-sm';
 
@@ -140,72 +129,91 @@ export default function ParentDashboard() {
             </div>
           </div>
 
-          {/* Live Trip Tracking */}
+          {/* Recent Bookings */}
           <div className={`${cardClass} p-6`}>
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-base font-semibold text-slate-800 m-0">Live Trip Tracking</h3>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-500 bg-green-100 px-2.5 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block" />
-                In Transit
-              </span>
-            </div>
-            <p className="text-[13px] text-slate-500 mb-4">Route A-12 • Afternoon Drop-off</p>
-
-            <div className="bg-slate-100 rounded-xl h-[220px] flex flex-col items-center justify-center border border-border relative">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-2 shadow-md shadow-primary/30">
-                <Bus className="w-6 h-6 text-white" />
-              </div>
-              <div className="bg-white px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-800 shadow-sm border border-border">
-                ETA: 12 mins
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-slate-800 m-0">Recent Bookings</h3>
+              <Link to="/my-bookings" className="text-[13px] text-primary font-medium no-underline hover:underline">
+                View All
+              </Link>
             </div>
 
-            <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
-              <div className="flex items-center gap-2 text-slate-500 text-[13px]">
-                <User className="w-4 h-4" />
-                <span>Driver: <strong className="text-slate-800">John Thompson</strong></span>
+            {recentBookings.length === 0 ? (
+              <div className="text-center py-8">
+                <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-500">No bookings yet.</p>
+                <Link to="/book-transport" className="text-sm text-primary font-semibold no-underline hover:underline">
+                  Book your first transport →
+                </Link>
               </div>
-              <div className="flex items-center gap-1.5 text-primary text-[13px] font-medium cursor-pointer hover:underline">
-                <Phone className="w-3.5 h-3.5" />
-                Contact Driver
+            ) : (
+              <div className="flex flex-col gap-3">
+                {recentBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center gap-4 p-3.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                      <Bus className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-sm font-semibold text-slate-800 truncate">
+                          {booking.student ? `${booking.student.first_name} ${booking.student.last_name}` : 'Student'}
+                        </span>
+                        <StatusBadge status={booking.status} domain="booking" showDot />
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {booking.route?.name || 'Route'} • {new Date(booking.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    </div>
+                    <div className="text-sm font-bold text-slate-800 shrink-0">
+                      KES {Number(booking.amount || 0).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* RIGHT COLUMN – Notifications */}
+        {/* RIGHT COLUMN – Payment Summary */}
         <div className={`${cardClass} p-6 flex flex-col`}>
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-base font-semibold text-slate-800 m-0">Notifications</h3>
-            <span className="text-[13px] text-primary font-medium cursor-pointer hover:underline">Mark all read</span>
+            <h3 className="text-base font-semibold text-slate-800 m-0">Payment Overview</h3>
+            <Link to="/payment" className="text-[13px] text-primary font-medium no-underline hover:underline">
+              Pay Now
+            </Link>
           </div>
 
           <div className="flex flex-col gap-4 flex-1">
-            {notifications.map((n, i) => (
-              <div key={i} className="flex gap-3 items-start">
-                <div className={`w-8 h-8 rounded-full ${n.bg} flex items-center justify-center text-sm shrink-0 mt-0.5`}>
-                  {n.emoji}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[13px] font-semibold text-slate-800">{n.title}</span>
-                    <span className="text-[11px] text-slate-400">{n.time}</span>
+            {recentBookings.filter(b => b.status === 'pending').length > 0 ? (
+              <>
+                <div className="flex items-center gap-3 p-3.5 bg-amber-50 rounded-xl border border-amber-200">
+                  <CreditCard className="w-5 h-5 text-amber-600 shrink-0" />
+                  <div>
+                    <div className="text-sm font-semibold text-slate-800">Pending Payments</div>
+                    <div className="text-xs text-slate-500">
+                      {recentBookings.filter(b => b.status === 'pending').length} booking(s) awaiting payment
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed m-0">{n.desc}</p>
-                  {n.link && (
-                    <a href="#" className="text-xs text-primary font-semibold no-underline inline-flex items-center gap-0.5 mt-1 hover:underline">
-                      {n.link} <ChevronRight className="w-3 h-3" />
-                    </a>
-                  )}
                 </div>
+                {recentBookings.filter(b => b.status === 'pending').slice(0, 3).map((b) => (
+                  <div key={b.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                    <div>
+                      <div className="text-sm font-medium text-slate-800">{b.route?.name || 'Route'}</div>
+                      <div className="text-xs text-slate-500">{b.booking_reference}</div>
+                    </div>
+                    <span className="text-sm font-bold text-amber-600">KES {Number(b.amount || 0).toLocaleString()}</span>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <div className="text-center py-6">
+                <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-2">
+                  <CreditCard className="w-6 h-6 text-emerald-500" />
+                </div>
+                <p className="text-sm font-semibold text-slate-800">All Caught Up!</p>
+                <p className="text-xs text-slate-500">No pending payments</p>
               </div>
-            ))}
-          </div>
-
-          <div className="text-center pt-4 border-t border-slate-100 mt-4">
-            <a href="#" className="text-[13px] text-primary font-medium no-underline hover:underline">
-              View All Notifications
-            </a>
+            )}
           </div>
         </div>
       </div>
@@ -234,9 +242,9 @@ export default function ParentDashboard() {
                   </span>
                 </div>
               </div>
-              <button className="p-1 bg-transparent border-none cursor-pointer text-slate-400 hover:text-slate-600">
-                <MoreVertical className="w-[18px] h-[18px]" />
-              </button>
+              <Link to="/students" className="p-1 bg-transparent border-none cursor-pointer text-slate-400 hover:text-primary no-underline">
+                <MapPin className="w-[18px] h-[18px]" />
+              </Link>
             </div>
           )) : (
             <div className={`${cardClass} p-8 text-center col-span-full`}>
