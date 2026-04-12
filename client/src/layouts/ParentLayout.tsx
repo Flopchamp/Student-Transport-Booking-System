@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Bus,
@@ -8,12 +8,10 @@ import {
   BookOpen,
   Route as RouteIcon,
   CreditCard,
-  Settings,
   LogOut,
   Menu,
   X,
   Bell,
-  Search,
   User,
 } from 'lucide-react';
 
@@ -25,19 +23,19 @@ const mainNav = [
   { label: 'Payments', icon: CreditCard, path: '/payment' },
 ];
 
-const accountNav = [
-  { label: 'Settings', icon: Settings, path: '#settings' },
-];
-
 export default function ParentLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  // Dynamic page title based on current route
+  const pageTitle = mainNav.find((item) => location.pathname === item.path)?.label || 'Dashboard';
 
   return (
     <div className="min-h-screen flex bg-bg">
@@ -95,25 +93,6 @@ export default function ParentLayout() {
               </NavLink>
             ))}
           </div>
-
-          {/* Account Section */}
-          <div className="mt-7">
-            <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider px-3 py-2">
-              Account
-            </div>
-            <div className="flex flex-col gap-0.5">
-              {accountNav.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.path}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary no-underline hover:bg-gray-50 transition-colors"
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          </div>
         </nav>
 
         {/* User Card */}
@@ -150,19 +129,10 @@ export default function ParentLayout() {
             >
               <Menu className="w-5 h-5 text-text-secondary" />
             </button>
-            <h2 className="text-lg font-bold text-text m-0">Dashboard Overview</h2>
+            <h2 className="text-lg font-bold text-text m-0">{pageTitle}</h2>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Search */}
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-              <input
-                placeholder="Search activities..."
-                className="w-55 h-9.5 pl-9 pr-3 text-[13px] border border-border rounded-lg bg-bg outline-none text-text"
-              />
-            </div>
-
             {/* Notification Bell */}
             <button className="relative w-9.5 h-9.5 rounded-lg border border-border bg-surface flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
               <Bell className="w-4.5 h-4.5 text-text-secondary" />
