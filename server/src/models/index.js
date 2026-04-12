@@ -19,6 +19,10 @@ Student.belongsTo(User, { foreignKey: 'parent_id', as: 'parent' });
 Vehicle.hasOne(Driver, { foreignKey: 'vehicle_id', as: 'driver', onDelete: 'SET NULL' });
 Driver.belongsTo(Vehicle, { foreignKey: 'vehicle_id', as: 'vehicle' });
 
+// Route <-> Driver (one route can have many drivers)
+Route.hasMany(Driver, { foreignKey: 'route_id', as: 'drivers', onDelete: 'SET NULL' });
+Driver.belongsTo(Route, { foreignKey: 'route_id', as: 'route' });
+
 // User (Parent) <-> Bookings
 User.hasMany(Booking, { foreignKey: 'parent_id', as: 'bookings', onDelete: 'RESTRICT' });
 Booking.belongsTo(User, { foreignKey: 'parent_id', as: 'parent' });
