@@ -8,8 +8,10 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  UserPlus,
+  Truck,
 } from 'lucide-react';
-import type { Booking } from '../../types';
+import type { Booking, Driver, Vehicle } from '../../types';
 import Modal from '../../components/ui/Modal';
 import StatusBadge from '../../components/ui/StatusBadge';
 import StatCard from '../../components/ui/StatCard';
@@ -20,6 +22,16 @@ export default function BookingManagement() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
+  // Assign driver/vehicle state
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignBookingTarget, setAssignBookingTarget] = useState<Booking | null>(null);
+  const [availableDrivers, setAvailableDrivers] = useState<Driver[]>([]);
+  const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
+  const [assignDriverId, setAssignDriverId] = useState<string>('');
+  const [assignVehicleId, setAssignVehicleId] = useState<string>('');
+  const [assigningBooking, setAssigningBooking] = useState(false);
+  const [assignError, setAssignError] = useState('');
 
   useEffect(() => {
     fetchBookings();
@@ -44,6 +56,47 @@ export default function BookingManagement() {
       fetchBookings();
     } catch (err) {
       console.error('Failed to update status:', err);
+    }
+  };
+
+  // ---- Assign driver/vehicle ----
+  const handleOpenAssignModal = async (booking: Booking) => {
+    setAssignBookingTarget(booking);
+    setAssignDriverId(booking.driver_id || '');
+    setAssignVehicleId(booking.vehicle_id || '');
+    setAssignError('');
+    try {
+      const [driverRes, vehicleRes] = await Promise.all([
+        api.get('/drivers'),
+        api.get('/vehicles'),
+      ]);
+      const rawD = driverRes.data.data;
+      setAvailableDrivers(Array.isArray(rawD) ? rawD : (rawD?.drivers || []));
+      const rawV = vehicleRes.data.data;
+      setAvailableVehicles(Array.isArray(rawV) ? rawV : (rawV?.vehicles || []));
+    } catch (err) {
+      console.error('Failed to load drivers/vehicles:', err);
+    }
+    setShowAssignModal(true);
+  };
+
+  const handleAssignBooking = async () => {
+    if (!assignBookingTarget) return;
+    setAssigningBooking(true);
+    setAssignError('');
+    try {
+      await api.put(`/bookings/${assignBookingTarget.id}/assign`, {
+        driver_id: assignDriverId || null,
+        vehicle_id: assignVehicleId || null,
+      });
+      toast.success('Booking assignment updated');
+      setShowAssignModal(false);
+      fetchBookings();
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setAssignError(error.response?.data?.message || 'Failed to assign');
+    } finally {
+      setAssigningBooking(false);
     }
   };
 
@@ -168,6 +221,15 @@ export default function BookingManagement() {
                         >
                           <Eye className="w-4 h-4 text-gray-500" />
                         </button>
+                        {['pending', 'confirmed'].includes(booking.status) && (
+                          <button
+                            onClick={() => handleOpenAssignModal(booking)}
+                            className="p-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
+                            title="Assign Driver / Vehicle"
+                          >
+                            <UserPlus className="w-4 h-4 text-indigo-500" />
+                          </button>
+                        )}
                         {booking.status === 'pending' && (
                           <button
                             onClick={() => handleStatusChange(booking.id, 'confirmed')}
@@ -269,6 +331,98 @@ export default function BookingManagement() {
               )}
             </div>
         )}
+      </Modal>
+
+      {/* Assign Driver/Vehicle Modal */}
+      <Modal
+        open={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        title={`Assign Resources — ${assignBookingTarget?.booking_reference ?? ''}`}
+        maxWidth="max-w-md"
+      >
+        <div className="p-6 space-y-4">
+          {assignError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{assignError}</div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Assign Driver</label>
+            <select
+              value={assignDriverId}
+              onChange={(e) => setAssignDriverId(e.target.value)}
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              <option value="">— No driver —</option>
+              {availableDrivers
+                .filter((d) => d.status !== 'off_duty')
+                .map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.first_name} {d.last_name} — {d.license_number}
+                    {d.status === 'on_trip' ? ' [on trip]' : ''}
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Assign Vehicle</label>
+            <select
+              value={assignVehicleId}
+              onChange={(e) => setAssignVehicleId(e.target.value)}
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              <option value="">— No vehicle —</option>
+              {availableVehicles
+                .filter((v) => v.status === 'active')
+                .map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.plate_number} — {v.make} {v.model} ({v.capacity} seats)
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          {(assignDriverId || assignVehicleId) && (
+            <div className="bg-indigo-50 rounded-lg p-3 text-sm space-y-1">
+              {assignDriverId && (() => {
+                const d = availableDrivers.find((d) => d.id === assignDriverId);
+                return d ? (
+                  <p className="text-indigo-700">
+                    <UserPlus className="w-4 h-4 inline mr-1" />
+                    Driver: {d.first_name} {d.last_name}
+                  </p>
+                ) : null;
+              })()}
+              {assignVehicleId && (() => {
+                const v = availableVehicles.find((v) => v.id === assignVehicleId);
+                return v ? (
+                  <p className="text-indigo-700">
+                    <Truck className="w-4 h-4 inline mr-1" />
+                    Vehicle: {v.plate_number} — {v.make} {v.model}
+                  </p>
+                ) : null;
+              })()}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAssignModal(false)}
+              className="flex-1 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleAssignBooking}
+              disabled={assigningBooking}
+              className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-60"
+            >
+              {assigningBooking ? 'Saving...' : 'Save Assignment'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

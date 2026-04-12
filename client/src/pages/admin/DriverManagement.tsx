@@ -12,8 +12,9 @@ import {
   Mail,
   Eye,
   Truck,
+  MapPin,
 } from 'lucide-react';
-import type { Driver, Vehicle } from '../../types';
+import type { Driver, Vehicle, Route } from '../../types';
 import Modal from '../../components/ui/Modal';
 import StatusBadge from '../../components/ui/StatusBadge';
 import StatCard from '../../components/ui/StatCard';
@@ -43,6 +44,13 @@ export default function DriverManagement() {
   const [assigningDriver, setAssigningDriver] = useState<Driver | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
   const [assigning, setAssigning] = useState(false);
+
+  // Route assignment state
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [showRouteAssignModal, setShowRouteAssignModal] = useState(false);
+  const [assigningDriverForRoute, setAssigningDriverForRoute] = useState<Driver | null>(null);
+  const [selectedRouteId, setSelectedRouteId] = useState<string>('');
+  const [assigningRoute, setAssigningRoute] = useState(false);
 
   useEffect(() => {
     fetchDrivers();
@@ -168,6 +176,44 @@ export default function DriverManagement() {
       .map((d) => d.vehicle_id!)
   );
 
+  // ---- Route assignment ----
+  const fetchRoutes = async () => {
+    try {
+      const res = await api.get('/routes');
+      const raw = res.data.data;
+      setRoutes(Array.isArray(raw) ? raw : (raw?.routes || []));
+    } catch (err) {
+      console.error('Failed to fetch routes:', err);
+    }
+  };
+
+  const handleOpenRouteAssignModal = (driver: Driver) => {
+    setAssigningDriverForRoute(driver);
+    setSelectedRouteId(driver.route_id || '');
+    setError('');
+    fetchRoutes();
+    setShowRouteAssignModal(true);
+  };
+
+  const handleAssignRoute = async () => {
+    if (!assigningDriverForRoute) return;
+    setAssigningRoute(true);
+    setError('');
+    try {
+      await api.patch(`/drivers/${assigningDriverForRoute.id}/assign-route`, {
+        route_id: selectedRouteId || null,
+      });
+      toast.success(selectedRouteId ? 'Route assigned successfully' : 'Route unassigned');
+      setShowRouteAssignModal(false);
+      fetchDrivers();
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to assign route');
+    } finally {
+      setAssigningRoute(false);
+    }
+  };
+
   const filteredDrivers = drivers.filter(
     (d) =>
       (d.first_name || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -234,9 +280,8 @@ export default function DriverManagement() {
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Driver</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Contact</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">License</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Experience</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Rating</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Vehicle</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Route</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Status</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-text-muted uppercase">Actions</th>
               </tr>
@@ -244,7 +289,7 @@ export default function DriverManagement() {
             <tbody>
               {filteredDrivers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
+                  <td colSpan={7} className="px-6 py-12 text-center">
                     <UserCheck className="w-10 h-10 text-gray-300 mx-auto mb-2" />
                     <p className="text-sm text-text-muted">No drivers found</p>
                   </td>
@@ -278,7 +323,6 @@ export default function DriverManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-text-secondary font-mono">{driver.license_number}</td>
-                    <td className="px-6 py-4 text-sm text-text-secondary">{driver.license_number}</td>
                     <td className="px-6 py-4">
                       {driver.vehicle_id && driver.vehicle ? (
                         <div className="flex items-center gap-1.5 text-sm">
@@ -286,6 +330,21 @@ export default function DriverManagement() {
                           <span className="text-text-secondary">
                             {driver.vehicle.plate_number}
                           </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-text-muted italic">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {driver.route_id && driver.route ? (
+                        <div className="text-sm">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+                            <span className="text-text-secondary font-medium">{driver.route.name}</span>
+                          </div>
+                          <p className="text-xs text-text-muted mt-0.5">
+                            {driver.route.start_location} → {driver.route.end_location}
+                          </p>
                         </div>
                       ) : (
                         <span className="text-xs text-text-muted italic">Unassigned</span>
@@ -309,6 +368,13 @@ export default function DriverManagement() {
                           title="Assign Vehicle"
                         >
                           <Truck className="w-4 h-4 text-blue-500" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenRouteAssignModal(driver)}
+                          className="p-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
+                          title="Assign Route"
+                        >
+                          <MapPin className="w-4 h-4 text-emerald-500" />
                         </button>
                         <button
                           onClick={() => handleOpenModal(driver)}
@@ -509,6 +575,71 @@ export default function DriverManagement() {
               className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-60"
             >
               {assigning ? 'Saving...' : selectedVehicleId ? 'Assign Vehicle' : 'Unassign Vehicle'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Assign Route Modal */}
+      <Modal
+        open={showRouteAssignModal}
+        onClose={() => setShowRouteAssignModal(false)}
+        title={`Assign Route — ${assigningDriverForRoute?.first_name ?? ''} ${assigningDriverForRoute?.last_name ?? ''}`}
+        maxWidth="max-w-md"
+      >
+        <div className="p-6 space-y-4">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Select Route</label>
+            <select
+              value={selectedRouteId}
+              onChange={(e) => setSelectedRouteId(e.target.value)}
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              <option value="">— No route (unassign) —</option>
+              {routes.filter((r) => r.is_active).map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name} — {r.start_location} → {r.end_location} (KES {r.price})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedRouteId && (() => {
+            const r = routes.find((r) => r.id === selectedRouteId);
+            if (!r) return null;
+            return (
+              <div className="bg-emerald-50 rounded-lg p-3 text-sm space-y-1">
+                <p className="font-medium text-emerald-800">
+                  <MapPin className="w-4 h-4 inline mr-1" />
+                  {r.name}
+                </p>
+                <p className="text-emerald-600">{r.start_location} → {r.end_location}</p>
+                {r.distance_km && <p className="text-emerald-600">Distance: {r.distance_km} km</p>}
+                {r.estimated_duration_min && <p className="text-emerald-600">Duration: {r.estimated_duration_min} min</p>}
+                <p className="text-emerald-600">Price: KES {r.price}</p>
+              </div>
+            );
+          })()}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowRouteAssignModal(false)}
+              className="flex-1 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleAssignRoute}
+              disabled={assigningRoute}
+              className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-60"
+            >
+              {assigningRoute ? 'Saving...' : selectedRouteId ? 'Assign Route' : 'Unassign Route'}
             </button>
           </div>
         </div>
