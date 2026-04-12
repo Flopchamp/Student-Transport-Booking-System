@@ -6,11 +6,10 @@ import {
   Plus,
   Search,
   MapPin,
-  Camera,
   Home,
   Info,
   ChevronRight,
-  MoreVertical,
+  Trash2,
   Users,
 } from 'lucide-react';
 import type { Student } from '../../types';
@@ -211,10 +210,10 @@ export default function StudentManagement() {
                 {/* Actions */}
                 <button
                     onClick={() => handleDelete(student.id)}
-                    className="p-1.5 bg-transparent border-none cursor-pointer text-slate-400 hover:text-slate-600"
-                    title="More options"
+                    className="p-1.5 bg-transparent border-none cursor-pointer text-slate-400 hover:text-red-500"
+                    title="Remove student"
                   >
-                    <MoreVertical className="w-4.5 h-4.5" />
+                    <Trash2 className="w-4.5 h-4.5" />
                   </button>
               </div>
             );
@@ -235,17 +234,6 @@ export default function StudentManagement() {
                   {error}
                 </div>
               )}
-
-              {/* Photo Upload */}
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer shrink-0">
-                  <Camera className="w-6 h-6 text-slate-400" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-slate-800">Student Photograph</div>
-                  <div className="text-xs text-slate-400">PNG, JPG up to 5MB. Must be a clear headshot.</div>
-                </div>
-              </div>
 
               {/* Name */}
               <div className="grid grid-cols-2 gap-3 mb-4">

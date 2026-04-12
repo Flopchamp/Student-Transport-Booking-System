@@ -11,7 +11,6 @@ import {
   Shield,
   Plus,
   CheckCircle,
-  Settings,
 } from 'lucide-react';
 import type { Route, Student } from '../../types';
 
@@ -93,14 +92,13 @@ export default function NewBooking() {
         }))
       : [];
 
-  // Vehicle info is not available from the route — assigned by admin after booking
-  const routeVehicle = null as { make?: string; model?: string; plate_number?: string; capacity?: number; Driver?: { first_name: string; last_name: string } } | null;
+  // Vehicle info is assigned by admin after booking
 
   /* ─── Steps ─── */
   const steps = [
     { num: 1, label: 'SELECT STUDENT' },
     { num: 2, label: 'CHOOSE ROUTE' },
-    { num: 3, label: 'SELECT BUS' },
+    { num: 3, label: 'SCHEDULE' },
     { num: 4, label: 'REVIEW' },
   ];
 
@@ -265,9 +263,6 @@ export default function NewBooking() {
                 <button className="w-8 h-8 rounded-md border border-slate-200 bg-white cursor-pointer flex items-center justify-center hover:bg-slate-50">
                   <MapPin className="w-3.5 h-3.5 text-slate-500" />
                 </button>
-                <button className="w-8 h-8 rounded-md border border-slate-200 bg-white cursor-pointer flex items-center justify-center hover:bg-slate-50">
-                  <Settings className="w-3.5 h-3.5 text-slate-500" />
-                </button>
               </div>
             </div>
             {/* Map placeholder */}
@@ -344,28 +339,28 @@ export default function NewBooking() {
               </div>
             </div>
 
-            {/* Selected Vehicle Card */}
+            {/* Route Info */}
             <div className="relative p-5 rounded-xl bg-blue-50 border border-blue-100">
               <div className="inline-block text-[10px] font-bold tracking-wider uppercase text-blue-600 bg-blue-100 px-2.5 py-0.5 rounded mb-2.5">
-                SELECTED VEHICLE
+                ROUTE DETAILS
               </div>
               <h4 className="text-lg font-bold text-slate-800 mb-0.5">
-                {routeVehicle ? `${routeVehicle.make} ${routeVehicle.model}` : 'No vehicle assigned'}
+                {selectedRoute?.name || 'Selected Route'}
               </h4>
-              <p className="text-[13px] text-slate-500 italic mb-3">
-                {routeVehicle ? `${routeVehicle.plate_number}` : 'Vehicle details pending'}
+              <p className="text-[13px] text-slate-500 mb-3">
+                {selectedRoute?.start_location} → {selectedRoute?.end_location}
               </p>
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="bg-white rounded-lg px-3 py-2">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Driver</div>
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Monthly Fare</div>
                   <div className="text-sm font-semibold text-slate-800">
-                    {routeVehicle?.Driver ? `${routeVehicle.Driver.first_name} ${routeVehicle.Driver.last_name}` : 'TBD'}
+                    {selectedRoute?.price ? `KES ${Number(selectedRoute.price).toLocaleString()}` : '—'}
                   </div>
                 </div>
                 <div className="bg-white rounded-lg px-3 py-2">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Capacity</div>
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Vehicle & Driver</div>
                   <div className="text-sm font-semibold text-slate-800">
-                    {routeVehicle ? `${routeVehicle.capacity} Seats` : '—'}
+                    Assigned after booking
                   </div>
                 </div>
               </div>
@@ -501,28 +496,20 @@ export default function NewBooking() {
 
             {/* Right — Pricing */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-              <h4 className="text-[15px] font-bold text-slate-800 mb-4">Pricing Breakdown</h4>
+              <h4 className="text-[15px] font-bold text-slate-800 mb-4">Pricing Summary</h4>
               <div className="flex flex-col gap-2.5 text-sm">
                 <div className="flex justify-between text-slate-600">
-                  <span>Monthly Base Fare</span>
-                  <span className="font-semibold">${selectedRoute?.price ? Number(selectedRoute.price).toFixed(2) : '120.00'}</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Early Booking Discount</span>
-                  <span className="font-semibold text-emerald-500">-$10.00</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Service Fee (2.5%)</span>
-                  <span className="font-semibold">$2.75</span>
+                  <span>Monthly Fare</span>
+                  <span className="font-semibold">KES {selectedRoute?.price ? Number(selectedRoute.price).toLocaleString() : '0'}</span>
                 </div>
                 <div className="h-px bg-slate-200 my-1.5" />
                 <div className="flex justify-between items-baseline">
                   <span className="text-[15px] font-bold text-slate-800">Total Amount</span>
                   <div className="text-right">
                     <div className="text-2xl font-extrabold text-blue-600">
-                      ${selectedRoute?.price ? (Number(selectedRoute.price) - 10 + 2.75).toFixed(2) : '112.75'}
+                      KES {selectedRoute?.price ? Number(selectedRoute.price).toLocaleString() : '0'}
                     </div>
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">USD PER MONTH</div>
+                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">PER MONTH</div>
                   </div>
                 </div>
               </div>
@@ -530,7 +517,7 @@ export default function NewBooking() {
               {/* Security note */}
               <div className="flex items-center gap-2 mt-4 p-3 bg-slate-50 rounded-lg">
                 <Shield className="w-4 h-4 text-slate-400 shrink-0" />
-                <span className="text-xs text-slate-400">Secure 256-bit SSL Encrypted Payment</span>
+                <span className="text-xs text-slate-400">Payment will be processed after admin confirmation</span>
               </div>
             </div>
           </div>

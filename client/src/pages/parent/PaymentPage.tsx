@@ -117,10 +117,7 @@ export default function PaymentPage() {
   const baseFare = booking?.route?.price
     ? Number(booking.route.price)
     : (booking ? Number(booking.amount || 0) : 0);
-  const discount = -10.0;
-  const serviceFeeRate = 0.025;
-  const serviceFee = +(baseFare * serviceFeeRate).toFixed(2);
-  const total = +(baseFare + discount + serviceFee).toFixed(2);
+  const total = baseFare;
 
   const inputCls = 'w-full h-12 px-4 text-[15px] border border-slate-200 rounded-xl bg-white outline-none text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent';
 
@@ -217,7 +214,7 @@ export default function PaymentPage() {
                   </div>
                 </div>
                 <div className="text-base font-bold text-blue-600">
-                  ${Number(b.amount || 0).toFixed(2)}
+                  KES {Number(b.amount || 0).toLocaleString()}
                 </div>
               </div>
             ))}
@@ -360,7 +357,7 @@ export default function PaymentPage() {
                       className="h-12 px-9 rounded-xl border-none bg-blue-600 text-white text-[15px] font-bold cursor-pointer shrink-0 hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       {processing && <Loader className="w-4 h-4 animate-spin" />}
-                      {processing ? 'Processing...' : `Pay $${total.toFixed(2)}`}
+                      {processing ? 'Processing...' : `Pay KES ${total.toLocaleString()}`}
                     </button>
                     <p className="text-xs text-slate-400 leading-relaxed">
                       By clicking Pay, you agree to our{' '}
@@ -430,19 +427,11 @@ export default function PaymentPage() {
 
               {/* Pricing Breakdown */}
               <div className="px-5 pt-4 pb-5">
-                <h4 className="text-sm font-bold text-slate-800 mb-3.5">Pricing Breakdown</h4>
+                <h4 className="text-sm font-bold text-slate-800 mb-3.5">Pricing Summary</h4>
                 <div className="flex flex-col gap-2.5 text-[13px]">
                   <div className="flex justify-between text-slate-600">
-                    <span>Monthly Base Fare</span>
-                    <span className="font-semibold text-slate-800">${baseFare.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Early Booking Discount</span>
-                    <span className="font-semibold text-green-600">-${Math.abs(discount).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Service Fee ({(serviceFeeRate * 100).toFixed(1)}%)</span>
-                    <span className="font-semibold text-slate-800">${serviceFee.toFixed(2)}</span>
+                    <span>Monthly Fare</span>
+                    <span className="font-semibold text-slate-800">KES {baseFare.toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -451,8 +440,8 @@ export default function PaymentPage() {
                 <div className="flex justify-between items-baseline">
                   <span className="text-sm font-bold text-slate-800">Total Amount</span>
                   <div className="text-right">
-                    <div className="text-2xl font-extrabold text-blue-600">${total.toFixed(2)}</div>
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">USD Per Month</div>
+                    <div className="text-2xl font-extrabold text-blue-600">KES {total.toLocaleString()}</div>
+                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Per Month</div>
                   </div>
                 </div>
 
