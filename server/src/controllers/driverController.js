@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Driver, Vehicle, Booking } = require('../models');
+const { Driver, Vehicle, Booking, Route } = require('../models');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -84,6 +84,10 @@ const getDrivers = catchAsync(async (req, res) => {
         association: 'vehicle',
         attributes: ['id', 'plate_number', 'make', 'model', 'capacity', 'status'],
       },
+      {
+        association: 'route',
+        attributes: ['id', 'name', 'start_location', 'end_location', 'price'],
+      },
     ],
     limit: parseInt(limit),
     offset: parseInt(offset),
@@ -113,6 +117,10 @@ const getDriver = catchAsync(async (req, res) => {
       {
         association: 'vehicle',
         attributes: ['id', 'plate_number', 'make', 'model', 'year', 'capacity', 'status'],
+      },
+      {
+        association: 'route',
+        attributes: ['id', 'name', 'start_location', 'end_location', 'distance_km', 'estimated_duration_min', 'price'],
       },
     ],
   });
@@ -260,10 +268,55 @@ const assignVehicle = catchAsync(async (req, res) => {
   await driver.save();
 
   const updated = await Driver.findByPk(driver.id, {
-    include: [{ association: 'vehicle', attributes: ['id', 'plate_number', 'make', 'model'] }],
+    include: [
+      { association: 'vehicle', attributes: ['id', 'plate_number', 'make', 'model'] },
+      { association: 'route', attributes: ['id', 'name', 'start_location', 'end_location'] },
+    ],
   });
 
   ApiResponse.success(res, { driver: updated }, 'Vehicle assigned to driver successfully');
+});
+
+/**
+ * PATCH /api/v1/drivers/:id/assign-route
+ * Assign or unassign a route to a driver (admin only).
+ */
+const assignRoute = catchAsync(async (req, res) => {
+  const driver = await Driver.findByPk(req.params.id);
+
+  if (!driver) {
+    throw ApiError.notFound('Driver not found.');
+  }
+
+  const { route_id } = req.body;
+
+  // Unassign — set to null
+  if (route_id === null) {
+    driver.route_id = null;
+    await driver.save();
+    return ApiResponse.success(res, { driver }, 'Route unassigned from driver');
+  }
+
+  // Validate route exists and is active
+  const route = await Route.findByPk(route_id);
+  if (!route) {
+    throw ApiError.notFound('Route not found.');
+  }
+  if (!route.is_active) {
+    throw ApiError.badRequest('Cannot assign an inactive route.');
+  }
+
+  driver.route_id = route_id;
+  await driver.save();
+
+  const updated = await Driver.findByPk(driver.id, {
+    include: [
+      { association: 'vehicle', attributes: ['id', 'plate_number', 'make', 'model'] },
+      { association: 'route', attributes: ['id', 'name', 'start_location', 'end_location', 'price'] },
+    ],
+  });
+
+  ApiResponse.success(res, { driver: updated }, 'Route assigned to driver successfully');
 });
 
 module.exports = {
@@ -273,4 +326,5 @@ module.exports = {
   updateDriver,
   deleteDriver,
   assignVehicle,
+  assignRoute,
 };
