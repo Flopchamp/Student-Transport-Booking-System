@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
-import { Search, Bus, Users as UsersIcon, MapPin } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
 import type { Route } from '../../types';
 
 const badgeBgClasses = ['bg-red-600', 'bg-primary', 'bg-green-600', 'bg-amber-500', 'bg-violet-500'];
@@ -11,8 +11,6 @@ export default function BookTransport() {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [timeFilter, setTimeFilter] = useState('morning');
-  const [schoolFilter, setSchoolFilter] = useState('elementary');
 
   useEffect(() => { fetchData(); }, []);
 
@@ -53,64 +51,21 @@ export default function BookTransport() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* ─── Header + Stepper ─── */}
-      <div className="flex items-start justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Book School Transport</h1>
-          <p className="text-sm text-slate-500 mt-1">Secure your child's seat for the academic year</p>
-        </div>
-
-        {/* 3-Step Progress */}
-        <div className="flex items-center">
-          {[
-            { num: 1, label: 'Route', active: true },
-            { num: 2, label: 'Seat', active: false },
-            { num: 3, label: 'Pay', active: false },
-          ].map((s, i) => (
-            <div key={s.num} className="flex items-center">
-              {i > 0 && <div className={`w-12 h-0.5 ${s.active ? 'bg-primary' : 'bg-slate-200'}`} />}
-              <div className="flex flex-col items-center gap-1">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold
-                  ${s.active ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400 border border-slate-200'}`}>
-                  {s.num}
-                </div>
-                <span className={`text-[11px] font-medium ${s.active ? 'text-primary' : 'text-slate-400'}`}>{s.label}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* ─── Header ─── */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800">Book School Transport</h1>
+        <p className="text-sm text-slate-500 mt-1">Select a route to book transport for your child</p>
       </div>
 
-      {/* ─── Search + Filters ─── */}
-      <div className="flex gap-3 items-center flex-wrap">
-        <div className="flex-1 min-w-[260px] relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by area or school name..."
-            className="w-full h-11 pl-10 pr-3.5 text-sm border border-slate-200 rounded-[10px] bg-white outline-none text-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent"
-          />
-        </div>
-        <select
-          value={timeFilter}
-          onChange={(e) => setTimeFilter(e.target.value)}
-          className="h-10 px-3.5 pr-8 text-[13px] border border-slate-200 rounded-lg bg-white text-slate-800 outline-none appearance-none focus:ring-2 focus:ring-primary"
-        >
-          <option value="morning">Morning (7:00 AM)</option>
-          <option value="afternoon">Afternoon (2:00 PM)</option>
-          <option value="evening">Evening (5:00 PM)</option>
-        </select>
-        <select
-          value={schoolFilter}
-          onChange={(e) => setSchoolFilter(e.target.value)}
-          className="h-10 px-3.5 pr-8 text-[13px] border border-slate-200 rounded-lg bg-white text-slate-800 outline-none appearance-none focus:ring-2 focus:ring-primary"
-        >
-          <option value="elementary">Elementary</option>
-          <option value="middle">Middle School</option>
-          <option value="high">High School</option>
-          <option value="all">All Schools</option>
-        </select>
+      {/* ─── Search ─── */}
+      <div className="relative">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by area or school name..."
+          className="w-full h-11 pl-10 pr-3.5 text-sm border border-slate-200 rounded-[10px] bg-white outline-none text-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent"
+        />
       </div>
 
       {/* ─── Route Cards ─── */}
@@ -127,9 +82,7 @@ export default function BookTransport() {
             const routeNumber = String(idx + 1);
             const pickup = route.start_location || '';
             const dropoff = route.end_location || '';
-            const driverName = 'Assigned Driver';
-            const capacity = 0;
-            const capacityLabel = capacity ? `${capacity} Seats` : 'TBD';
+            const price = route.price ? Number(route.price) : 0;
             const bColor = badgeBgClasses[idx % badgeBgClasses.length];
 
             return (
@@ -169,26 +122,12 @@ export default function BookTransport() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mt-4 pt-1">
-                    <div className="flex items-center gap-6">
-                      <div>
-                        <div className="text-[11px] text-slate-400 mb-0.5">Driver</div>
-                        <div className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-800">
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100">
-                            <UsersIcon className="w-3 h-3 text-slate-500" />
-                          </span>
-                          {driverName}
-                        </div>
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                    <div>
+                      <div className="text-[11px] text-slate-400 mb-0.5">Monthly Fare</div>
+                      <div className="text-lg font-bold text-primary">
+                        {price > 0 ? `KES ${price.toLocaleString()}` : 'Contact for pricing'}
                       </div>
-                      {capacity > 0 && (
-                        <div>
-                          <div className="text-[11px] text-slate-400 mb-0.5">Capacity</div>
-                          <div className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-800">
-                            <Bus className="w-3.5 h-3.5 text-slate-500" />
-                            {capacityLabel}
-                          </div>
-                        </div>
-                      )}
                     </div>
 
                     <button
