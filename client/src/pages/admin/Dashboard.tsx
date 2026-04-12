@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import {
   Users,
@@ -24,6 +25,7 @@ interface AdminStats {
 }
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<AdminStats>({
     totalStudents: 0,
     totalRoutes: 0,
@@ -124,7 +126,7 @@ export default function AdminDashboard() {
         <div className="lg:col-span-2 card overflow-hidden">
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-base font-semibold text-text">Recent Bookings</h3>
-            <button className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
+            <button onClick={() => navigate('/admin/bookings')} className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
               View All <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -170,7 +172,7 @@ export default function AdminDashboard() {
         <div className="card">
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-base font-semibold text-text">Driver Status</h3>
-            <button className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
+            <button onClick={() => navigate('/admin/drivers')} className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
               View All <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
