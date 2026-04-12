@@ -11,23 +11,15 @@ const Payment = sequelize.define('Payment', {
   transaction_reference: {
     type: DataTypes.STRING(50),
     allowNull: false,
-    unique: true,
+    unique: 'transaction_reference_unique',
   },
   booking_id: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: {
-      model: 'bookings',
-      key: 'id',
-    },
   },
   parent_id: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
   },
   amount: {
     type: DataTypes.DECIMAL(10, 2),

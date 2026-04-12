@@ -57,18 +57,10 @@ const Driver = sequelize.define('Driver', {
   vehicle_id: {
     type: DataTypes.UUID,
     allowNull: true,
-    references: {
-      model: 'vehicles',
-      key: 'id',
-    },
   },
   route_id: {
     type: DataTypes.UUID,
     allowNull: true,
-    references: {
-      model: 'routes',
-      key: 'id',
-    },
   },
   status: {
     type: DataTypes.ENUM(Object.values(DRIVER_STATUS)),

@@ -10,10 +10,6 @@ const Student = sequelize.define('Student', {
   parent_id: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
   },
   first_name: {
     type: DataTypes.STRING(50),

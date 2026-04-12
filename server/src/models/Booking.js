@@ -11,7 +11,7 @@ const Booking = sequelize.define('Booking', {
   booking_reference: {
     type: DataTypes.STRING(20),
     allowNull: false,
-    unique: true,
+    unique: 'booking_reference_unique',
     defaultValue: () => {
       const timestamp = Date.now().toString(36).toUpperCase();
       const random = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -21,42 +21,22 @@ const Booking = sequelize.define('Booking', {
   parent_id: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
   },
   student_id: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: {
-      model: 'students',
-      key: 'id',
-    },
   },
   route_id: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: {
-      model: 'routes',
-      key: 'id',
-    },
   },
   vehicle_id: {
     type: DataTypes.UUID,
     allowNull: true,
-    references: {
-      model: 'vehicles',
-      key: 'id',
-    },
   },
   driver_id: {
     type: DataTypes.UUID,
     allowNull: true,
-    references: {
-      model: 'drivers',
-      key: 'id',
-    },
   },
   pickup_time: {
     type: DataTypes.TIME,
