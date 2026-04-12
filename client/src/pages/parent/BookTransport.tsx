@@ -124,12 +124,12 @@ export default function BookTransport() {
         <div className="flex flex-col gap-5">
           {displayRoutes.map((route, idx) => {
             const name = route.name || '';
-            const routeNumber = route.route_number || String(idx + 1);
+            const routeNumber = String(idx + 1);
             const pickup = route.start_location || '';
             const dropoff = route.end_location || '';
-            const driverName = route.Driver?.first_name ? `${route.Driver.first_name} ${route.Driver.last_name || ''}`.trim() : 'Assigned Driver';
-            const capacity = route.Vehicle?.capacity ?? 0;
-            const capacityLabel = `${capacity} Seats`;
+            const driverName = 'Assigned Driver';
+            const capacity = 0;
+            const capacityLabel = capacity ? `${capacity} Seats` : 'TBD';
             const bColor = badgeBgClasses[idx % badgeBgClasses.length];
 
             return (
