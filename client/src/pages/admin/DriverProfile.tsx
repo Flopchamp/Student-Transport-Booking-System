@@ -7,13 +7,11 @@ import {
   Mail,
   MapPin,
   Calendar,
-  Star,
   Shield,
   Truck,
   Clock,
   Award,
   AlertCircle,
-  User,
 } from 'lucide-react';
 import type { Driver } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -100,12 +98,6 @@ export default function DriverProfile() {
                 <Phone className="w-4 h-4 text-gray-400" />
                 {driver.phone}
               </div>
-              {driver.address && (
-                <div className="flex items-center gap-2 text-text-secondary">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  {driver.address}
-                </div>
-              )}
               <div className="flex items-center gap-2 text-text-secondary">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 Joined {new Date(driver.createdAt).toLocaleDateString()}
@@ -152,10 +144,6 @@ export default function DriverProfile() {
                 {driver.license_expiry ? new Date(driver.license_expiry).toLocaleDateString() : 'N/A'}
               </span>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-sm text-text-muted">Experience</span>
-              <span className="text-sm text-text">{driver.experience_years ?? 'N/A'} years</span>
-            </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-sm text-text-muted">Status</span>
               <StatusBadge status={driver.status} domain="driver" />
@@ -163,35 +151,29 @@ export default function DriverProfile() {
           </div>
         </div>
 
-        {/* Performance Metrics */}
+        {/* Account Info */}
         <div className="card p-6">
           <h3 className="text-base font-semibold text-text mb-4 flex items-center gap-2">
             <Award className="w-5 h-5 text-primary" />
-            Performance Metrics
+            Account Info
           </h3>
           <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-text-muted">Rating</span>
-                <span className="text-sm font-medium text-text">{driver.rating?.toFixed(1) || '0.0'}/5.0</span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-yellow-400 rounded-full"
-                  style={{ width: `${((driver.rating || 0) / 5) * 100}%` }}
-                />
-              </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-sm text-text-muted">Active</span>
+              <span className={`text-sm font-medium ${driver.is_active ? 'text-green-600' : 'text-red-600'}`}>
+                {driver.is_active ? 'Yes' : 'No'}
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="p-4 bg-blue-50 rounded-xl text-center">
                 <Clock className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-blue-700">{driver.total_trips ?? 0}</p>
-                <p className="text-xs text-blue-500">Total Trips</p>
+                <p className="text-sm font-bold text-blue-700">{new Date(driver.createdAt).toLocaleDateString()}</p>
+                <p className="text-xs text-blue-500">Member Since</p>
               </div>
               <div className="p-4 bg-green-50 rounded-xl text-center">
                 <Award className="w-5 h-5 text-green-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-green-700">98%</p>
-                <p className="text-xs text-green-500">On-time Rate</p>
+                <StatusBadge status={driver.status} domain="driver" />
+                <p className="text-xs text-green-500 mt-1">Current Status</p>
               </div>
             </div>
           </div>
@@ -203,19 +185,19 @@ export default function DriverProfile() {
             <Truck className="w-5 h-5 text-primary" />
             Assigned Vehicle
           </h3>
-          {(driver.vehicle || driver.Vehicle) ? (
+          {driver.vehicle ? (
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="text-sm text-text-muted">Vehicle</span>
-                <span className="text-sm font-medium text-text">{(driver.vehicle || driver.Vehicle)!.make} {(driver.vehicle || driver.Vehicle)!.model}</span>
+                <span className="text-sm font-medium text-text">{driver.vehicle.make} {driver.vehicle.model}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="text-sm text-text-muted">Plate Number</span>
-                <span className="text-sm font-mono text-text">{(driver.vehicle || driver.Vehicle)!.plate_number}</span>
+                <span className="text-sm font-mono text-text">{driver.vehicle.plate_number}</span>
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-sm text-text-muted">Capacity</span>
-                <span className="text-sm text-text">{(driver.vehicle || driver.Vehicle)!.capacity} seats</span>
+                <span className="text-sm text-text">{driver.vehicle.capacity} seats</span>
               </div>
             </div>
           ) : (
@@ -232,20 +214,26 @@ export default function DriverProfile() {
             <MapPin className="w-5 h-5 text-primary" />
             Assigned Route
           </h3>
-          {driver.Route ? (
+          {driver.route ? (
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="text-sm text-text-muted">Route</span>
-                <span className="text-sm font-medium text-text">{driver.Route.name || driver.Route.route_name}</span>
+                <span className="text-sm font-medium text-text">{driver.route.name}</span>
               </div>
+              {driver.route.price && (
+                <div className="flex justify-between items-center py-2 border-b border-border">
+                  <span className="text-sm text-text-muted">Price</span>
+                  <span className="text-sm font-medium text-text">KES {driver.route.price}</span>
+                </div>
+              )}
               <div className="p-3 bg-gray-50 rounded-lg mt-2">
                 <div className="flex items-center gap-2 text-sm text-text-secondary">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  {driver.Route.start_location}
+                  {driver.route.start_location}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-text-secondary mt-2">
                   <div className="w-2 h-2 bg-red-500 rounded-full" />
-                  {driver.Route.end_location}
+                  {driver.route.end_location}
                 </div>
               </div>
             </div>
@@ -257,23 +245,6 @@ export default function DriverProfile() {
           )}
         </div>
 
-        {/* Emergency Contact */}
-        <div className="card p-6 md:col-span-2">
-          <h3 className="text-base font-semibold text-text mb-4 flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" />
-            Emergency Contact
-          </h3>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-sm text-text-muted">Name</span>
-              <span className="text-sm text-text">{driver.emergency_contact_name || 'Not provided'}</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-sm text-text-muted">Phone</span>
-              <span className="text-sm text-text">{driver.emergency_contact_phone || 'Not provided'}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
