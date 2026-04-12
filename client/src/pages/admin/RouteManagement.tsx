@@ -268,10 +268,10 @@ export default function RouteManagement() {
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <span className="text-sm text-text-secondary">{selectedRoute.start_location}</span>
                 </div>
-                {selectedRoute.stops?.map((stop: string, i: number) => (
+                {selectedRoute.stops?.map((stop: string | { name?: string; address?: string; lat?: number; lng?: number; order?: number }, i: number) => (
                   <div key={i} className="flex items-center gap-2 pl-1">
                     <div className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
-                    <span className="text-xs text-text-muted">{typeof stop === 'string' ? stop : (stop as { name?: string }).name || `Stop ${i + 1}`}</span>
+                    <span className="text-xs text-text-muted">{typeof stop === 'string' ? stop : stop.name || `Stop ${i + 1}`}</span>
                   </div>
                 ))}
                 <div className="flex items-center gap-2">
