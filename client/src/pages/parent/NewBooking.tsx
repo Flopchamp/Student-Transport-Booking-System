@@ -94,7 +94,7 @@ export default function NewBooking() {
       : [];
 
   // Vehicle info is not available from the route — assigned by admin after booking
-  const routeVehicle: { make?: string; model?: string; plate_number?: string; capacity?: number; Driver?: { first_name: string; last_name: string } } | null = null;
+  const routeVehicle = null as { make?: string; model?: string; plate_number?: string; capacity?: number; Driver?: { first_name: string; last_name: string } } | null;
 
   /* ─── Steps ─── */
   const steps = [
@@ -258,7 +258,7 @@ export default function NewBooking() {
                   Route Area: {selectedRoute?.name || 'Downtown Hub'}
                 </h3>
                 <p className="text-[13px] text-slate-400 mt-0.5">
-                  Visualizing stops for Route {selectedRoute?.route_number || 'B-12'}
+                  Visualizing stops for Route {selectedRoute?.name || 'B-12'}
                 </p>
               </div>
               <div className="flex gap-1.5">
