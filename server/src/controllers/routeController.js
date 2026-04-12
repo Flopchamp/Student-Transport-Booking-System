@@ -54,11 +54,6 @@ const getRoutes = catchAsync(async (req, res) => {
     where.is_active = true;
   }
 
-  // Admins can optionally include inactive
-  if (req.user.role === 'admin' && req.query.include_inactive !== 'true') {
-    where.is_active = true;
-  }
-
   if (search) {
     where[Op.or] = [
       { name: { [Op.like]: `%${search}%` } },
