@@ -420,7 +420,7 @@ export default function PaymentPage() {
                   <div>
                     <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">Route</div>
                     <div className="text-[13px] font-medium text-slate-800">
-                      {booking?.route?.start_location || booking?.pickup_location} → {booking?.route?.end_location || booking?.dropoff_location}
+                      {booking?.route?.start_location} → {booking?.route?.end_location}
                     </div>
                   </div>
                 </div>
