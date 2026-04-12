@@ -61,7 +61,9 @@ export default function RouteManagement() {
         description: route.description || '',
         start_location: route.start_location || '',
         end_location: route.end_location || '',
-        stops: Array.isArray(route.stops) ? route.stops.join(', ') : '',
+        stops: Array.isArray(route.stops)
+          ? route.stops.map((s: string | { name?: string }) => typeof s === 'string' ? s : (s.name || '')).join(', ')
+          : '',
         distance_km: route.distance_km?.toString() || '',
         estimated_duration_min: route.estimated_duration_min?.toString() || '',
         price: route.price?.toString() || '',
@@ -163,7 +165,7 @@ export default function RouteManagement() {
     {
       key: 'fare',
       header: 'Fare',
-      render: (route: Route) => <span className="text-sm font-medium text-text">${route.price?.toLocaleString()}</span>,
+      render: (route: Route) => <span className="text-sm font-medium text-text">KES {route.price?.toLocaleString()}</span>,
     },
     {
       key: 'status',
@@ -298,7 +300,7 @@ export default function RouteManagement() {
                 </div>
                 <div className="p-3 bg-orange-50 rounded-lg text-center">
                   <DollarSign className="w-4 h-4 text-orange-600 mx-auto mb-1" />
-                  <p className="text-sm font-bold text-orange-700">${selectedRoute.price?.toLocaleString()}</p>
+                  <p className="text-sm font-bold text-orange-700">KES {selectedRoute.price?.toLocaleString()}</p>
                   <p className="text-xs text-orange-500">Fare</p>
                 </div>
               </div>
@@ -394,7 +396,7 @@ export default function RouteManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fare ($)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fare (KES)</label>
                   <input
                     type="number"
                     step="0.01"

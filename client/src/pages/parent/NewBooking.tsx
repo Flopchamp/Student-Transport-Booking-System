@@ -19,7 +19,7 @@ export default function NewBooking() {
   const location = useLocation();
   const passedRoute = (location.state as { route?: Route })?.route || null;
 
-  const [step, setStep] = useState(passedRoute ? 1 : 0);
+  const [step, setStep] = useState(0);
   const [students, setStudents] = useState<Student[]>([]);
   const [, setAvailableRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(true);

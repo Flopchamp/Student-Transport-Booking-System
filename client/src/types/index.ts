@@ -137,17 +137,17 @@ export interface Booking {
 // ============================================
 export interface Payment {
   id: string;
-  payment_reference: string;
+  transaction_reference: string;
   booking_id: string;
   parent_id: string;
   amount: number;
   currency: string;
   payment_method: 'mpesa' | 'stripe';
   status: 'pending' | 'completed' | 'failed' | 'refunded';
-  transaction_id?: string;
-  mpesa_receipt?: string;
+  mpesa_receipt_number?: string;
+  stripe_payment_intent_id?: string;
   paid_at?: string;
-  metadata?: Record<string, unknown>;
+  failure_reason?: string;
   createdAt: string;
   updatedAt: string;
   booking?: Booking;
@@ -165,7 +165,7 @@ export interface ApiResponse<T> {
 
 export interface PaginatedResponse<T> {
   success: boolean;
-  data: T[];
+  data: Record<string, T[]>;
   pagination: {
     total: number;
     page: number;

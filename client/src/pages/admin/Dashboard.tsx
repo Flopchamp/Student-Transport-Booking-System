@@ -82,12 +82,12 @@ export default function AdminDashboard() {
   };
 
   const statCards = [
-    { label: 'Total Students', value: stats.totalStudents, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', trend: '+12%' },
-    { label: 'Active Routes', value: stats.totalRoutes, icon: MapPin, color: 'text-green-600', bg: 'bg-green-50', trend: '+3' },
-    { label: 'Vehicles', value: stats.totalVehicles, icon: Truck, color: 'text-purple-600', bg: 'bg-purple-50', trend: '98%' },
-    { label: 'Active Drivers', value: stats.totalDrivers, icon: UserCheck, color: 'text-orange-600', bg: 'bg-orange-50', trend: 'Online' },
-    { label: 'Total Bookings', value: stats.totalBookings, icon: Calendar, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '+24%' },
-    { label: 'Revenue', value: `$${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+18%' },
+    { label: 'Total Students', value: stats.totalStudents, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Active Routes', value: stats.totalRoutes, icon: MapPin, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Vehicles', value: stats.totalVehicles, icon: Truck, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Active Drivers', value: stats.totalDrivers, icon: UserCheck, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'Total Bookings', value: stats.totalBookings, icon: Calendar, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'Revenue', value: `KES ${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   ];
 
   if (loading) {
@@ -158,7 +158,7 @@ export default function AdminDashboard() {
                         <StatusBadge status={booking.status} domain="booking" />
                       </td>
                       <td className="px-6 py-3 text-sm font-medium text-text">
-                        ${booking.amount?.toLocaleString() || '0'}
+                        KES {booking.amount?.toLocaleString() || '0'}
                       </td>
                     </tr>
                   ))

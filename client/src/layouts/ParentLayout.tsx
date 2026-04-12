@@ -136,7 +136,6 @@ export default function ParentLayout() {
             {/* Notification Bell */}
             <button className="relative w-9.5 h-9.5 rounded-lg border border-border bg-surface flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
               <Bell className="w-4.5 h-4.5 text-text-secondary" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border-2 border-white" />
             </button>
           </div>
         </header>

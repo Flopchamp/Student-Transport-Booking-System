@@ -210,7 +210,7 @@ export default function BookingManagement() {
                       <StatusBadge status={booking.status} domain="booking" withBorder />
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-text">
-                      ${Number(booking.amount || 0).toLocaleString()}
+                      KES {Number(booking.amount || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
@@ -303,7 +303,7 @@ export default function BookingManagement() {
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-border">
                 <span className="text-sm font-medium text-text">Total Fare</span>
-                <span className="text-lg font-bold text-primary">${Number(selectedBooking.amount || 0).toLocaleString()}</span>
+                <span className="text-lg font-bold text-primary">KES {Number(selectedBooking.amount || 0).toLocaleString()}</span>
               </div>
 
               {/* Actions */}
