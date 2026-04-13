@@ -1,22 +1,50 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Bus, Eye, EyeOff, HelpCircle } from 'lucide-react';
+import { Bus, Eye, EyeOff, HelpCircle, User, Phone } from 'lucide-react';
 
 type LoginTab = 'parent' | 'admin';
+type PageMode = 'login' | 'register';
 
 export default function LoginPage() {
+  const [mode, setMode] = useState<PageMode>('login');
   const [activeTab, setActiveTab] = useState<LoginTab>('parent');
+
+  // Shared fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Registration-only fields
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Login-only
   const [rememberMe, setRememberMe] = useState(false);
+
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, register } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  /** Reset form fields when switching mode */
+  const switchMode = (newMode: PageMode) => {
+    setMode(newMode);
+    setError('');
+    setEmail('');
+    setPassword('');
+    setFirstName('');
+    setLastName('');
+    setPhone('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
@@ -27,6 +55,42 @@ export default function LoginPage() {
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setError(error.response?.data?.message || 'Invalid credentials. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    // Client-side quick checks before hitting the API
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await register({
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
+        password,
+        confirm_password: confirmPassword,
+      });
+      navigate('/dashboard');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string; errors?: { msg: string }[] } } };
+      // Show first validation error if array is present, otherwise generic message
+      const firstValidation = error.response?.data?.errors?.[0]?.msg;
+      setError(firstValidation || error.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -52,37 +116,45 @@ export default function LoginPage() {
         <div className="w-full max-w-[480px] bg-white p-8 rounded-xl border border-border shadow-sm">
           {/* Title */}
           <div className="text-center mb-8">
-            <h1 className="text-text text-3xl font-bold leading-tight mb-2">Welcome Back</h1>
-            <p className="text-text-secondary text-base">Please enter your details to sign in</p>
+            <h1 className="text-text text-3xl font-bold leading-tight mb-2">
+              {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+            </h1>
+            <p className="text-text-secondary text-base">
+              {mode === 'login'
+                ? 'Please enter your details to sign in'
+                : 'Register as a parent to book transport'}
+            </p>
           </div>
 
-          {/* Role Toggle */}
-          <div className="flex mb-8">
-            <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-slate-100 p-1">
-              <button
-                type="button"
-                onClick={() => setActiveTab('parent')}
-                className={`flex h-full flex-1 items-center justify-center rounded-md px-4 border-none cursor-pointer text-sm font-semibold transition-all ${
-                  activeTab === 'parent'
-                    ? 'bg-white shadow-sm text-primary'
-                    : 'bg-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                Parent
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('admin')}
-                className={`flex h-full flex-1 items-center justify-center rounded-md px-4 border-none cursor-pointer text-sm font-semibold transition-all ${
-                  activeTab === 'admin'
-                    ? 'bg-white shadow-sm text-primary'
-                    : 'bg-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                Admin
-              </button>
+          {/* Role Toggle — only visible on login */}
+          {mode === 'login' && (
+            <div className="flex mb-8">
+              <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-slate-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('parent')}
+                  className={`flex h-full flex-1 items-center justify-center rounded-md px-4 border-none cursor-pointer text-sm font-semibold transition-all ${
+                    activeTab === 'parent'
+                      ? 'bg-white shadow-sm text-primary'
+                      : 'bg-transparent text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  Parent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('admin')}
+                  className={`flex h-full flex-1 items-center justify-center rounded-md px-4 border-none cursor-pointer text-sm font-semibold transition-all ${
+                    activeTab === 'admin'
+                      ? 'bg-white shadow-sm text-primary'
+                      : 'bg-transparent text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  Admin
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -94,97 +166,280 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit}>
-            {/* Email Field */}
-            <div className="flex flex-col gap-2 mb-5">
-              <label htmlFor="email" className="text-text text-sm font-semibold">
-                Email Address
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">mail</span>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="student@university.edu"
-                  required
-                  className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
+          {/* ==================== LOGIN FORM ==================== */}
+          {mode === 'login' && (
+            <form onSubmit={handleLogin}>
+              {/* Email Field */}
+              <div className="flex flex-col gap-2 mb-5">
+                <label htmlFor="email" className="text-text text-sm font-semibold">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">mail</span>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="parent@example.com"
+                    required
+                    className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Password Field */}
-            <div className="flex flex-col gap-2 mb-5">
-              <div className="flex justify-between items-center">
-                <label htmlFor="password" className="text-text text-sm font-semibold">
+              {/* Password Field */}
+              <div className="flex flex-col gap-2 mb-5">
+                <div className="flex justify-between items-center">
+                  <label htmlFor="password" className="text-text text-sm font-semibold">
+                    Password
+                  </label>
+                  <button type="button" className="text-primary text-xs font-semibold bg-transparent border-none cursor-pointer p-0 hover:underline">
+                    Forgot Password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">lock</span>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-12 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 bg-transparent border-none cursor-pointer p-0 flex hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember Me */}
+              <div className="flex items-center gap-2 py-1 mb-5">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded accent-primary cursor-pointer"
+                />
+                <label htmlFor="remember" className="text-slate-500 text-sm cursor-pointer">
+                  Remember me
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`w-full flex h-12 items-center justify-center rounded-lg bg-primary text-white text-base font-bold border-none cursor-pointer transition-all shadow-md shadow-primary/20 mt-2 hover:bg-primary/90 ${
+                  isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Login'
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* ==================== REGISTER FORM ==================== */}
+          {mode === 'register' && (
+            <form onSubmit={handleRegister}>
+              {/* Name row */}
+              <div className="grid grid-cols-2 gap-4 mb-5">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="firstName" className="text-text text-sm font-semibold">
+                    First Name
+                  </label>
+                  <div className="relative">
+                    <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <input
+                      id="firstName"
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="John"
+                      required
+                      minLength={2}
+                      maxLength={50}
+                      className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-11 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="lastName" className="text-text text-sm font-semibold">
+                    Last Name
+                  </label>
+                  <div className="relative">
+                    <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <input
+                      id="lastName"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Doe"
+                      required
+                      minLength={2}
+                      maxLength={50}
+                      className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-11 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="flex flex-col gap-2 mb-5">
+                <label htmlFor="regEmail" className="text-text text-sm font-semibold">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">mail</span>
+                  <input
+                    id="regEmail"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="parent@example.com"
+                    required
+                    className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div className="flex flex-col gap-2 mb-5">
+                <label htmlFor="phone" className="text-text text-sm font-semibold">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="0712345678"
+                    required
+                    minLength={10}
+                    maxLength={20}
+                    className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-11 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="flex flex-col gap-2 mb-5">
+                <label htmlFor="regPassword" className="text-text text-sm font-semibold">
                   Password
                 </label>
-                <button type="button" className="text-primary text-xs font-semibold bg-transparent border-none cursor-pointer p-0 hover:underline">
-                  Forgot Password?
-                </button>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">lock</span>
+                  <input
+                    id="regPassword"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={8}
+                    className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-12 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 bg-transparent border-none cursor-pointer p-0 flex hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                <p className="text-slate-400 text-xs mt-0.5">
+                  Min 8 chars, with uppercase, lowercase, number &amp; special character.
+                </p>
               </div>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">lock</span>
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-12 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
+
+              {/* Confirm Password */}
+              <div className="flex flex-col gap-2 mb-6">
+                <label htmlFor="confirmPassword" className="text-text text-sm font-semibold">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">lock</span>
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={8}
+                    className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-12 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 bg-transparent border-none cursor-pointer p-0 flex hover:text-slate-600"
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`w-full flex h-12 items-center justify-center rounded-lg bg-primary text-white text-base font-bold border-none cursor-pointer transition-all shadow-md shadow-primary/20 hover:bg-primary/90 ${
+                  isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Creating account...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* Toggle between Login / Register */}
+          <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+            {mode === 'login' ? (
+              <p className="text-slate-500 text-sm">
+                Don&apos;t have an account?{' '}
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 bg-transparent border-none cursor-pointer p-0 flex hover:text-slate-600"
+                  onClick={() => switchMode('register')}
+                  className="text-primary font-semibold bg-transparent border-none cursor-pointer p-0 hover:underline"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  Sign Up
                 </button>
-              </div>
-            </div>
-
-            {/* Remember Me */}
-            <div className="flex items-center gap-2 py-1 mb-5">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded accent-primary cursor-pointer"
-              />
-              <label htmlFor="remember" className="text-slate-500 text-sm cursor-pointer">
-                Remember me
-              </label>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`w-full flex h-12 items-center justify-center rounded-lg bg-primary text-white text-base font-bold border-none cursor-pointer transition-all shadow-md shadow-primary/20 mt-2 hover:bg-primary/90 ${
-                isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
-              }`}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Signing in...
-                </>
-              ) : (
-                'Login'
-              )}
-            </button>
-          </form>
-
-          {/* Need an account */}
-          <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-            <p className="text-slate-500 text-sm">
-              Need an account?{' '}
-              <a href="#" className="text-primary font-semibold no-underline hover:underline">Contact school administration</a>
-            </p>
+              </p>
+            ) : (
+              <p className="text-slate-500 text-sm">
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => switchMode('login')}
+                  className="text-primary font-semibold bg-transparent border-none cursor-pointer p-0 hover:underline"
+                >
+                  Sign In
+                </button>
+              </p>
+            )}
           </div>
         </div>
 
