@@ -13,6 +13,7 @@ import {
   X,
   Bell,
   User,
+  Settings,
 } from 'lucide-react';
 
 const mainNav = [
@@ -21,6 +22,7 @@ const mainNav = [
   { label: 'Bookings', icon: BookOpen, path: '/my-bookings' },
   { label: 'Routes', icon: RouteIcon, path: '/book-transport' },
   { label: 'Payments', icon: CreditCard, path: '/payment' },
+  { label: 'Profile', icon: Settings, path: '/profile' },
 ];
 
 export default function ParentLayout() {

@@ -17,6 +17,7 @@ import BookTransport from './pages/parent/BookTransport';
 import NewBooking from './pages/parent/NewBooking';
 import MyBookings from './pages/parent/MyBookings';
 import PaymentPage from './pages/parent/PaymentPage';
+import ProfilePage from './pages/parent/ProfilePage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -61,6 +62,7 @@ function App() {
         <Route path="/new-booking" element={<NewBooking />} />
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
 
