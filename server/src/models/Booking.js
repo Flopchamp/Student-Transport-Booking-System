@@ -73,6 +73,23 @@ const Booking = sequelize.define('Booking', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  is_recurring: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  recurrence_pattern: {
+    type: DataTypes.ENUM('daily', 'weekly', 'monthly'),
+    allowNull: true,
+  },
+  recurrence_end_date: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  parent_booking_id: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    comment: 'Links child bookings to the parent recurring booking',
+  },
 }, {
   tableName: 'bookings',
 });

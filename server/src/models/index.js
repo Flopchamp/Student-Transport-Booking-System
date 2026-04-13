@@ -47,6 +47,10 @@ Booking.belongsTo(Vehicle, { foreignKey: 'vehicle_id', as: 'vehicle' });
 Driver.hasMany(Booking, { foreignKey: 'driver_id', as: 'bookings', onDelete: 'SET NULL' });
 Booking.belongsTo(Driver, { foreignKey: 'driver_id', as: 'driver' });
 
+// Booking <-> Recurring Child Bookings (self-reference)
+Booking.hasMany(Booking, { foreignKey: 'parent_booking_id', as: 'childBookings', onDelete: 'SET NULL' });
+Booking.belongsTo(Booking, { foreignKey: 'parent_booking_id', as: 'parentBooking' });
+
 // Booking <-> Payments
 Booking.hasMany(Payment, { foreignKey: 'booking_id', as: 'payments', onDelete: 'RESTRICT' });
 Payment.belongsTo(Booking, { foreignKey: 'booking_id', as: 'booking' });

@@ -34,6 +34,11 @@ export default function NewBooking() {
   const [dropoffTime, setDropoffTime] = useState('15:45');
   const [tripPeriod, setTripPeriod] = useState<'morning' | 'afternoon' | 'both'>('both');
 
+  // Recurring booking
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrencePattern, setRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
+
   // Availability
   const [availability, setAvailability] = useState<{ total_capacity: number; active_bookings: number; available_seats: number; vehicles: number } | null>(null);
 
@@ -77,7 +82,7 @@ export default function NewBooking() {
     setSubmitting(true);
     setError('');
     try {
-      await api.post('/bookings', {
+      const basePayload = {
         student_id: selectedStudent.id,
         route_id: selectedRoute.id,
         start_date: startDate || new Date().toISOString().split('T')[0],
@@ -87,7 +92,17 @@ export default function NewBooking() {
           selectedStop ? `Pickup stop: ${selectedStop}` : '',
           `Schedule: ${bookingType === 'round_trip' ? 'Round Trip' : 'One Way'} (${tripPeriod})`,
         ].filter(Boolean).join(' | ') || undefined,
-      });
+      };
+
+      if (isRecurring && recurrenceEndDate) {
+        await api.post('/bookings/recurring', {
+          ...basePayload,
+          recurrence_pattern: recurrencePattern,
+          recurrence_end_date: recurrenceEndDate,
+        });
+      } else {
+        await api.post('/bookings', basePayload);
+      }
       setSuccess(true);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
@@ -496,6 +511,67 @@ export default function NewBooking() {
                   onChange={(e) => setDropoffTime(e.target.value)}
                   className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
+              </div>
+            )}
+          </div>
+
+          {/* Recurring Booking Toggle */}
+          <div className="mt-5 max-w-lg">
+            <div
+              onClick={() => setIsRecurring(!isRecurring)}
+              className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all ${
+                isRecurring
+                  ? 'border-2 border-blue-600 bg-blue-50'
+                  : 'border border-slate-200 bg-white hover:border-slate-300'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition ${
+                isRecurring ? 'bg-blue-600 border-blue-600' : 'border-slate-300'
+              }`}>
+                {isRecurring && <Check className="w-3 h-3 text-white" />}
+              </div>
+              <div>
+                <div className={`text-sm font-semibold ${isRecurring ? 'text-blue-600' : 'text-slate-800'}`}>
+                  Recurring Booking
+                </div>
+                <div className="text-xs text-slate-400">Automatically repeat this booking on a schedule</div>
+              </div>
+            </div>
+
+            {isRecurring && (
+              <div className="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-100 space-y-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                    Repeat Every
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['daily', 'weekly', 'monthly'] as const).map((p) => (
+                      <div
+                        key={p}
+                        onClick={() => setRecurrencePattern(p)}
+                        className={`p-2 rounded-lg cursor-pointer text-center text-sm font-medium transition ${
+                          recurrencePattern === p
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border border-slate-200 text-slate-700 hover:border-blue-300'
+                        }`}
+                      >
+                        {p.charAt(0).toUpperCase() + p.slice(1)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                    Until Date
+                  </label>
+                  <input
+                    type="date"
+                    value={recurrenceEndDate}
+                    onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                    min={startDate || new Date().toISOString().split('T')[0]}
+                    className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
               </div>
             )}
           </div>

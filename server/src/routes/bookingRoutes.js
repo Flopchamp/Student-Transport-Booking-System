@@ -18,6 +18,7 @@ const {
   assignBooking,
   getBookingStats,
   getRouteAvailability,
+  createRecurringBooking,
 } = require('../controllers/bookingController');
 
 const router = Router();
@@ -33,6 +34,7 @@ router.get('/route/:routeId/availability', getRouteAvailability);
 
 // ─── Parent + Admin ─────────────────────────────────
 router.post('/', createBookingValidator, validate, createBooking);
+router.post('/recurring', createBookingValidator, validate, createRecurringBooking);
 router.get('/', listBookingsValidator, validate, getBookings);
 router.get('/:id', bookingIdValidator, validate, getBooking);
 

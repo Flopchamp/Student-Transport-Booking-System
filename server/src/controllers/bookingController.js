@@ -462,6 +462,112 @@ const getRouteAvailability = catchAsync(async (req, res) => {
   }, 'Route availability retrieved successfully');
 });
 
+/**
+ * POST /api/v1/bookings/recurring
+ * Create recurring bookings (parent).
+ * Generates multiple bookings based on recurrence pattern.
+ */
+const createRecurringBooking = catchAsync(async (req, res) => {
+  const { student_id, route_id, pickup_time, dropoff_time, start_date, recurrence_pattern, recurrence_end_date, notes } = req.body;
+
+  // Validate inputs
+  if (!recurrence_pattern || !['daily', 'weekly', 'monthly'].includes(recurrence_pattern)) {
+    throw ApiError.badRequest('Invalid recurrence pattern. Must be daily, weekly, or monthly.');
+  }
+  if (!recurrence_end_date) {
+    throw ApiError.badRequest('Recurrence end date is required.');
+  }
+
+  // Verify student
+  const student = await Student.findOne({
+    where: { id: student_id, parent_id: req.user.id, is_active: true },
+  });
+  if (!student) throw ApiError.notFound('Student not found or does not belong to you.');
+
+  // Verify route
+  const route = await Route.findOne({ where: { id: route_id, is_active: true } });
+  if (!route) throw ApiError.notFound('Route not found or is inactive.');
+
+  // Generate dates
+  const dates = [];
+  let current = new Date(start_date);
+  const end = new Date(recurrence_end_date);
+
+  while (current <= end) {
+    dates.push(current.toISOString().split('T')[0]);
+    if (recurrence_pattern === 'daily') {
+      current.setDate(current.getDate() + 1);
+    } else if (recurrence_pattern === 'weekly') {
+      current.setDate(current.getDate() + 7);
+    } else if (recurrence_pattern === 'monthly') {
+      current.setMonth(current.getMonth() + 1);
+    }
+  }
+
+  if (dates.length === 0) {
+    throw ApiError.badRequest('No booking dates could be generated from the given range.');
+  }
+  if (dates.length > 90) {
+    throw ApiError.badRequest('Maximum 90 recurring bookings allowed at once.');
+  }
+
+  // Create parent booking
+  const parentBooking = await Booking.create({
+    parent_id: req.user.id,
+    student_id,
+    route_id,
+    pickup_time,
+    dropoff_time: dropoff_time || null,
+    start_date: dates[0],
+    end_date: dates[dates.length - 1],
+    amount: route.price,
+    notes: notes || null,
+    is_recurring: true,
+    recurrence_pattern,
+    recurrence_end_date,
+  });
+
+  // Create child bookings for each individual date (skip first since parent covers it)
+  const childBookings = [];
+  for (let i = 1; i < dates.length; i++) {
+    const child = await Booking.create({
+      parent_id: req.user.id,
+      student_id,
+      route_id,
+      pickup_time,
+      dropoff_time: dropoff_time || null,
+      start_date: dates[i],
+      end_date: dates[i],
+      amount: route.price,
+      notes: notes || null,
+      is_recurring: true,
+      recurrence_pattern,
+      parent_booking_id: parentBooking.id,
+    });
+    childBookings.push(child);
+  }
+
+  const totalBookings = 1 + childBookings.length;
+  const totalAmount = Number(route.price) * totalBookings;
+
+  // Send confirmation email (fire-and-forget)
+  sendBookingConfirmationEmail(req.user.email, {
+    parentName: `${req.user.first_name} ${req.user.last_name}`,
+    studentName: `${student.first_name} ${student.last_name}`,
+    routeName: route.name,
+    startDate: dates[0],
+    bookingRef: parentBooking.booking_reference,
+    amount: totalAmount,
+  }).catch(err => console.error('[Email] Recurring booking email failed:', err.message));
+
+  ApiResponse.created(res, {
+    parent_booking: parentBooking,
+    total_bookings: totalBookings,
+    total_amount: totalAmount,
+    dates,
+  }, `${totalBookings} recurring bookings created successfully`);
+});
+
 module.exports = {
   createBooking,
   getBookings,
@@ -472,4 +578,5 @@ module.exports = {
   assignBooking,
   getBookingStats,
   getRouteAvailability,
+  createRecurringBooking,
 };
