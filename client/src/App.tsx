@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Layouts
 import ParentLayout from './layouts/ParentLayout';
 import AdminLayout from './layouts/AdminLayout';
+import DriverLayout from './layouts/DriverLayout';
 
 // Public Pages
 import LandingPage from './pages/LandingPage';
@@ -42,6 +43,11 @@ import SettingsPage from './pages/admin/SettingsPage';
 import AnnouncementManagement from './pages/admin/AnnouncementManagement';
 import FleetTrackingPage from './pages/admin/FleetTrackingPage';
 
+// Driver Pages
+import DriverDashboard from './pages/driver/DriverDashboard';
+import DriverBookings from './pages/driver/DriverBookings';
+import DriverTracking from './pages/driver/DriverTracking';
+
 function App() {
   const { user, loading } = useAuth();
 
@@ -61,11 +67,11 @@ function App() {
       {/* Public Routes */}
       <Route
         path="/"
-        element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace /> : <LandingPage />}
+        element={user ? <Navigate to={user.role === 'admin' ? '/admin' : user.role === 'driver' ? '/driver' : '/dashboard'} replace /> : <LandingPage />}
       />
       <Route
         path="/login"
-        element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace /> : <LoginPage />}
+        element={user ? <Navigate to={user.role === 'admin' ? '/admin' : user.role === 'driver' ? '/driver' : '/dashboard'} replace /> : <LoginPage />}
       />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
@@ -105,6 +111,15 @@ function App() {
         <Route path="/admin/audit-log" element={<AuditLogPage />} />
         <Route path="/admin/settings" element={<SettingsPage />} />
         <Route path="/admin/fleet-tracking" element={<FleetTrackingPage />} />
+        </Route>
+      </Route>
+
+      {/* Driver Routes */}
+      <Route element={<ProtectedRoute allowedRoles={['driver']} />}>
+        <Route element={<DriverLayout />}>
+        <Route path="/driver" element={<DriverDashboard />} />
+        <Route path="/driver/bookings" element={<DriverBookings />} />
+        <Route path="/driver/tracking" element={<DriverTracking />} />
         </Route>
       </Route>
 

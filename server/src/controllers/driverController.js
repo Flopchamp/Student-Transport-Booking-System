@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Driver, Vehicle, Booking, Route } = require('../models');
+const { Driver, Vehicle, Booking, Route, User } = require('../models');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -50,6 +50,28 @@ const createDriver = catchAsync(async (req, res) => {
     status: status || 'available',
     profile_photo: profile_photo || null,
   });
+
+  // Auto-create a User account with 'driver' role for portal access
+  try {
+    const existingUser = await User.findOne({ where: { email } });
+    if (!existingUser) {
+      const defaultPassword = `Driver@${license_number.slice(-4)}`;
+      const user = await User.create({
+        first_name,
+        last_name,
+        email,
+        phone,
+        password: defaultPassword,
+        role: 'driver',
+        is_active: true,
+        email_verified: true,
+      });
+      driver.user_id = user.id;
+      await driver.save();
+    }
+  } catch (err) {
+    console.error('[Driver] Auto user creation failed:', err.message);
+  }
 
   ApiResponse.created(res, { driver }, 'Driver created successfully');
 });

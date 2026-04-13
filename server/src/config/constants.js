@@ -2,6 +2,7 @@ module.exports = {
   ROLES: {
     PARENT: 'parent',
     ADMIN: 'admin',
+    DRIVER: 'driver',
   },
 
   BOOKING_STATUS: {

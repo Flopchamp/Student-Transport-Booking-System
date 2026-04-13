@@ -8,6 +8,12 @@ const Driver = sequelize.define('Driver', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  user_id: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    unique: true,
+    comment: 'Links to User account for driver portal login',
+  },
   first_name: {
     type: DataTypes.STRING(50),
     allowNull: false,

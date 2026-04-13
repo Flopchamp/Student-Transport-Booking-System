@@ -15,7 +15,7 @@ export interface User {
   last_name: string;
   email: string;
   phone: string;
-  role: 'parent' | 'admin';
+  role: 'parent' | 'admin' | 'driver';
   is_active: boolean;
   createdAt: string;
 }

@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
-  allowedRoles?: ('parent' | 'admin')[];
+  allowedRoles?: ('parent' | 'admin' | 'driver')[];
 }
 
 export default function ProtectedRoute({ allowedRoles }: Props) {
@@ -21,7 +21,8 @@ export default function ProtectedRoute({ allowedRoles }: Props) {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+    const home = user.role === 'admin' ? '/admin' : user.role === 'driver' ? '/driver' : '/dashboard';
+    return <Navigate to={home} replace />;
   }
 
   return <Outlet />;

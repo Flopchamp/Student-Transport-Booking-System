@@ -15,6 +15,7 @@ const settingRoutes = require('./settingRoutes');
 const announcementRoutes = require('./announcementRoutes');
 const trackingRoutes = require('./trackingRoutes');
 const notificationRoutes = require('./notificationRoutes');
+const driverPortalRoutes = require('./driverPortalRoutes');
 
 const router = Router();
 
@@ -65,5 +66,8 @@ router.use('/tracking', trackingRoutes);
 
 // Notifications
 router.use('/notifications', notificationRoutes);
+
+// Driver Portal
+router.use('/driver-portal', driverPortalRoutes);
 
 module.exports = router;

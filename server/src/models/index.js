@@ -85,6 +85,10 @@ VehicleLocation.belongsTo(Vehicle, { foreignKey: 'vehicle_id', as: 'vehicle' });
 User.hasMany(Notification, { foreignKey: 'user_id', as: 'notifications', onDelete: 'CASCADE' });
 Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+// User (Driver role) <-> Driver record
+User.hasOne(Driver, { foreignKey: 'user_id', as: 'driverProfile', onDelete: 'SET NULL' });
+Driver.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
