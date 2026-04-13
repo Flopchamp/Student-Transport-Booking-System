@@ -10,6 +10,7 @@ const AuditLog = require('./AuditLog');
 const Complaint = require('./Complaint');
 const Setting = require('./Setting');
 const Announcement = require('./Announcement');
+const VehicleLocation = require('./VehicleLocation');
 
 // =============================================
 // ASSOCIATIONS
@@ -75,6 +76,10 @@ Complaint.belongsTo(Booking, { foreignKey: 'booking_id', as: 'booking' });
 User.hasMany(Announcement, { foreignKey: 'author_id', as: 'announcements', onDelete: 'CASCADE' });
 Announcement.belongsTo(User, { foreignKey: 'author_id', as: 'author' });
 
+// Vehicle <-> VehicleLocation (one-to-one: latest location per vehicle)
+Vehicle.hasOne(VehicleLocation, { foreignKey: 'vehicle_id', as: 'location', onDelete: 'CASCADE' });
+VehicleLocation.belongsTo(Vehicle, { foreignKey: 'vehicle_id', as: 'vehicle' });
+
 module.exports = {
   sequelize,
   User,
@@ -88,4 +93,5 @@ module.exports = {
   Complaint,
   Setting,
   Announcement,
+  VehicleLocation,
 };

@@ -24,6 +24,7 @@ import PaymentHistory from './pages/parent/PaymentHistory';
 import ProfilePage from './pages/parent/ProfilePage';
 import ComplaintsPage from './pages/parent/ComplaintsPage';
 import AnnouncementsPage from './pages/parent/AnnouncementsPage';
+import TrackingPage from './pages/parent/TrackingPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -39,6 +40,7 @@ import AuditLogPage from './pages/admin/AuditLogPage';
 import ComplaintManagement from './pages/admin/ComplaintManagement';
 import SettingsPage from './pages/admin/SettingsPage';
 import AnnouncementManagement from './pages/admin/AnnouncementManagement';
+import FleetTrackingPage from './pages/admin/FleetTrackingPage';
 
 function App() {
   const { user, loading } = useAuth();
@@ -81,6 +83,7 @@ function App() {
         <Route path="/payments" element={<PaymentHistory />} />
         <Route path="/complaints" element={<ComplaintsPage />} />
         <Route path="/announcements" element={<AnnouncementsPage />} />
+        <Route path="/tracking" element={<TrackingPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
@@ -101,6 +104,7 @@ function App() {
         <Route path="/admin/announcements" element={<AnnouncementManagement />} />
         <Route path="/admin/audit-log" element={<AuditLogPage />} />
         <Route path="/admin/settings" element={<SettingsPage />} />
+        <Route path="/admin/fleet-tracking" element={<FleetTrackingPage />} />
         </Route>
       </Route>
 
