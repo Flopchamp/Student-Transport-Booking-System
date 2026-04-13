@@ -3,6 +3,7 @@ const { protect, authorize } = require('../middleware/auth');
 const validate = require('../middleware/validate');
 const {
   createBookingValidator,
+  updateBookingValidator,
   updateBookingStatusValidator,
   bookingIdValidator,
   listBookingsValidator,
@@ -12,6 +13,7 @@ const {
   getBookings,
   getBooking,
   cancelBooking,
+  updateBooking,
   updateBookingStatus,
   assignBooking,
   getBookingStats,
@@ -36,6 +38,7 @@ router.get('/:id', bookingIdValidator, validate, getBooking);
 
 // ─── Parent (own bookings) ──────────────────────────
 router.patch('/:id/cancel', bookingIdValidator, validate, cancelBooking);
+router.put('/:id', updateBookingValidator, validate, updateBooking);
 
 // ─── Admin Only ─────────────────────────────────────
 router.patch('/:id/status', authorize('admin'), updateBookingStatusValidator, validate, updateBookingStatus);

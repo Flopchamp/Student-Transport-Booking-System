@@ -11,6 +11,7 @@ import {
   Bus,
   ArrowRight,
   History,
+  Pencil,
 } from 'lucide-react';
 import type { Booking } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -26,6 +27,14 @@ export default function MyBookings() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [activeTab, setActiveTab] = useState<BookingTab>('active');
+
+  // Edit modal state
+  const [editBooking, setEditBooking] = useState<Booking | null>(null);
+  const [editStartDate, setEditStartDate] = useState('');
+  const [editPickupTime, setEditPickupTime] = useState('');
+  const [editDropoffTime, setEditDropoffTime] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   useEffect(() => { fetchBookings(); }, []);
 
@@ -49,6 +58,35 @@ export default function MyBookings() {
       fetchBookings();
     } catch (err) {
       console.error('Failed to cancel booking:', err);
+    }
+  };
+
+  const openEditModal = (booking: Booking) => {
+    setEditBooking(booking);
+    setEditStartDate(booking.start_date?.split('T')[0] || '');
+    setEditPickupTime(booking.pickup_time || '');
+    setEditDropoffTime(booking.dropoff_time || '');
+    setEditNotes(booking.notes || '');
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editBooking) return;
+    setEditSubmitting(true);
+    try {
+      await api.put(`/bookings/${editBooking.id}`, {
+        start_date: editStartDate,
+        pickup_time: editPickupTime,
+        dropoff_time: editDropoffTime || null,
+        notes: editNotes || null,
+      });
+      toast.success('Booking updated successfully');
+      setEditBooking(null);
+      fetchBookings();
+    } catch (err) {
+      console.error('Failed to update booking:', err);
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -217,6 +255,15 @@ export default function MyBookings() {
                           >
                             <Eye className="w-[15px] h-[15px] text-slate-500" />
                           </button>
+                          {booking.status === 'pending' && (
+                            <button
+                              onClick={() => openEditModal(booking)}
+                              title="Edit Booking"
+                              className="w-8 h-8 rounded-lg border border-blue-200 bg-white flex items-center justify-center cursor-pointer hover:bg-blue-50 transition"
+                            >
+                              <Pencil className="w-[15px] h-[15px] text-blue-500" />
+                            </button>
+                          )}
                           {['pending', 'confirmed'].includes(booking.status) && (
                             <button
                               onClick={() => handleCancel(booking.id)}
@@ -347,6 +394,95 @@ export default function MyBookings() {
                   </button>
                 )}
               </div>
+        )}
+      </Modal>
+
+      {/* ─── Edit Booking Modal ─── */}
+      <Modal
+        open={!!editBooking}
+        onClose={() => setEditBooking(null)}
+        title="Edit Booking"
+        maxWidth="max-w-[480px]"
+      >
+        {editBooking && (
+          <form onSubmit={handleEditSubmit} className="p-6 flex flex-col gap-5">
+            {/* Booking Info (read-only) */}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Reference</div>
+                <div className="text-[15px] font-bold text-slate-800 font-mono">{editBooking.booking_reference}</div>
+              </div>
+              <StatusBadge status={editBooking.status} domain="booking" showDot withBorder />
+            </div>
+
+            {/* Start Date */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Start Date</label>
+              <input
+                type="date"
+                value={editStartDate}
+                onChange={(e) => setEditStartDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                required
+                className="h-11 px-3 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            {/* Pickup Time */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Pickup Time</label>
+              <input
+                type="time"
+                value={editPickupTime}
+                onChange={(e) => setEditPickupTime(e.target.value)}
+                required
+                className="h-11 px-3 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            {/* Drop-off Time */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Drop-off Time (optional)</label>
+              <input
+                type="time"
+                value={editDropoffTime}
+                onChange={(e) => setEditDropoffTime(e.target.value)}
+                className="h-11 px-3 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            {/* Notes */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Notes (optional)</label>
+              <textarea
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+                rows={3}
+                placeholder="Any special instructions..."
+                className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none resize-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditBooking(null)}
+                className="flex-1 h-11 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-600 cursor-pointer hover:bg-slate-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editSubmitting}
+                className={`flex-1 h-11 rounded-lg bg-primary text-white text-sm font-semibold border-none cursor-pointer hover:bg-blue-600 transition ${
+                  editSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
+              >
+                {editSubmitting ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
         )}
       </Modal>
     </div>

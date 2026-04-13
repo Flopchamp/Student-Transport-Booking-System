@@ -183,6 +183,40 @@ const cancelBooking = catchAsync(async (req, res) => {
   ApiResponse.success(res, { booking: updated }, 'Booking cancelled successfully');
 });
 
+/**
+ * PUT /api/v1/bookings/:id
+ * Update a pending booking (parent — own bookings only).
+ * Allows changing: start_date, end_date, pickup_time, dropoff_time, notes.
+ */
+const updateBooking = catchAsync(async (req, res) => {
+  const { start_date, end_date, pickup_time, dropoff_time, notes } = req.body;
+
+  const booking = await Booking.findOne({
+    where: { id: req.params.id, parent_id: req.user.id },
+  });
+
+  if (!booking) {
+    throw ApiError.notFound('Booking not found.');
+  }
+
+  if (booking.status !== 'pending') {
+    throw ApiError.badRequest('Only pending bookings can be modified.');
+  }
+
+  // Update allowed fields
+  if (start_date !== undefined) booking.start_date = start_date;
+  if (end_date !== undefined) booking.end_date = end_date || null;
+  if (pickup_time !== undefined) booking.pickup_time = pickup_time;
+  if (dropoff_time !== undefined) booking.dropoff_time = dropoff_time || null;
+  if (notes !== undefined) booking.notes = notes || null;
+
+  await booking.save();
+
+  const updated = await Booking.findByPk(booking.id, { include: bookingIncludes });
+
+  ApiResponse.success(res, { booking: updated }, 'Booking updated successfully');
+});
+
 // =============================================
 // ADMIN ENDPOINTS
 // =============================================
@@ -389,6 +423,7 @@ module.exports = {
   getBookings,
   getBooking,
   cancelBooking,
+  updateBooking,
   updateBookingStatus,
   assignBooking,
   getBookingStats,

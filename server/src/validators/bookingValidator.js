@@ -102,6 +102,39 @@ const listBookingsValidator = [
 
 module.exports = {
   createBookingValidator,
+  updateBookingValidator: [
+    param('id')
+      .isUUID().withMessage('Invalid booking ID'),
+
+    body('start_date')
+      .optional()
+      .isISO8601().withMessage('Start date must be a valid date (YYYY-MM-DD)')
+      .custom((value) => {
+        const start = new Date(value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (start < today) throw new Error('Start date cannot be in the past');
+        return true;
+      }),
+
+    body('end_date')
+      .optional({ nullable: true })
+      .isISO8601().withMessage('End date must be a valid date (YYYY-MM-DD)'),
+
+    body('pickup_time')
+      .optional()
+      .matches(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
+      .withMessage('Pickup time must be in HH:MM or HH:MM:SS format'),
+
+    body('dropoff_time')
+      .optional({ nullable: true })
+      .matches(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
+      .withMessage('Dropoff time must be in HH:MM or HH:MM:SS format'),
+
+    body('notes')
+      .optional({ nullable: true })
+      .trim(),
+  ],
   updateBookingStatusValidator,
   bookingIdValidator,
   listBookingsValidator,
