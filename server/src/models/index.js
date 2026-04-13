@@ -12,6 +12,7 @@ const Setting = require('./Setting');
 const Announcement = require('./Announcement');
 const VehicleLocation = require('./VehicleLocation');
 const Notification = require('./Notification');
+const Trip = require('./Trip');
 
 // =============================================
 // ASSOCIATIONS
@@ -89,6 +90,16 @@ Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasOne(Driver, { foreignKey: 'user_id', as: 'driverProfile', onDelete: 'SET NULL' });
 Driver.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+// Trip associations
+Driver.hasMany(Trip, { foreignKey: 'driver_id', as: 'trips', onDelete: 'RESTRICT' });
+Trip.belongsTo(Driver, { foreignKey: 'driver_id', as: 'driver' });
+
+Vehicle.hasMany(Trip, { foreignKey: 'vehicle_id', as: 'trips', onDelete: 'RESTRICT' });
+Trip.belongsTo(Vehicle, { foreignKey: 'vehicle_id', as: 'vehicle' });
+
+Route.hasMany(Trip, { foreignKey: 'route_id', as: 'trips', onDelete: 'RESTRICT' });
+Trip.belongsTo(Route, { foreignKey: 'route_id', as: 'route' });
+
 module.exports = {
   sequelize,
   User,
@@ -104,4 +115,5 @@ module.exports = {
   Announcement,
   VehicleLocation,
   Notification,
+  Trip,
 };

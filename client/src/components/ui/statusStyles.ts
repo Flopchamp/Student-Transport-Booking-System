@@ -1,4 +1,4 @@
-export type StatusDomain = 'booking' | 'driver' | 'vehicle' | 'route' | 'payment' | 'user' | 'complaint';
+export type StatusDomain = 'booking' | 'driver' | 'vehicle' | 'route' | 'payment' | 'user' | 'complaint' | 'trip';
 
 export const statusStyles: Record<
   StatusDomain,
@@ -46,5 +46,17 @@ export const statusStyles: Record<
     low: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Low' },
     medium: { bg: 'bg-yellow-50', text: 'text-yellow-700', label: 'Medium' },
     high: { bg: 'bg-red-50', text: 'text-red-700', label: 'High' },
+  },
+  trip: {
+    scheduled: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500', label: 'Scheduled' },
+    in_progress: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', label: 'In Progress' },
+    completed: { bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-500', label: 'Completed' },
+    cancelled: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: 'Cancelled' },
+  },
+  trip: {
+    scheduled: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500', label: 'Scheduled' },
+    in_progress: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', label: 'In Progress' },
+    completed: { bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-500', label: 'Completed' },
+    cancelled: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: 'Cancelled' },
   },
 };

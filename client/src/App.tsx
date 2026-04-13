@@ -42,11 +42,13 @@ import ComplaintManagement from './pages/admin/ComplaintManagement';
 import SettingsPage from './pages/admin/SettingsPage';
 import AnnouncementManagement from './pages/admin/AnnouncementManagement';
 import FleetTrackingPage from './pages/admin/FleetTrackingPage';
+import TripManagement from './pages/admin/TripManagement';
 
 // Driver Pages
 import DriverDashboard from './pages/driver/DriverDashboard';
 import DriverBookings from './pages/driver/DriverBookings';
 import DriverTracking from './pages/driver/DriverTracking';
+import DriverTrips from './pages/driver/DriverTrips';
 
 function App() {
   const { user, loading } = useAuth();
@@ -111,6 +113,7 @@ function App() {
         <Route path="/admin/audit-log" element={<AuditLogPage />} />
         <Route path="/admin/settings" element={<SettingsPage />} />
         <Route path="/admin/fleet-tracking" element={<FleetTrackingPage />} />
+        <Route path="/admin/trips" element={<TripManagement />} />
         </Route>
       </Route>
 
@@ -120,6 +123,7 @@ function App() {
         <Route path="/driver" element={<DriverDashboard />} />
         <Route path="/driver/bookings" element={<DriverBookings />} />
         <Route path="/driver/tracking" element={<DriverTracking />} />
+        <Route path="/driver/trips" element={<DriverTrips />} />
         </Route>
       </Route>
 

@@ -32,6 +32,7 @@ const navItems = [
   { label: 'Bookings', icon: Calendar, path: '/admin/bookings' },
   { label: 'Payments', icon: DollarSign, path: '/admin/payments' },
   { label: 'Fleet Tracking', icon: Navigation, path: '/admin/fleet-tracking' },
+  { label: 'Trip Management', icon: Bus, path: '/admin/trips' },
   { label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
   { label: 'Complaints', icon: MessageSquare, path: '/admin/complaints' },
   { label: 'Announcements', icon: Megaphone, path: '/admin/announcements' },

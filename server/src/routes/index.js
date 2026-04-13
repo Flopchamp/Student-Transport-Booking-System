@@ -16,6 +16,7 @@ const announcementRoutes = require('./announcementRoutes');
 const trackingRoutes = require('./trackingRoutes');
 const notificationRoutes = require('./notificationRoutes');
 const driverPortalRoutes = require('./driverPortalRoutes');
+const tripRoutes = require('./tripRoutes');
 
 const router = Router();
 
@@ -69,5 +70,8 @@ router.use('/notifications', notificationRoutes);
 
 // Driver Portal
 router.use('/driver-portal', driverPortalRoutes);
+
+// Trips (admin)
+router.use('/trips', tripRoutes);
 
 module.exports = router;

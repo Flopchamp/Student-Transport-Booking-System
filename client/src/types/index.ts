@@ -7,7 +7,7 @@ export interface User {
   last_name: string;
   email: string;
   phone?: string;
-  role: 'parent' | 'admin';
+  role: 'parent' | 'admin' | 'driver';
   is_active: boolean;
   sms_notifications?: boolean;
   createdAt: string;
@@ -203,6 +203,34 @@ export interface TableColumn<T> {
   label: string;
   render?: (item: T) => React.ReactNode;
   sortable?: boolean;
+}
+
+// ============================================
+// Trip Types
+// ============================================
+export interface Trip {
+  id: string;
+  trip_reference: string;
+  driver_id: string;
+  vehicle_id: string;
+  route_id: string;
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  scheduled_date: string;
+  scheduled_time?: string;
+  actual_start_time?: string;
+  actual_end_time?: string;
+  start_latitude?: number;
+  start_longitude?: number;
+  end_latitude?: number;
+  end_longitude?: number;
+  distance_covered_km?: number;
+  passenger_count: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  driver?: Driver;
+  vehicle?: Vehicle;
+  route?: Route;
 }
 
 // ============================================

@@ -18,6 +18,7 @@ import {
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/driver' },
   { label: 'My Bookings', icon: Calendar, path: '/driver/bookings' },
+  { label: 'My Trips', icon: Activity, path: '/driver/trips' },
   { label: 'GPS Tracking', icon: Navigation, path: '/driver/tracking' },
 ];
 

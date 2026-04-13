@@ -37,4 +37,11 @@ module.exports = {
     ON_TRIP: 'on_trip',
     OFF_DUTY: 'off_duty',
   },
+
+  TRIP_STATUS: {
+    SCHEDULED: 'scheduled',
+    IN_PROGRESS: 'in_progress',
+    COMPLETED: 'completed',
+    CANCELLED: 'cancelled',
+  },
 };

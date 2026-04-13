@@ -7,6 +7,12 @@ const {
   updateMyLocation,
   updateMyStatus,
 } = require('../controllers/driverPortalController');
+const {
+  getMyTrips,
+  startTrip,
+  endTrip,
+  getActiveTrip,
+} = require('../controllers/tripController');
 
 const router = Router();
 
@@ -28,5 +34,11 @@ router.put('/location', updateMyLocation);
 
 // Status update
 router.patch('/status', updateMyStatus);
+
+// Trips
+router.get('/trips', getMyTrips);
+router.get('/trips/active', getActiveTrip);
+router.post('/trips/start', startTrip);
+router.patch('/trips/:id/end', endTrip);
 
 module.exports = router;
