@@ -15,6 +15,7 @@ export const statusStyles: Record<
     confirmed: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500', label: 'Confirmed' },
     completed: { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200', dot: 'bg-gray-400', label: 'Completed' },
     cancelled: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', dot: 'bg-red-500', label: 'Cancelled' },
+    waitlisted: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-400', label: 'Waitlisted' },
   },
   driver: {
     available: { bg: 'bg-green-100', text: 'text-green-700', label: 'Available' },

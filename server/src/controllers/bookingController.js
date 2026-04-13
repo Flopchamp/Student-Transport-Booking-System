@@ -6,6 +6,44 @@ const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
 
+/**
+ * Promote the next waitlisted booking on a route to pending status.
+ * Called when a slot opens up (cancellation or capacity increase).
+ */
+const promoteFromWaitlist = async (routeId) => {
+  try {
+    const nextWaitlisted = await Booking.findOne({
+      where: { route_id: routeId, status: 'waitlisted' },
+      order: [['createdAt', 'ASC']],
+      include: [
+        { association: 'parent', attributes: ['id', 'first_name', 'last_name', 'email'] },
+        { association: 'student', attributes: ['id', 'first_name', 'last_name'] },
+        { association: 'route', attributes: ['id', 'name'] },
+      ],
+    });
+
+    if (nextWaitlisted) {
+      nextWaitlisted.status = 'pending';
+      await nextWaitlisted.save();
+
+      // Notify parent their waitlisted booking has been promoted
+      if (nextWaitlisted.parent?.email) {
+        sendBookingStatusEmail(nextWaitlisted.parent.email, {
+          parentName: `${nextWaitlisted.parent.first_name} ${nextWaitlisted.parent.last_name}`,
+          bookingRef: nextWaitlisted.booking_reference,
+          studentName: nextWaitlisted.student ? `${nextWaitlisted.student.first_name} ${nextWaitlisted.student.last_name}` : '—',
+          routeName: nextWaitlisted.route ? nextWaitlisted.route.name : '—',
+          newStatus: 'pending',
+        }).catch((err) => console.error('[Email] Waitlist promotion email failed:', err.message));
+      }
+
+      console.log(`[Waitlist] Promoted booking ${nextWaitlisted.booking_reference} from waitlist to pending`);
+    }
+  } catch (err) {
+    console.error('[Waitlist] Promotion failed:', err.message);
+  }
+};
+
 // Common include set for booking queries
 const bookingIncludes = [
   { association: 'student', attributes: ['id', 'first_name', 'last_name', 'school_name', 'grade'] },
@@ -62,7 +100,27 @@ const createBooking = catchAsync(async (req, res) => {
     );
   }
 
-  // 4. Create booking — price from route
+  // 4. Check route capacity — auto-waitlist if at capacity
+  const activeBookingsOnRoute = await Booking.count({
+    where: {
+      route_id,
+      status: { [Op.in]: ['pending', 'confirmed'] },
+    },
+  });
+
+  const vehiclesOnRoute = await Vehicle.findAll({
+    include: [{
+      model: Driver,
+      as: 'driver',
+      where: { route_id },
+      attributes: [],
+    }],
+    attributes: ['capacity'],
+  });
+  const totalCapacity = vehiclesOnRoute.reduce((sum, v) => sum + v.capacity, 0);
+  const isAtCapacity = totalCapacity > 0 && activeBookingsOnRoute >= totalCapacity;
+
+  // 5. Create booking — price from route, auto-waitlist if at capacity
   const booking = await Booking.create({
     parent_id: req.user.id,
     student_id,
@@ -73,12 +131,13 @@ const createBooking = catchAsync(async (req, res) => {
     end_date: end_date || null,
     amount: route.price,
     notes: notes || null,
+    status: isAtCapacity ? 'waitlisted' : 'pending',
   });
 
-  // 5. Re-fetch with associations
+  // 6. Re-fetch with associations
   const fullBooking = await Booking.findByPk(booking.id, { include: bookingIncludes });
 
-  // 6. Send booking confirmation email (fire-and-forget)
+  // 7. Send booking confirmation email (fire-and-forget)
   sendBookingConfirmationEmail(req.user.email, {
     parentName: `${req.user.first_name} ${req.user.last_name}`,
     bookingRef: fullBooking.booking_reference,
@@ -89,7 +148,10 @@ const createBooking = catchAsync(async (req, res) => {
     amount: fullBooking.amount,
   }).catch((err) => console.error('[Email] Booking confirmation failed:', err.message));
 
-  ApiResponse.created(res, { booking: fullBooking }, 'Booking created successfully');
+  const message = isAtCapacity
+    ? 'Route is at capacity. You have been added to the waitlist.'
+    : 'Booking created successfully';
+  ApiResponse.created(res, { booking: fullBooking }, message);
 });
 
 /**
@@ -200,6 +262,9 @@ const cancelBooking = catchAsync(async (req, res) => {
     studentName: updated.student ? `${updated.student.first_name} ${updated.student.last_name}` : '—',
     routeName: updated.route ? updated.route.name : '—',
   }).catch((err) => console.error('[Email] Cancellation email failed:', err.message));
+
+  // Promote next waitlisted booking on this route
+  promoteFromWaitlist(booking.route_id);
 
   ApiResponse.success(res, { booking: updated }, 'Booking cancelled successfully');
 });

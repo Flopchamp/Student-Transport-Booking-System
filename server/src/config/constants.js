@@ -9,6 +9,7 @@ module.exports = {
     CONFIRMED: 'confirmed',
     CANCELLED: 'cancelled',
     COMPLETED: 'completed',
+    WAITLISTED: 'waitlisted',
   },
 
   PAYMENT_STATUS: {
