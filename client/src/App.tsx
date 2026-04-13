@@ -32,6 +32,7 @@ import AdminBookings from './pages/admin/BookingManagement';
 import AdminPayments from './pages/admin/PaymentManagement';
 import UserManagement from './pages/admin/UserManagement';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
+import AuditLogPage from './pages/admin/AuditLogPage';
 
 function App() {
   const { user, loading } = useAuth();
@@ -87,6 +88,7 @@ function App() {
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/payments" element={<AdminPayments />} />
         <Route path="/admin/analytics" element={<AnalyticsPage />} />
+        <Route path="/admin/audit-log" element={<AuditLogPage />} />
         </Route>
       </Route>
 

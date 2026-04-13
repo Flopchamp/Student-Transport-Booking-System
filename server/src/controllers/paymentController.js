@@ -3,6 +3,7 @@ const PDFDocument = require('pdfkit');
 const { Payment, Booking, Route, Student, User } = require('../models');
 const { PAYMENT_STATUS, BOOKING_STATUS } = require('../config/constants');
 const { sendPaymentReceiptEmail } = require('../services/emailService');
+const logAudit = require('../utils/auditLog');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -268,6 +269,17 @@ const refundPayment = catchAsync(async (req, res) => {
   }
 
   const fullPayment = await Payment.findByPk(payment.id, { include: paymentIncludes });
+
+  // Audit log
+  logAudit({
+    userId: req.user.id,
+    action: 'payment.refund',
+    entityType: 'payment',
+    entityId: payment.id,
+    description: `Refunded payment ${payment.transaction_reference} (KES ${payment.amount})`,
+    metadata: { transactionRef: payment.transaction_reference, amount: payment.amount },
+    ipAddress: req.ip,
+  });
 
   ApiResponse.success(res, { payment: fullPayment }, 'Payment refunded successfully');
 });

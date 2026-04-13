@@ -9,6 +9,7 @@ const bookingRoutes = require('./bookingRoutes');
 const paymentRoutes = require('./paymentRoutes');
 const userRoutes = require('./userRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
+const auditLogRoutes = require('./auditLogRoutes');
 
 const router = Router();
 
@@ -41,5 +42,8 @@ router.use('/users', userRoutes);
 
 // Analytics (admin)
 router.use('/analytics', analyticsRoutes);
+
+// Audit Logs (admin)
+router.use('/audit-logs', auditLogRoutes);
 
 module.exports = router;

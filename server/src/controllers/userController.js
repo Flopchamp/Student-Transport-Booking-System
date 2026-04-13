@@ -1,5 +1,6 @@
 const { User } = require('../models');
 const { Op } = require('sequelize');
+const logAudit = require('../utils/auditLog');
 const catchAsync = require('../utils/catchAsync');
 const ApiResponse = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
@@ -108,6 +109,17 @@ const toggleUserStatus = catchAsync(async (req, res) => {
 
   user.is_active = !user.is_active;
   await user.save();
+
+  // Audit log
+  logAudit({
+    userId: req.user.id,
+    action: user.is_active ? 'user.activate' : 'user.deactivate',
+    entityType: 'user',
+    entityId: user.id,
+    description: `${user.is_active ? 'Activated' : 'Deactivated'} user ${user.first_name} ${user.last_name} (${user.email})`,
+    metadata: { targetUserId: user.id, newStatus: user.is_active },
+    ipAddress: req.ip,
+  });
 
   ApiResponse.success(
     res,

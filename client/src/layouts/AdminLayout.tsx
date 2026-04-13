@@ -10,6 +10,7 @@ import {
   Calendar,
   DollarSign,
   BarChart3,
+  ScrollText,
   LogOut,
   Menu,
   X,
@@ -27,6 +28,7 @@ const navItems = [
   { label: 'Bookings', icon: Calendar, path: '/admin/bookings' },
   { label: 'Payments', icon: DollarSign, path: '/admin/payments' },
   { label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
+  { label: 'Audit Log', icon: ScrollText, path: '/admin/audit-log' },
 ];
 
 export default function AdminLayout() {

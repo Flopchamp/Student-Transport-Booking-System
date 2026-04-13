@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { Booking, Student, Route, Vehicle, Driver, Payment } = require('../models');
 const { sendBookingConfirmationEmail, sendBookingStatusEmail, sendBookingCancellationEmail } = require('../services/emailService');
+const logAudit = require('../utils/auditLog');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -316,6 +317,17 @@ const updateBookingStatus = catchAsync(async (req, res) => {
       newStatus: status,
     }).catch((err) => console.error('[Email] Status change email failed:', err.message));
   }
+
+  // Audit log
+  logAudit({
+    userId: req.user.id,
+    action: 'booking.status_change',
+    entityType: 'booking',
+    entityId: updated.id,
+    description: `Changed booking ${updated.booking_reference} from ${oldStatus} to ${status}`,
+    metadata: { oldStatus, newStatus: status, vehicle_id, driver_id },
+    ipAddress: req.ip,
+  });
 
   ApiResponse.success(res, { booking: updated }, `Booking ${status} successfully`);
 });
