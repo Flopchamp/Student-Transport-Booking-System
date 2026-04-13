@@ -3,6 +3,7 @@ const PDFDocument = require('pdfkit');
 const { Payment, Booking, Route, Student, User } = require('../models');
 const { PAYMENT_STATUS, BOOKING_STATUS } = require('../config/constants');
 const { sendPaymentReceiptEmail, sendRefundRequestEmail, sendRefundProcessedEmail } = require('../services/emailService');
+const { sendPaymentReceivedSMS, sendRefundProcessedSMS } = require('../services/smsService');
 const logAudit = require('../utils/auditLog');
 const { createNotification, notifyAdmins } = require('../utils/notification');
 const ApiError = require('../utils/ApiError');
@@ -133,6 +134,15 @@ const createPayment = catchAsync(async (req, res) => {
       paymentMethod: fullPayment.payment_method,
       paidAt: fullPayment.paid_at || new Date(),
     }).catch((err) => console.error('[Email] Payment receipt email failed:', err.message));
+
+    // SMS notification for payment received
+    if (fullPayment.parent.phone) {
+      sendPaymentReceivedSMS(fullPayment.parent.phone, {
+        amount: fullPayment.amount,
+        bookingRef: fullPayment.booking?.booking_reference || '—',
+        transactionRef: fullPayment.transaction_reference,
+      });
+    }
 
     // In-app notification
     createNotification({
@@ -295,6 +305,14 @@ const refundPayment = catchAsync(async (req, res) => {
       bookingRef: payment.booking?.booking_reference || '—',
       amount: payment.amount,
     }).catch((err) => console.error('Failed to send refund processed email:', err));
+
+    // SMS notification for refund
+    if (payment.parent.phone) {
+      sendRefundProcessedSMS(payment.parent.phone, {
+        amount: payment.amount,
+        transactionRef: payment.transaction_reference,
+      });
+    }
   }
 
   // Notify parent about refund

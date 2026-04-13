@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
-import { User, Mail, Phone, Shield, Eye, EyeOff, Save, KeyRound } from 'lucide-react';
+import { User, Mail, Phone, Shield, Eye, EyeOff, Save, KeyRound, MessageSquare } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
@@ -11,6 +11,7 @@ export default function ProfilePage() {
   const [firstName, setFirstName] = useState(user?.first_name || '');
   const [lastName, setLastName] = useState(user?.last_name || '');
   const [phone, setPhone] = useState(user?.phone || '');
+  const [smsNotifications, setSmsNotifications] = useState(user?.sms_notifications !== false);
   const [profileSaving, setProfileSaving] = useState(false);
 
   // Password form
@@ -29,6 +30,7 @@ export default function ProfilePage() {
         first_name: firstName,
         last_name: lastName,
         phone,
+        sms_notifications: smsNotifications,
       });
       const updatedUser = res.data.data.user ?? res.data.data;
       updateUser(updatedUser);
@@ -157,6 +159,32 @@ export default function ProfilePage() {
                 className="w-full h-11 pl-11 pr-4 text-sm rounded-lg border border-slate-200 bg-white text-text outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
             </div>
+          </div>
+
+          {/* SMS Notifications Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200 bg-slate-50/50">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center">
+                <MessageSquare className="w-4.5 h-4.5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-700">SMS Notifications</p>
+                <p className="text-xs text-slate-500">Receive booking &amp; payment alerts via SMS</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSmsNotifications(!smsNotifications)}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-200 border-none cursor-pointer ${
+                smsNotifications ? 'bg-green-500' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+                  smsNotifications ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Save button */}

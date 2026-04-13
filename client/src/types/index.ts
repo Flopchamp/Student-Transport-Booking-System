@@ -9,6 +9,7 @@ export interface User {
   phone?: string;
   role: 'parent' | 'admin';
   is_active: boolean;
+  sms_notifications?: boolean;
   createdAt: string;
   updatedAt: string;
 }

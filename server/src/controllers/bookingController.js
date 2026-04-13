@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { Booking, Student, Route, Vehicle, Driver, Payment } = require('../models');
 const { sendBookingConfirmationEmail, sendBookingStatusEmail, sendBookingCancellationEmail } = require('../services/emailService');
+const { sendBookingConfirmedSMS, sendBookingCancelledSMS } = require('../services/smsService');
 const logAudit = require('../utils/auditLog');
 const { createNotification, notifyAdmins } = require('../utils/notification');
 const ApiError = require('../utils/ApiError');
@@ -410,6 +411,24 @@ const updateBookingStatus = catchAsync(async (req, res) => {
       oldStatus,
       newStatus: status,
     }).catch((err) => console.error('[Email] Status change email failed:', err.message));
+
+    // SMS notification for booking confirmed
+    if (status === 'confirmed' && updated.parent.phone) {
+      sendBookingConfirmedSMS(updated.parent.phone, {
+        bookingRef: updated.booking_reference,
+        studentName: updated.student ? `${updated.student.first_name} ${updated.student.last_name}` : '—',
+        routeName: updated.route ? updated.route.name : '—',
+        pickupTime: updated.pickup_time || 'See app',
+      });
+    }
+
+    // SMS for booking cancelled by admin
+    if (status === 'cancelled' && updated.parent.phone) {
+      sendBookingCancelledSMS(updated.parent.phone, {
+        bookingRef: updated.booking_reference,
+        studentName: updated.student ? `${updated.student.first_name} ${updated.student.last_name}` : '—',
+      });
+    }
   }
 
   // In-app notification to parent

@@ -116,7 +116,7 @@ const getMe = catchAsync(async (req, res) => {
  * Update current authenticated user's profile.
  */
 const updateMe = catchAsync(async (req, res) => {
-  const { first_name, last_name, phone } = req.body;
+  const { first_name, last_name, phone, sms_notifications } = req.body;
 
   const user = await User.findByPk(req.user.id);
 
@@ -128,6 +128,7 @@ const updateMe = catchAsync(async (req, res) => {
   if (first_name) user.first_name = first_name;
   if (last_name) user.last_name = last_name;
   if (phone) user.phone = phone;
+  if (sms_notifications !== undefined) user.sms_notifications = sms_notifications;
 
   await user.save();
 
