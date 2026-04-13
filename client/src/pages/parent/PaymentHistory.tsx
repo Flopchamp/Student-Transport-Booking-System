@@ -5,6 +5,7 @@ import {
   Search,
   Eye,
   Calendar,
+  Download,
 } from 'lucide-react';
 import type { Payment } from '../../types';
 import Modal from '../../components/ui/Modal';
@@ -180,13 +181,30 @@ export default function PaymentHistory() {
                         : new Date(payment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
-                      <button
-                        onClick={() => setSelectedPayment(payment)}
-                        title="View Details"
-                        className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50 transition"
-                      >
-                        <Eye className="w-[15px] h-[15px] text-slate-500" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setSelectedPayment(payment)}
+                          title="View Details"
+                          className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50 transition"
+                        >
+                          <Eye className="w-[15px] h-[15px] text-slate-500" />
+                        </button>
+                        {(payment.status === 'completed' || payment.status === 'refunded') && (
+                          <button
+                            onClick={() => {
+                              const token = localStorage.getItem('token');
+                              window.open(
+                                `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/payments/${payment.id}/receipt?token=${token}`,
+                                '_blank'
+                              );
+                            }}
+                            title="Download Receipt"
+                            className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50 transition"
+                          >
+                            <Download className="w-[15px] h-[15px] text-emerald-500" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -268,6 +286,23 @@ export default function PaymentHistory() {
                 KES {Number(selectedPayment.amount || 0).toLocaleString()}
               </span>
             </div>
+
+            {/* Download Receipt */}
+            {(selectedPayment.status === 'completed' || selectedPayment.status === 'refunded') && (
+              <button
+                onClick={() => {
+                  const token = localStorage.getItem('token');
+                  window.open(
+                    `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/payments/${selectedPayment.id}/receipt?token=${token}`,
+                    '_blank'
+                  );
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition"
+              >
+                <Download className="w-4 h-4" />
+                Download Receipt
+              </button>
+            )}
           </div>
         )}
       </Modal>

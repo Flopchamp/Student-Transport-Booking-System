@@ -12,6 +12,7 @@ const {
   getPayment,
   getPaymentStats,
   refundPayment,
+  getReceipt,
 } = require('../controllers/paymentController');
 
 const router = Router();
@@ -26,6 +27,7 @@ router.get('/stats', authorize('admin'), getPaymentStats);
 router.post('/', createPaymentValidator, validate, createPayment);
 router.get('/', listPaymentsValidator, validate, getPayments);
 router.get('/:id', paymentIdValidator, validate, getPayment);
+router.get('/:id/receipt', paymentIdValidator, validate, getReceipt);
 
 // ─── Admin Only ─────────────────────────────────────
 router.patch('/:id/refund', authorize('admin'), paymentIdValidator, validate, refundPayment);

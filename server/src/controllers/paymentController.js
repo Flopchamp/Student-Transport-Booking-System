@@ -1,4 +1,5 @@
 const { Op } = require('sequelize');
+const PDFDocument = require('pdfkit');
 const { Payment, Booking, Route, Student, User } = require('../models');
 const { PAYMENT_STATUS, BOOKING_STATUS } = require('../config/constants');
 const ApiError = require('../utils/ApiError');
@@ -258,10 +259,157 @@ const refundPayment = catchAsync(async (req, res) => {
   ApiResponse.success(res, { payment: fullPayment }, 'Payment refunded successfully');
 });
 
+/**
+ * GET /api/v1/payments/:id/receipt
+ * Generate and stream a PDF receipt for a completed payment.
+ */
+const getReceipt = catchAsync(async (req, res) => {
+  const where = { id: req.params.id };
+
+  // Parents can only download their own receipts
+  if (req.user.role === 'parent') {
+    where.parent_id = req.user.id;
+  }
+
+  const payment = await Payment.findOne({
+    where,
+    include: paymentIncludes,
+  });
+
+  if (!payment) {
+    throw ApiError.notFound('Payment not found.');
+  }
+
+  if (payment.status !== PAYMENT_STATUS.COMPLETED && payment.status !== PAYMENT_STATUS.REFUNDED) {
+    throw ApiError.badRequest('Receipts are only available for completed or refunded payments.');
+  }
+
+  // Build PDF
+  const doc = new PDFDocument({ size: 'A4', margin: 50 });
+
+  // Set response headers
+  const filename = `receipt-${payment.transaction_reference}.pdf`;
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  doc.pipe(res);
+
+  // ── Header ──
+  doc.fontSize(22).font('Helvetica-Bold').text('EduTrans', { align: 'center' });
+  doc.fontSize(10).font('Helvetica').fillColor('#666666')
+    .text('Student Transport Booking System', { align: 'center' });
+  doc.moveDown(0.5);
+  doc.fontSize(16).font('Helvetica-Bold').fillColor('#000000')
+    .text('Payment Receipt', { align: 'center' });
+  doc.moveDown(1);
+
+  // Divider
+  doc.strokeColor('#cccccc').lineWidth(1)
+    .moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+  doc.moveDown(1);
+
+  // ── Receipt Details ──
+  const leftCol = 50;
+  const rightCol = 300;
+  let y = doc.y;
+
+  const addRow = (label, value, bold = false) => {
+    doc.fontSize(10).font('Helvetica').fillColor('#666666')
+      .text(label, leftCol, y);
+    doc.fontSize(10).font(bold ? 'Helvetica-Bold' : 'Helvetica').fillColor('#000000')
+      .text(String(value || '—'), rightCol, y);
+    y += 22;
+  };
+
+  addRow('Transaction Ref:', payment.transaction_reference, true);
+  addRow('Date:', payment.paid_at
+    ? new Date(payment.paid_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : new Date(payment.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
+  addRow('Status:', payment.status.toUpperCase(), true);
+  addRow('Payment Method:', payment.payment_method === 'mpesa' ? 'M-Pesa' : 'Card (Stripe)');
+
+  if (payment.mpesa_receipt_number) {
+    addRow('M-Pesa Receipt:', payment.mpesa_receipt_number);
+  }
+
+  doc.moveDown(0.5);
+  y = doc.y;
+
+  // Divider
+  doc.strokeColor('#cccccc').lineWidth(0.5)
+    .moveTo(50, y).lineTo(545, y).stroke();
+  y += 15;
+  doc.y = y;
+
+  // ── Parent Info ──
+  doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000')
+    .text('Parent Details', leftCol, y);
+  y += 20;
+
+  if (payment.parent) {
+    addRow('Name:', `${payment.parent.first_name} ${payment.parent.last_name}`);
+    addRow('Email:', payment.parent.email);
+    addRow('Phone:', payment.parent.phone);
+  }
+
+  doc.moveDown(0.5);
+  y = doc.y;
+
+  // ── Booking Info ──
+  doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000')
+    .text('Booking Details', leftCol, y);
+  y += 20;
+
+  if (payment.booking) {
+    addRow('Booking Ref:', payment.booking.booking_reference);
+    addRow('Start Date:', payment.booking.start_date);
+    addRow('Pickup Time:', payment.booking.pickup_time);
+
+    if (payment.booking.student) {
+      addRow('Student:', `${payment.booking.student.first_name} ${payment.booking.student.last_name}`);
+      addRow('School:', payment.booking.student.school_name);
+    }
+
+    if (payment.booking.route) {
+      addRow('Route:', payment.booking.route.name);
+      addRow('From:', payment.booking.route.start_location);
+      addRow('To:', payment.booking.route.end_location);
+    }
+  }
+
+  doc.moveDown(1);
+  y = doc.y;
+
+  // Divider
+  doc.strokeColor('#cccccc').lineWidth(1)
+    .moveTo(50, y).lineTo(545, y).stroke();
+  y += 15;
+  doc.y = y;
+
+  // ── Amount ──
+  doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000')
+    .text(`Amount Paid: KES ${parseFloat(payment.amount).toLocaleString()}`, leftCol, y);
+
+  if (payment.status === 'refunded') {
+    y += 25;
+    doc.fontSize(12).font('Helvetica-Bold').fillColor('#cc0000')
+      .text('*** REFUNDED ***', leftCol, y);
+  }
+
+  doc.moveDown(3);
+
+  // ── Footer ──
+  doc.fontSize(8).font('Helvetica').fillColor('#999999')
+    .text('This is a system-generated receipt. No signature required.', leftCol, undefined, { align: 'center' });
+  doc.text(`Generated on ${new Date().toLocaleString('en-US')}`, { align: 'center' });
+
+  doc.end();
+});
+
 module.exports = {
   createPayment,
   getPayments,
   getPayment,
   getPaymentStats,
   refundPayment,
+  getReceipt,
 };
