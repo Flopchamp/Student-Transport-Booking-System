@@ -116,7 +116,6 @@ export default function AdminDashboard() {
             value={stat.value}
             iconBg={stat.bg}
             iconColor={stat.color}
-            trend={stat.trend}
           />
         ))}
       </div>
