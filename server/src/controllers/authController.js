@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { User } = require('../models');
 const { generateToken } = require('../services/authService');
-const { sendPasswordResetEmail } = require('../services/emailService');
+const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -33,6 +33,11 @@ const register = catchAsync(async (req, res) => {
 
   // Generate token
   const token = generateToken(user);
+
+  // Send welcome email (fire-and-forget)
+  sendWelcomeEmail(user.email, {
+    parentName: `${user.first_name} ${user.last_name}`,
+  }).catch((err) => console.error('[Email] Welcome email failed:', err.message));
 
   ApiResponse.created(res, {
     user: user.toSafeJSON(),

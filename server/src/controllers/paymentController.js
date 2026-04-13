@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const PDFDocument = require('pdfkit');
 const { Payment, Booking, Route, Student, User } = require('../models');
 const { PAYMENT_STATUS, BOOKING_STATUS } = require('../config/constants');
+const { sendPaymentReceiptEmail } = require('../services/emailService');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -119,6 +120,18 @@ const createPayment = catchAsync(async (req, res) => {
 
   // 6. Refetch with full associations
   const fullPayment = await Payment.findByPk(payment.id, { include: paymentIncludes });
+
+  // 7. Send payment receipt email if successful (fire-and-forget)
+  if (payment.status === PAYMENT_STATUS.COMPLETED && fullPayment.parent) {
+    sendPaymentReceiptEmail(fullPayment.parent.email, {
+      parentName: `${fullPayment.parent.first_name} ${fullPayment.parent.last_name}`,
+      transactionRef: fullPayment.transaction_reference,
+      bookingRef: fullPayment.booking?.booking_reference || '—',
+      amount: fullPayment.amount,
+      paymentMethod: fullPayment.payment_method,
+      paidAt: fullPayment.paid_at || new Date(),
+    }).catch((err) => console.error('[Email] Payment receipt email failed:', err.message));
+  }
 
   const statusCode = payment.status === PAYMENT_STATUS.COMPLETED ? 201 : 200;
   const message = payment.status === PAYMENT_STATUS.COMPLETED

@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const { Booking, Student, Route, Vehicle, Driver, Payment } = require('../models');
+const { sendBookingConfirmationEmail, sendBookingStatusEmail, sendBookingCancellationEmail } = require('../services/emailService');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -75,6 +76,17 @@ const createBooking = catchAsync(async (req, res) => {
 
   // 5. Re-fetch with associations
   const fullBooking = await Booking.findByPk(booking.id, { include: bookingIncludes });
+
+  // 6. Send booking confirmation email (fire-and-forget)
+  sendBookingConfirmationEmail(req.user.email, {
+    parentName: `${req.user.first_name} ${req.user.last_name}`,
+    bookingRef: fullBooking.booking_reference,
+    studentName: fullBooking.student ? `${fullBooking.student.first_name} ${fullBooking.student.last_name}` : '—',
+    routeName: fullBooking.route ? fullBooking.route.name : '—',
+    startDate: fullBooking.start_date,
+    pickupTime: fullBooking.pickup_time,
+    amount: fullBooking.amount,
+  }).catch((err) => console.error('[Email] Booking confirmation failed:', err.message));
 
   ApiResponse.created(res, { booking: fullBooking }, 'Booking created successfully');
 });
@@ -180,6 +192,14 @@ const cancelBooking = catchAsync(async (req, res) => {
 
   const updated = await Booking.findByPk(booking.id, { include: bookingIncludes });
 
+  // Send cancellation email (fire-and-forget)
+  sendBookingCancellationEmail(req.user.email, {
+    parentName: `${req.user.first_name} ${req.user.last_name}`,
+    bookingRef: updated.booking_reference,
+    studentName: updated.student ? `${updated.student.first_name} ${updated.student.last_name}` : '—',
+    routeName: updated.route ? updated.route.name : '—',
+  }).catch((err) => console.error('[Email] Cancellation email failed:', err.message));
+
   ApiResponse.success(res, { booking: updated }, 'Booking cancelled successfully');
 });
 
@@ -280,10 +300,22 @@ const updateBookingStatus = catchAsync(async (req, res) => {
     }
   }
 
+  const oldStatus = booking.status;
   booking.status = status;
   await booking.save();
 
   const updated = await Booking.findByPk(booking.id, { include: bookingIncludes });
+
+  // Send status change email to parent (fire-and-forget)
+  if (updated.parent) {
+    sendBookingStatusEmail(updated.parent.email, {
+      parentName: `${updated.parent.first_name} ${updated.parent.last_name}`,
+      bookingRef: updated.booking_reference,
+      studentName: updated.student ? `${updated.student.first_name} ${updated.student.last_name}` : '—',
+      oldStatus,
+      newStatus: status,
+    }).catch((err) => console.error('[Email] Status change email failed:', err.message));
+  }
 
   ApiResponse.success(res, { booking: updated }, `Booking ${status} successfully`);
 });
