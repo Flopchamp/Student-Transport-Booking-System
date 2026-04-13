@@ -137,6 +137,7 @@ export default function PaymentManagement() {
           <option value="pending">Pending</option>
           <option value="completed">Completed</option>
           <option value="failed">Failed</option>
+          <option value="refund_requested">Refund Requested</option>
           <option value="refunded">Refunded</option>
         </select>
       </div>
@@ -219,10 +220,10 @@ export default function PaymentManagement() {
                             <Download className="w-[15px] h-[15px] text-emerald-500" />
                           </button>
                         )}
-                        {payment.status === 'completed' && (
+                        {(payment.status === 'completed' || payment.status === 'refund_requested') && (
                           <button
                             onClick={() => handleRefund(payment.id)}
-                            title="Refund"
+                            title={payment.status === 'refund_requested' ? 'Approve Refund' : 'Refund'}
                             disabled={refunding === payment.id}
                             className="w-8 h-8 rounded-lg border border-amber-200 bg-white flex items-center justify-center cursor-pointer hover:bg-amber-50 transition disabled:opacity-50"
                           >
@@ -322,7 +323,7 @@ export default function PaymentManagement() {
             )}
 
             {/* Refund button */}
-            {selectedPayment.status === 'completed' && (
+            {(selectedPayment.status === 'completed' || selectedPayment.status === 'refund_requested') && (
               <button
                 onClick={() => {
                   handleRefund(selectedPayment.id);
@@ -331,7 +332,7 @@ export default function PaymentManagement() {
                 className="w-full py-3 rounded-[10px] text-sm font-semibold cursor-pointer bg-white text-amber-600 border border-amber-200 hover:bg-amber-50 transition flex items-center justify-center gap-2"
               >
                 <RotateCcw className="w-4 h-4" />
-                Process Refund
+                {selectedPayment.status === 'refund_requested' ? 'Approve Refund Request' : 'Process Refund'}
               </button>
             )}
           </div>

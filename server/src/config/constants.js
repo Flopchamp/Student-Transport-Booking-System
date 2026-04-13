@@ -17,6 +17,7 @@ module.exports = {
     COMPLETED: 'completed',
     FAILED: 'failed',
     REFUNDED: 'refunded',
+    REFUND_REQUESTED: 'refund_requested',
   },
 
   PAYMENT_METHOD: {

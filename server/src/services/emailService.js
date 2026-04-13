@@ -254,6 +254,61 @@ const sendEmailVerificationEmail = async (to, { parentName, verifyUrl }) => {
   await sendEmail(to, subject, html);
 };
 
+/* ───────────────────────────────────────────────────
+   8. Refund Request (to admin)
+   ─────────────────────────────────────────────────── */
+const sendRefundRequestEmail = async (to, data) => {
+  const { parentName, transactionRef, bookingRef, amount } = data;
+  const subject = `Refund Requested — ${transactionRef}`;
+  const html = wrapHtml(`
+    <h2 style="color: #d97706;">Refund Request Submitted</h2>
+    <p>A parent has requested a refund. Please review the details below:</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+      <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Parent</td>
+          <td style="padding: 8px 0; font-weight: bold;">${parentName}</td></tr>
+      <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Transaction</td>
+          <td style="padding: 8px 0; font-weight: bold; font-family: monospace;">${transactionRef}</td></tr>
+      <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Booking</td>
+          <td style="padding: 8px 0; font-weight: bold; font-family: monospace;">${bookingRef}</td></tr>
+      <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Amount</td>
+          <td style="padding: 8px 0; font-weight: bold; color: #d97706;">KES ${Number(amount).toLocaleString()}</td></tr>
+    </table>
+    <p style="color: #64748b; font-size: 13px;">
+      Log in to the admin dashboard to approve or reject this refund.
+    </p>
+  `);
+  await sendEmail(to, subject, html);
+};
+
+/* ───────────────────────────────────────────────────
+   9. Refund Processed (to parent)
+   ─────────────────────────────────────────────────── */
+const sendRefundProcessedEmail = async (to, data) => {
+  const { parentName, transactionRef, bookingRef, amount } = data;
+  const subject = `Refund Processed — ${transactionRef}`;
+  const html = wrapHtml(`
+    <h2 style="color: #16a34a;">Refund Processed ✅</h2>
+    <p>Hi <strong>${parentName}</strong>,</p>
+    <p style="line-height: 1.6;">
+      Your refund request has been processed. Here are the details:
+    </p>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+      <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Transaction</td>
+          <td style="padding: 8px 0; font-weight: bold; font-family: monospace;">${transactionRef}</td></tr>
+      <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Booking</td>
+          <td style="padding: 8px 0; font-weight: bold; font-family: monospace;">${bookingRef}</td></tr>
+    </table>
+    <div style="text-align: center; margin: 24px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+      <p style="margin: 0; font-size: 13px; color: #16a34a;">Amount Refunded</p>
+      <p style="margin: 4px 0 0; font-size: 24px; font-weight: bold; color: #15803d;">KES ${Number(amount).toLocaleString()}</p>
+    </div>
+    <p style="color: #64748b; font-size: 13px;">
+      The refund should reflect in your account within 3–5 business days.
+    </p>
+  `);
+  await sendEmail(to, subject, html);
+};
+
 module.exports = {
   sendPasswordResetEmail,
   sendBookingConfirmationEmail,
@@ -262,4 +317,6 @@ module.exports = {
   sendBookingCancellationEmail,
   sendWelcomeEmail,
   sendEmailVerificationEmail,
+  sendRefundRequestEmail,
+  sendRefundProcessedEmail,
 };

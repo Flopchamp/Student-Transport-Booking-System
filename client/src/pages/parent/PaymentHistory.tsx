@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import api from '../../lib/api';
 import {
   DollarSign,
@@ -6,6 +7,7 @@ import {
   Eye,
   Calendar,
   Download,
+  RotateCcw,
 } from 'lucide-react';
 import type { Payment } from '../../types';
 import Modal from '../../components/ui/Modal';
@@ -120,6 +122,7 @@ export default function PaymentHistory() {
           <option value="completed">Completed</option>
           <option value="pending">Pending</option>
           <option value="failed">Failed</option>
+          <option value="refund_requested">Refund Requested</option>
           <option value="refunded">Refunded</option>
         </select>
       </div>
@@ -202,6 +205,29 @@ export default function PaymentHistory() {
                             className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50 transition"
                           >
                             <Download className="w-[15px] h-[15px] text-emerald-500" />
+                          </button>
+                        )}
+                        {payment.status === 'completed' && (
+                          <button
+                            onClick={async () => {
+                              if (!confirm('Are you sure you want to request a refund for this payment?')) return;
+                              try {
+                                await api.patch(`/payments/${payment.id}/request-refund`);
+                                toast.success('Refund request submitted successfully');
+                                setPayments((prev) =>
+                                  prev.map((p) =>
+                                    p.id === payment.id ? { ...p, status: 'refund_requested' } : p
+                                  )
+                                );
+                              } catch (err: unknown) {
+                                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to request refund';
+                                toast.error(msg);
+                              }
+                            }}
+                            title="Request Refund"
+                            className="w-8 h-8 rounded-lg border border-amber-200 bg-white flex items-center justify-center cursor-pointer hover:bg-amber-50 transition"
+                          >
+                            <RotateCcw className="w-[15px] h-[15px] text-amber-500" />
                           </button>
                         )}
                       </div>
@@ -302,6 +328,40 @@ export default function PaymentHistory() {
                 <Download className="w-4 h-4" />
                 Download Receipt
               </button>
+            )}
+
+            {/* Request Refund */}
+            {selectedPayment.status === 'completed' && (
+              <button
+                onClick={async () => {
+                  if (!confirm('Are you sure you want to request a refund?')) return;
+                  try {
+                    await api.patch(`/payments/${selectedPayment.id}/request-refund`);
+                    toast.success('Refund request submitted successfully');
+                    setPayments((prev) =>
+                      prev.map((p) =>
+                        p.id === selectedPayment.id ? { ...p, status: 'refund_requested' } : p
+                      )
+                    );
+                    setSelectedPayment(null);
+                  } catch (err: unknown) {
+                    const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to request refund';
+                    toast.error(msg);
+                  }
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-amber-600 border border-amber-200 hover:bg-amber-50 rounded-lg text-sm font-medium transition"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Request Refund
+              </button>
+            )}
+
+            {/* Refund Requested Info */}
+            {selectedPayment.status === 'refund_requested' && (
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-100 text-center">
+                <div className="text-sm font-semibold text-amber-700">Refund Requested</div>
+                <div className="text-xs text-amber-600 mt-1">Your refund request is being reviewed by the admin.</div>
+              </div>
             )}
           </div>
         )}

@@ -12,6 +12,7 @@ const {
   getPayment,
   getPaymentStats,
   refundPayment,
+  requestRefund,
   getReceipt,
 } = require('../controllers/paymentController');
 
@@ -28,6 +29,9 @@ router.post('/', createPaymentValidator, validate, createPayment);
 router.get('/', listPaymentsValidator, validate, getPayments);
 router.get('/:id', paymentIdValidator, validate, getPayment);
 router.get('/:id/receipt', paymentIdValidator, validate, getReceipt);
+
+// ─── Parent Only ────────────────────────────────────
+router.patch('/:id/request-refund', paymentIdValidator, validate, requestRefund);
 
 // ─── Admin Only ─────────────────────────────────────
 router.patch('/:id/refund', authorize('admin'), paymentIdValidator, validate, refundPayment);

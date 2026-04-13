@@ -2,7 +2,7 @@ const { Op } = require('sequelize');
 const PDFDocument = require('pdfkit');
 const { Payment, Booking, Route, Student, User } = require('../models');
 const { PAYMENT_STATUS, BOOKING_STATUS } = require('../config/constants');
-const { sendPaymentReceiptEmail } = require('../services/emailService');
+const { sendPaymentReceiptEmail, sendRefundRequestEmail, sendRefundProcessedEmail } = require('../services/emailService');
 const logAudit = require('../utils/auditLog');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
@@ -243,19 +243,19 @@ const getPaymentStats = catchAsync(async (req, res) => {
 
 /**
  * PATCH /api/v1/payments/:id/refund
- * Refund a completed payment (admin).
+ * Refund a completed or refund-requested payment (admin).
  */
 const refundPayment = catchAsync(async (req, res) => {
   const payment = await Payment.findByPk(req.params.id, {
-    include: [{ association: 'booking' }],
+    include: [{ association: 'booking' }, { association: 'parent' }],
   });
 
   if (!payment) {
     throw ApiError.notFound('Payment not found.');
   }
 
-  if (payment.status !== PAYMENT_STATUS.COMPLETED) {
-    throw ApiError.badRequest('Only completed payments can be refunded.');
+  if (payment.status !== PAYMENT_STATUS.COMPLETED && payment.status !== PAYMENT_STATUS.REFUND_REQUESTED) {
+    throw ApiError.badRequest('Only completed or refund-requested payments can be refunded.');
   }
 
   // Mark as refunded
@@ -270,6 +270,16 @@ const refundPayment = catchAsync(async (req, res) => {
 
   const fullPayment = await Payment.findByPk(payment.id, { include: paymentIncludes });
 
+  // Send refund processed email to parent
+  if (payment.parent) {
+    sendRefundProcessedEmail(payment.parent.email, {
+      parentName: payment.parent.first_name,
+      transactionRef: payment.transaction_reference,
+      bookingRef: payment.booking?.booking_reference || '—',
+      amount: payment.amount,
+    }).catch((err) => console.error('Failed to send refund processed email:', err));
+  }
+
   // Audit log
   logAudit({
     userId: req.user.id,
@@ -282,6 +292,58 @@ const refundPayment = catchAsync(async (req, res) => {
   });
 
   ApiResponse.success(res, { payment: fullPayment }, 'Payment refunded successfully');
+});
+
+/**
+ * PATCH /api/v1/payments/:id/request-refund
+ * Request a refund for a completed payment (parent).
+ */
+const requestRefund = catchAsync(async (req, res) => {
+  const payment = await Payment.findByPk(req.params.id, {
+    include: [{ association: 'booking' }, { association: 'parent' }],
+  });
+
+  if (!payment) {
+    throw ApiError.notFound('Payment not found.');
+  }
+
+  // Only the parent who made the payment can request a refund
+  if (payment.parent_id !== req.user.id) {
+    throw ApiError.forbidden('You can only request refunds for your own payments.');
+  }
+
+  if (payment.status !== PAYMENT_STATUS.COMPLETED) {
+    throw ApiError.badRequest('Only completed payments can be refund-requested.');
+  }
+
+  payment.status = PAYMENT_STATUS.REFUND_REQUESTED;
+  await payment.save();
+
+  const fullPayment = await Payment.findByPk(payment.id, { include: paymentIncludes });
+
+  // Notify admins about the refund request
+  const admins = await User.findAll({ where: { role: 'admin' } });
+  for (const admin of admins) {
+    sendRefundRequestEmail(admin.email, {
+      parentName: `${req.user.first_name} ${req.user.last_name}`,
+      transactionRef: payment.transaction_reference,
+      bookingRef: payment.booking?.booking_reference || '—',
+      amount: payment.amount,
+    }).catch((err) => console.error('Failed to send refund request email:', err));
+  }
+
+  // Audit log
+  logAudit({
+    userId: req.user.id,
+    action: 'payment.refund_request',
+    entityType: 'payment',
+    entityId: payment.id,
+    description: `Requested refund for payment ${payment.transaction_reference} (KES ${payment.amount})`,
+    metadata: { transactionRef: payment.transaction_reference, amount: payment.amount },
+    ipAddress: req.ip,
+  });
+
+  ApiResponse.success(res, { payment: fullPayment }, 'Refund request submitted successfully');
 });
 
 /**
@@ -436,5 +498,6 @@ module.exports = {
   getPayment,
   getPaymentStats,
   refundPayment,
+  requestRefund,
   getReceipt,
 };
