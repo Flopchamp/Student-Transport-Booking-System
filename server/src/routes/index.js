@@ -11,8 +11,10 @@ const userRoutes = require('./userRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
 const auditLogRoutes = require('./auditLogRoutes');
 const complaintRoutes = require('./complaintRoutes');
-const settingRoutes = require('./settingRoutes');\nconst announcementRoutes = require('./announcementRoutes');
+const settingRoutes = require('./settingRoutes');
+const announcementRoutes = require('./announcementRoutes');
 const trackingRoutes = require('./trackingRoutes');
+const notificationRoutes = require('./notificationRoutes');
 
 const router = Router();
 
@@ -60,5 +62,8 @@ router.use('/announcements', announcementRoutes);
 
 // GPS Tracking
 router.use('/tracking', trackingRoutes);
+
+// Notifications
+router.use('/notifications', notificationRoutes);
 
 module.exports = router;

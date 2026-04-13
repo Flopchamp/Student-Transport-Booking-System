@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const { Booking, Student, Route, Vehicle, Driver, Payment } = require('../models');
 const { sendBookingConfirmationEmail, sendBookingStatusEmail, sendBookingCancellationEmail } = require('../services/emailService');
 const logAudit = require('../utils/auditLog');
+const { createNotification, notifyAdmins } = require('../utils/notification');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -148,6 +149,25 @@ const createBooking = catchAsync(async (req, res) => {
     amount: fullBooking.amount,
   }).catch((err) => console.error('[Email] Booking confirmation failed:', err.message));
 
+  // In-app notification to parent
+  createNotification({
+    userId: req.user.id,
+    title: isAtCapacity ? 'Added to Waitlist' : 'Booking Created',
+    message: isAtCapacity
+      ? `Your booking ${fullBooking.booking_reference} has been waitlisted. You'll be notified when a slot opens.`
+      : `Booking ${fullBooking.booking_reference} created successfully for ${fullBooking.student?.first_name || 'your student'}.`,
+    type: 'booking',
+    link: '/my-bookings',
+  });
+
+  // Notify admins of new booking
+  notifyAdmins({
+    title: 'New Booking',
+    message: `New booking ${fullBooking.booking_reference} by ${req.user.first_name} ${req.user.last_name}${isAtCapacity ? ' (waitlisted)' : ''}.`,
+    type: 'booking',
+    link: '/admin/bookings',
+  });
+
   const message = isAtCapacity
     ? 'Route is at capacity. You have been added to the waitlist.'
     : 'Booking created successfully';
@@ -262,6 +282,15 @@ const cancelBooking = catchAsync(async (req, res) => {
     studentName: updated.student ? `${updated.student.first_name} ${updated.student.last_name}` : '—',
     routeName: updated.route ? updated.route.name : '—',
   }).catch((err) => console.error('[Email] Cancellation email failed:', err.message));
+
+  // In-app notification to parent
+  createNotification({
+    userId: req.user.id,
+    title: 'Booking Cancelled',
+    message: `Booking ${updated.booking_reference} has been cancelled.`,
+    type: 'booking',
+    link: '/my-bookings',
+  });
 
   // Promote next waitlisted booking on this route
   promoteFromWaitlist(booking.route_id);
@@ -381,6 +410,17 @@ const updateBookingStatus = catchAsync(async (req, res) => {
       oldStatus,
       newStatus: status,
     }).catch((err) => console.error('[Email] Status change email failed:', err.message));
+  }
+
+  // In-app notification to parent
+  if (updated.parent_id) {
+    createNotification({
+      userId: updated.parent_id,
+      title: `Booking ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+      message: `Your booking ${updated.booking_reference} has been ${status} by admin.`,
+      type: 'booking',
+      link: '/my-bookings',
+    });
   }
 
   // Audit log

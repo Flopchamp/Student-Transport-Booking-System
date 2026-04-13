@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { Complaint, User, Booking } = require('../models');
 const logAudit = require('../utils/auditLog');
+const { createNotification, notifyAdmins } = require('../utils/notification');
 const catchAsync = require('../utils/catchAsync');
 const ApiResponse = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
@@ -45,6 +46,14 @@ const createComplaint = catchAsync(async (req, res) => {
   });
 
   const full = await Complaint.findByPk(complaint.id, { include: complaintIncludes });
+
+  // Notify admins of new complaint
+  notifyAdmins({
+    title: 'New Complaint',
+    message: `${req.user.first_name} ${req.user.last_name} submitted a ${category || 'other'} complaint: "${subject}".`,
+    type: 'complaint',
+    link: '/admin/complaints',
+  });
 
   ApiResponse.created(res, full, 'Complaint submitted successfully');
 });
@@ -128,6 +137,17 @@ const respondToComplaint = catchAsync(async (req, res) => {
   await complaint.save();
 
   const full = await Complaint.findByPk(complaint.id, { include: complaintIncludes });
+
+  // Notify parent about admin response
+  if (complaint.parent_id) {
+    createNotification({
+      userId: complaint.parent_id,
+      title: status === 'resolved' ? 'Complaint Resolved' : 'Complaint Update',
+      message: `Your complaint ${complaint.reference} has been ${status || 'updated'} by admin.${admin_response ? ' Admin responded to your inquiry.' : ''}`,
+      type: 'complaint',
+      link: '/complaints',
+    });
+  }
 
   // Audit log
   logAudit({

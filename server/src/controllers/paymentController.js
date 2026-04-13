@@ -4,6 +4,7 @@ const { Payment, Booking, Route, Student, User } = require('../models');
 const { PAYMENT_STATUS, BOOKING_STATUS } = require('../config/constants');
 const { sendPaymentReceiptEmail, sendRefundRequestEmail, sendRefundProcessedEmail } = require('../services/emailService');
 const logAudit = require('../utils/auditLog');
+const { createNotification, notifyAdmins } = require('../utils/notification');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -132,6 +133,22 @@ const createPayment = catchAsync(async (req, res) => {
       paymentMethod: fullPayment.payment_method,
       paidAt: fullPayment.paid_at || new Date(),
     }).catch((err) => console.error('[Email] Payment receipt email failed:', err.message));
+
+    // In-app notification
+    createNotification({
+      userId: req.user.id,
+      title: 'Payment Successful',
+      message: `Payment of KES ${fullPayment.amount} for booking ${fullPayment.booking?.booking_reference || ''} was successful.`,
+      type: 'payment',
+      link: '/payments',
+    });
+
+    notifyAdmins({
+      title: 'New Payment Received',
+      message: `Payment of KES ${fullPayment.amount} received from ${req.user.first_name} ${req.user.last_name}.`,
+      type: 'payment',
+      link: '/admin/payments',
+    });
   }
 
   const statusCode = payment.status === PAYMENT_STATUS.COMPLETED ? 201 : 200;
@@ -280,6 +297,17 @@ const refundPayment = catchAsync(async (req, res) => {
     }).catch((err) => console.error('Failed to send refund processed email:', err));
   }
 
+  // Notify parent about refund
+  if (payment.parent_id) {
+    createNotification({
+      userId: payment.parent_id,
+      title: 'Refund Processed',
+      message: `Your refund of KES ${payment.amount} for transaction ${payment.transaction_reference} has been processed.`,
+      type: 'payment',
+      link: '/payments',
+    });
+  }
+
   // Audit log
   logAudit({
     userId: req.user.id,
@@ -331,6 +359,14 @@ const requestRefund = catchAsync(async (req, res) => {
       amount: payment.amount,
     }).catch((err) => console.error('Failed to send refund request email:', err));
   }
+
+  // In-app notification to admins
+  notifyAdmins({
+    title: 'Refund Requested',
+    message: `${req.user.first_name} ${req.user.last_name} requested a refund of KES ${payment.amount} (${payment.transaction_reference}).`,
+    type: 'payment',
+    link: '/admin/payments',
+  });
 
   // Audit log
   logAudit({

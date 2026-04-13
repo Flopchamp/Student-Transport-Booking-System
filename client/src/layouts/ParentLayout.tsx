@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationBell from '../components/NotificationBell';
 import {
   Bus,
   LayoutDashboard,
@@ -14,7 +15,6 @@ import {
   LogOut,
   Menu,
   X,
-  Bell,
   User,
   Settings,
 } from 'lucide-react';
@@ -142,9 +142,7 @@ export default function ParentLayout() {
 
           <div className="flex items-center gap-3">
             {/* Notification Bell */}
-            <button className="relative w-9.5 h-9.5 rounded-lg border border-border bg-surface flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
-              <Bell className="w-4.5 h-4.5 text-text-secondary" />
-            </button>
+            <NotificationBell />
           </div>
         </header>
 

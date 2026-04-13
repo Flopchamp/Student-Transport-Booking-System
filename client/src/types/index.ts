@@ -147,7 +147,7 @@ export interface Payment {
   amount: number;
   currency: string;
   payment_method: 'mpesa' | 'stripe';
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  status: 'pending' | 'completed' | 'failed' | 'refunded' | 'refund_requested';
   mpesa_receipt_number?: string;
   stripe_payment_intent_id?: string;
   paid_at?: string;
@@ -202,6 +202,25 @@ export interface TableColumn<T> {
   label: string;
   render?: (item: T) => React.ReactNode;
   sortable?: boolean;
+}
+
+// ============================================
+// Complaint Types
+// ============================================
+// ============================================
+// Notification Types
+// ============================================
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: 'booking' | 'payment' | 'system' | 'announcement' | 'complaint' | 'tracking';
+  link?: string;
+  is_read: boolean;
+  read_at?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ============================================

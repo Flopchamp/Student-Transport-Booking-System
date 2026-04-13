@@ -11,6 +11,7 @@ const Complaint = require('./Complaint');
 const Setting = require('./Setting');
 const Announcement = require('./Announcement');
 const VehicleLocation = require('./VehicleLocation');
+const Notification = require('./Notification');
 
 // =============================================
 // ASSOCIATIONS
@@ -80,6 +81,10 @@ Announcement.belongsTo(User, { foreignKey: 'author_id', as: 'author' });
 Vehicle.hasOne(VehicleLocation, { foreignKey: 'vehicle_id', as: 'location', onDelete: 'CASCADE' });
 VehicleLocation.belongsTo(Vehicle, { foreignKey: 'vehicle_id', as: 'vehicle' });
 
+// User <-> Notifications
+User.hasMany(Notification, { foreignKey: 'user_id', as: 'notifications', onDelete: 'CASCADE' });
+Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
@@ -94,4 +99,5 @@ module.exports = {
   Setting,
   Announcement,
   VehicleLocation,
+  Notification,
 };
