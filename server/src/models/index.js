@@ -7,6 +7,7 @@ const Driver = require('./Driver');
 const Booking = require('./Booking');
 const Payment = require('./Payment');
 const AuditLog = require('./AuditLog');
+const Complaint = require('./Complaint');
 
 // =============================================
 // ASSOCIATIONS
@@ -56,6 +57,14 @@ Payment.belongsTo(User, { foreignKey: 'parent_id', as: 'parent' });
 User.hasMany(AuditLog, { foreignKey: 'user_id', as: 'auditLogs', onDelete: 'CASCADE' });
 AuditLog.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+// User (Parent) <-> Complaints
+User.hasMany(Complaint, { foreignKey: 'parent_id', as: 'complaints', onDelete: 'CASCADE' });
+Complaint.belongsTo(User, { foreignKey: 'parent_id', as: 'parent' });
+
+// Booking <-> Complaints
+Booking.hasMany(Complaint, { foreignKey: 'booking_id', as: 'complaints', onDelete: 'SET NULL' });
+Complaint.belongsTo(Booking, { foreignKey: 'booking_id', as: 'booking' });
+
 module.exports = {
   sequelize,
   User,
@@ -66,4 +75,5 @@ module.exports = {
   Booking,
   Payment,
   AuditLog,
+  Complaint,
 };

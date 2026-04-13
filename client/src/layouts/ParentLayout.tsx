@@ -8,6 +8,7 @@ import {
   BookOpen,
   Route as RouteIcon,
   CreditCard,
+  MessageSquare,
   LogOut,
   Menu,
   X,
@@ -22,6 +23,7 @@ const mainNav = [
   { label: 'Bookings', icon: BookOpen, path: '/my-bookings' },
   { label: 'Routes', icon: RouteIcon, path: '/book-transport' },
   { label: 'Payments', icon: CreditCard, path: '/payments' },
+  { label: 'Complaints', icon: MessageSquare, path: '/complaints' },
   { label: 'Profile', icon: Settings, path: '/profile' },
 ];
 

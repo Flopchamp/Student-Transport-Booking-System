@@ -21,6 +21,7 @@ import MyBookings from './pages/parent/MyBookings';
 import PaymentPage from './pages/parent/PaymentPage';
 import PaymentHistory from './pages/parent/PaymentHistory';
 import ProfilePage from './pages/parent/ProfilePage';
+import ComplaintsPage from './pages/parent/ComplaintsPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -33,6 +34,7 @@ import AdminPayments from './pages/admin/PaymentManagement';
 import UserManagement from './pages/admin/UserManagement';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
+import ComplaintManagement from './pages/admin/ComplaintManagement';
 
 function App() {
   const { user, loading } = useAuth();
@@ -72,6 +74,7 @@ function App() {
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payments" element={<PaymentHistory />} />
+        <Route path="/complaints" element={<ComplaintsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
@@ -88,6 +91,7 @@ function App() {
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/payments" element={<AdminPayments />} />
         <Route path="/admin/analytics" element={<AnalyticsPage />} />
+        <Route path="/admin/complaints" element={<ComplaintManagement />} />
         <Route path="/admin/audit-log" element={<AuditLogPage />} />
         </Route>
       </Route>

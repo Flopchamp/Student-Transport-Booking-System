@@ -1,4 +1,4 @@
-export type StatusDomain = 'booking' | 'driver' | 'vehicle' | 'route' | 'payment' | 'user';
+export type StatusDomain = 'booking' | 'driver' | 'vehicle' | 'route' | 'payment' | 'user' | 'complaint';
 
 export const statusStyles: Record<
   StatusDomain,
@@ -35,5 +35,14 @@ export const statusStyles: Record<
     inactive: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: 'Inactive' },
     parent: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Parent' },
     admin: { bg: 'bg-purple-50', text: 'text-purple-700', label: 'Admin' },
+  },
+  complaint: {
+    open: { bg: 'bg-yellow-50', text: 'text-yellow-700', dot: 'bg-yellow-400', label: 'Open' },
+    in_progress: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500', label: 'In Progress' },
+    resolved: { bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-500', label: 'Resolved' },
+    closed: { bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400', label: 'Closed' },
+    low: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Low' },
+    medium: { bg: 'bg-yellow-50', text: 'text-yellow-700', label: 'Medium' },
+    high: { bg: 'bg-red-50', text: 'text-red-700', label: 'High' },
   },
 };

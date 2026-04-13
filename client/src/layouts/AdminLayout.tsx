@@ -11,6 +11,7 @@ import {
   DollarSign,
   BarChart3,
   ScrollText,
+  MessageSquare,
   LogOut,
   Menu,
   X,
@@ -28,6 +29,7 @@ const navItems = [
   { label: 'Bookings', icon: Calendar, path: '/admin/bookings' },
   { label: 'Payments', icon: DollarSign, path: '/admin/payments' },
   { label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
+  { label: 'Complaints', icon: MessageSquare, path: '/admin/complaints' },
   { label: 'Audit Log', icon: ScrollText, path: '/admin/audit-log' },
 ];
 

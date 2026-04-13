@@ -199,3 +199,35 @@ export interface TableColumn<T> {
   render?: (item: T) => React.ReactNode;
   sortable?: boolean;
 }
+
+// ============================================
+// Complaint Types
+// ============================================
+export interface Complaint {
+  id: string;
+  reference: string;
+  parent_id: string;
+  booking_id: string | null;
+  category: 'safety' | 'delay' | 'driver' | 'vehicle' | 'billing' | 'other';
+  subject: string;
+  description: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high';
+  admin_response: string | null;
+  resolved_at: string | null;
+  createdAt: string;
+  updatedAt: string;
+  parent?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+  };
+  booking?: {
+    id: string;
+    booking_reference: string;
+    status: string;
+    start_date: string;
+  };
+}
