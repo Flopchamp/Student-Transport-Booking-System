@@ -1,6 +1,6 @@
 const app = require('./src/app');
 const env = require('./src/config/env');
-const { sequelize } = require('./src/models');
+const { sequelize, Setting } = require('./src/models');
 
 const PORT = env.PORT;
 
@@ -72,6 +72,10 @@ const startServer = async () => {
 
       await sequelize.sync({ alter: true });
       console.log('✅ Database models synchronized.');
+
+      // Seed default settings (idempotent)
+      await Setting.seedDefaults();
+      console.log('✅ Default settings seeded.');
     }
 
     // Start Express server

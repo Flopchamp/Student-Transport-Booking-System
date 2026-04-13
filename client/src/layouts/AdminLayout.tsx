@@ -12,6 +12,7 @@ import {
   BarChart3,
   ScrollText,
   MessageSquare,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -31,6 +32,7 @@ const navItems = [
   { label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
   { label: 'Complaints', icon: MessageSquare, path: '/admin/complaints' },
   { label: 'Audit Log', icon: ScrollText, path: '/admin/audit-log' },
+  { label: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
 
 export default function AdminLayout() {

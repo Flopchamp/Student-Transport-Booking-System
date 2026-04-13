@@ -8,6 +8,7 @@ const Booking = require('./Booking');
 const Payment = require('./Payment');
 const AuditLog = require('./AuditLog');
 const Complaint = require('./Complaint');
+const Setting = require('./Setting');
 
 // =============================================
 // ASSOCIATIONS
@@ -76,4 +77,5 @@ module.exports = {
   Payment,
   AuditLog,
   Complaint,
+  Setting,
 };
