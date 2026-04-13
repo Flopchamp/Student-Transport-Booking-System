@@ -30,6 +30,7 @@ import DriverManagement from './pages/admin/DriverManagement';
 import DriverProfile from './pages/admin/DriverProfile';
 import AdminBookings from './pages/admin/BookingManagement';
 import AdminPayments from './pages/admin/PaymentManagement';
+import UserManagement from './pages/admin/UserManagement';
 
 function App() {
   const { user, loading } = useAuth();
@@ -77,6 +78,7 @@ function App() {
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route element={<AdminLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/admin/routes" element={<RouteManagement />} />
         <Route path="/admin/vehicles" element={<VehicleFleet />} />
         <Route path="/admin/drivers" element={<DriverManagement />} />

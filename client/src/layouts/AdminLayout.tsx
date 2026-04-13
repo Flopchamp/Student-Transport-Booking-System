@@ -19,6 +19,7 @@ import {
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+  { label: 'Users', icon: User, path: '/admin/users' },
   { label: 'Routes', icon: MapPin, path: '/admin/routes' },
   { label: 'Vehicle Fleet', icon: Truck, path: '/admin/vehicles' },
   { label: 'Drivers', icon: UserCheck, path: '/admin/drivers' },

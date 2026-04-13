@@ -1,4 +1,4 @@
-export type StatusDomain = 'booking' | 'driver' | 'vehicle' | 'route' | 'payment';
+export type StatusDomain = 'booking' | 'driver' | 'vehicle' | 'route' | 'payment' | 'user';
 
 export const statusStyles: Record<
   StatusDomain,
@@ -29,5 +29,11 @@ export const statusStyles: Record<
   route: {
     active: { bg: 'bg-green-50', text: 'text-green-700', label: 'Active' },
     inactive: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Inactive' },
+  },
+  user: {
+    active: { bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-500', label: 'Active' },
+    inactive: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: 'Inactive' },
+    parent: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Parent' },
+    admin: { bg: 'bg-purple-50', text: 'text-purple-700', label: 'Admin' },
   },
 };

@@ -7,6 +7,7 @@ const vehicleRoutes = require('./vehicleRoutes');
 const driverRoutes = require('./driverRoutes');
 const bookingRoutes = require('./bookingRoutes');
 const paymentRoutes = require('./paymentRoutes');
+const userRoutes = require('./userRoutes');
 
 const router = Router();
 
@@ -33,5 +34,8 @@ router.use('/bookings', bookingRoutes);
 
 // Payments
 router.use('/payments', paymentRoutes);
+
+// Users (admin)
+router.use('/users', userRoutes);
 
 module.exports = router;
