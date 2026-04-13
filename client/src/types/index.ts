@@ -58,6 +58,10 @@ export interface Route {
   distance_km?: number;
   estimated_duration_min?: number;
   price: number;
+  pricing_type?: 'flat' | 'per_km' | 'zone';
+  base_price?: number;
+  price_per_km?: number;
+  zone_prices?: Array<{ zone_name: string; price: number }>;
   is_active: boolean;
   createdAt: string;
   updatedAt: string;

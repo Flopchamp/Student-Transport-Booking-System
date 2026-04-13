@@ -384,10 +384,17 @@ export default function NewBooking() {
               </p>
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="bg-white rounded-lg px-3 py-2">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Monthly Fare</div>
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">
+                    {selectedRoute?.pricing_type === 'per_km' ? 'Calculated Fare' : selectedRoute?.pricing_type === 'zone' ? 'Zone Fare' : 'Monthly Fare'}
+                  </div>
                   <div className="text-sm font-semibold text-slate-800">
                     {selectedRoute?.price ? `KES ${Number(selectedRoute.price).toLocaleString()}` : '—'}
                   </div>
+                  {selectedRoute?.pricing_type === 'per_km' && (
+                    <div className="text-[10px] text-slate-400">
+                      Base KES {Number(selectedRoute.base_price || 0).toLocaleString()} + {Number(selectedRoute.price_per_km || 0).toLocaleString()}/km
+                    </div>
+                  )}
                 </div>
                 <div className="bg-white rounded-lg px-3 py-2">
                   <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Available Seats</div>
@@ -656,9 +663,20 @@ export default function NewBooking() {
               <h4 className="text-[15px] font-bold text-slate-800 mb-4">Pricing Summary</h4>
               <div className="flex flex-col gap-2.5 text-sm">
                 <div className="flex justify-between text-slate-600">
-                  <span>Monthly Fare</span>
+                  <span>
+                    {selectedRoute?.pricing_type === 'per_km'
+                      ? 'Distance-Based Fare'
+                      : selectedRoute?.pricing_type === 'zone'
+                        ? 'Zone-Based Fare'
+                        : 'Monthly Fare'}
+                  </span>
                   <span className="font-semibold">KES {selectedRoute?.price ? Number(selectedRoute.price).toLocaleString() : '0'}</span>
                 </div>
+                {selectedRoute?.pricing_type === 'per_km' && (
+                  <div className="flex justify-between text-slate-400 text-xs">
+                    <span>Base KES {Number(selectedRoute.base_price || 0).toLocaleString()} + KES {Number(selectedRoute.price_per_km || 0).toLocaleString()}/km × {Number(selectedRoute.distance_km || 0)} km</span>
+                  </div>
+                )}
                 <div className="h-px bg-slate-200 my-1.5" />
                 <div className="flex justify-between items-baseline">
                   <span className="text-[15px] font-bold text-slate-800">Total Amount</span>

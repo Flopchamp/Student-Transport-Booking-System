@@ -65,6 +65,31 @@ const createRouteValidator = [
   body('price')
     .notEmpty().withMessage('Price is required')
     .isFloat({ min: 0 }).withMessage('Price must be a non-negative number'),
+
+  body('pricing_type')
+    .optional()
+    .isIn(['flat', 'per_km', 'zone']).withMessage('Pricing type must be flat, per_km, or zone'),
+
+  body('base_price')
+    .optional({ nullable: true })
+    .isFloat({ min: 0 }).withMessage('Base price must be a non-negative number'),
+
+  body('price_per_km')
+    .optional({ nullable: true })
+    .isFloat({ min: 0 }).withMessage('Price per km must be a non-negative number'),
+
+  body('zone_prices')
+    .optional({ nullable: true })
+    .isArray().withMessage('Zone prices must be an array'),
+
+  body('zone_prices.*.zone_name')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Zone name is required'),
+
+  body('zone_prices.*.price')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('Zone price must be a non-negative number'),
 ];
 
 const updateRouteValidator = [
@@ -121,6 +146,31 @@ const updateRouteValidator = [
   body('price')
     .optional()
     .isFloat({ min: 0 }).withMessage('Price must be a non-negative number'),
+
+  body('pricing_type')
+    .optional()
+    .isIn(['flat', 'per_km', 'zone']).withMessage('Pricing type must be flat, per_km, or zone'),
+
+  body('base_price')
+    .optional({ nullable: true })
+    .isFloat({ min: 0 }).withMessage('Base price must be a non-negative number'),
+
+  body('price_per_km')
+    .optional({ nullable: true })
+    .isFloat({ min: 0 }).withMessage('Price per km must be a non-negative number'),
+
+  body('zone_prices')
+    .optional({ nullable: true })
+    .isArray().withMessage('Zone prices must be an array'),
+
+  body('zone_prices.*.zone_name')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Zone name is required'),
+
+  body('zone_prices.*.price')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('Zone price must be a non-negative number'),
 ];
 
 const routeIdValidator = [

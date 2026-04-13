@@ -14,6 +14,7 @@ const {
   updateRoute,
   deleteRoute,
   activateRoute,
+  getRoutePrice,
 } = require('../controllers/routeController');
 
 const router = Router();
@@ -24,6 +25,7 @@ router.use(protect);
 // ─── Parent + Admin (read) ──────────────────────────
 router.get('/', listRoutesValidator, validate, getRoutes);
 router.get('/:id', routeIdValidator, validate, getRoute);
+router.get('/:id/price', routeIdValidator, validate, getRoutePrice);
 
 // ─── Admin Only (write) ─────────────────────────────
 router.post('/', authorize('admin'), createRouteValidator, validate, createRoute);

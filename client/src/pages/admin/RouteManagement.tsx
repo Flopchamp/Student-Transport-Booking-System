@@ -33,6 +33,10 @@ export default function RouteManagement() {
     distance_km: '',
     estimated_duration_min: '',
     price: '',
+    pricing_type: 'flat' as 'flat' | 'per_km' | 'zone',
+    base_price: '',
+    price_per_km: '',
+    zone_prices: [{ zone_name: '', price: '' }] as Array<{ zone_name: string; price: string }>,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -67,6 +71,12 @@ export default function RouteManagement() {
         distance_km: route.distance_km?.toString() || '',
         estimated_duration_min: route.estimated_duration_min?.toString() || '',
         price: route.price?.toString() || '',
+        pricing_type: route.pricing_type || 'flat',
+        base_price: route.base_price?.toString() || '',
+        price_per_km: route.price_per_km?.toString() || '',
+        zone_prices: route.zone_prices && route.zone_prices.length > 0
+          ? route.zone_prices.map((z) => ({ zone_name: z.zone_name || '', price: z.price?.toString() || '' }))
+          : [{ zone_name: '', price: '' }],
       });
     } else {
       setEditingRoute(null);
@@ -79,6 +89,10 @@ export default function RouteManagement() {
         distance_km: '',
         estimated_duration_min: '',
         price: '',
+        pricing_type: 'flat',
+        base_price: '',
+        price_per_km: '',
+        zone_prices: [{ zone_name: '', price: '' }],
       });
     }
     setError('');
@@ -99,6 +113,12 @@ export default function RouteManagement() {
       distance_km: formData.distance_km ? parseFloat(formData.distance_km) : undefined,
       estimated_duration_min: formData.estimated_duration_min ? parseInt(formData.estimated_duration_min) : undefined,
       price: parseFloat(formData.price),
+      pricing_type: formData.pricing_type,
+      base_price: formData.pricing_type === 'per_km' ? parseFloat(formData.base_price) || 0 : undefined,
+      price_per_km: formData.pricing_type === 'per_km' ? parseFloat(formData.price_per_km) || 0 : undefined,
+      zone_prices: formData.pricing_type === 'zone'
+        ? formData.zone_prices.filter((z) => z.zone_name && z.price).map((z) => ({ zone_name: z.zone_name, price: parseFloat(z.price) }))
+        : undefined,
     };
 
     try {
@@ -165,7 +185,16 @@ export default function RouteManagement() {
     {
       key: 'fare',
       header: 'Fare',
-      render: (route: Route) => <span className="text-sm font-medium text-text">KES {route.price?.toLocaleString()}</span>,
+      render: (route: Route) => (
+        <div>
+          <span className="text-sm font-medium text-text">KES {route.price?.toLocaleString()}</span>
+          {route.pricing_type && route.pricing_type !== 'flat' && (
+            <span className="ml-1.5 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
+              {route.pricing_type === 'per_km' ? 'Per KM' : 'Zone'}
+            </span>
+          )}
+        </div>
+      ),
     },
     {
       key: 'status',
@@ -301,9 +330,33 @@ export default function RouteManagement() {
                 <div className="p-3 bg-orange-50 rounded-lg text-center">
                   <DollarSign className="w-4 h-4 text-orange-600 mx-auto mb-1" />
                   <p className="text-sm font-bold text-orange-700">KES {selectedRoute.price?.toLocaleString()}</p>
-                  <p className="text-xs text-orange-500">Fare</p>
+                  <p className="text-xs text-orange-500">
+                    {selectedRoute.pricing_type === 'per_km' ? 'Per-KM' : selectedRoute.pricing_type === 'zone' ? 'Zone-Based' : 'Flat'} Fare
+                  </p>
                 </div>
+
               </div>
+
+              {/* Pricing Details */}
+              {selectedRoute.pricing_type === 'per_km' && (
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <div className="text-[11px] font-semibold text-blue-600 uppercase mb-1">Per-KM Pricing</div>
+                  <div className="text-sm text-slate-700">
+                    Base: KES {Number(selectedRoute.base_price || 0).toLocaleString()} + KES {Number(selectedRoute.price_per_km || 0).toLocaleString()}/km
+                  </div>
+                </div>
+              )}
+              {selectedRoute.pricing_type === 'zone' && selectedRoute.zone_prices && selectedRoute.zone_prices.length > 0 && (
+                <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <div className="text-[11px] font-semibold text-amber-600 uppercase mb-2">Zone Prices</div>
+                  {selectedRoute.zone_prices.map((z, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-slate-600">{z.zone_name}</span>
+                      <span className="font-semibold text-slate-800">KES {Number(z.price).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -407,6 +460,117 @@ export default function RouteManagement() {
                   />
                 </div>
               </div>
+
+              {/* Pricing Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Model</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { value: 'flat', label: 'Flat Rate', desc: 'Single fixed price' },
+                    { value: 'per_km', label: 'Per KM', desc: 'Base + rate × distance' },
+                    { value: 'zone', label: 'Zone-Based', desc: 'Different prices per zone' },
+                  ] as const).map((opt) => (
+                    <div
+                      key={opt.value}
+                      onClick={() => setFormData({ ...formData, pricing_type: opt.value })}
+                      className={`p-3 rounded-lg cursor-pointer text-center transition-all ${
+                        formData.pricing_type === opt.value
+                          ? 'border-2 border-primary bg-blue-50'
+                          : 'border border-border bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className={`text-sm font-semibold ${formData.pricing_type === opt.value ? 'text-primary' : 'text-gray-700'}`}>{opt.label}</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">{opt.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Per-KM fields */}
+              {formData.pricing_type === 'per_km' && (
+                <div className="grid grid-cols-2 gap-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (KES)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.base_price}
+                      onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
+                      placeholder="e.g. 500"
+                      className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Rate per KM (KES)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.price_per_km}
+                      onChange={(e) => setFormData({ ...formData, price_per_km: e.target.value })}
+                      placeholder="e.g. 50"
+                      className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                  {formData.distance_km && formData.base_price && formData.price_per_km && (
+                    <div className="col-span-2 text-sm text-blue-700 font-medium">
+                      Calculated: KES {(parseFloat(formData.base_price) + parseFloat(formData.price_per_km) * parseFloat(formData.distance_km)).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Zone-based fields */}
+              {formData.pricing_type === 'zone' && (
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Zone Prices</label>
+                  {formData.zone_prices.map((zone, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={zone.zone_name}
+                        onChange={(e) => {
+                          const updated = [...formData.zone_prices];
+                          updated[i] = { ...updated[i], zone_name: e.target.value };
+                          setFormData({ ...formData, zone_prices: updated });
+                        }}
+                        placeholder="Zone name"
+                        className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={zone.price}
+                        onChange={(e) => {
+                          const updated = [...formData.zone_prices];
+                          updated[i] = { ...updated[i], price: e.target.value };
+                          setFormData({ ...formData, zone_prices: updated });
+                        }}
+                        placeholder="Price (KES)"
+                        className="w-32 px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                      {formData.zone_prices.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = formData.zone_prices.filter((_, idx) => idx !== i);
+                            setFormData({ ...formData, zone_prices: updated });
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          <X className="w-4 h-4 text-red-400" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, zone_prices: [...formData.zone_prices, { zone_name: '', price: '' }] })}
+                    className="text-sm text-primary font-medium hover:underline"
+                  >
+                    + Add Zone
+                  </button>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button

@@ -70,6 +70,31 @@ const Route = sequelize.define('Route', {
       min: { args: [0], msg: 'Price cannot be negative' },
     },
   },
+  // ── Pricing Tier Fields ──
+  pricing_type: {
+    type: DataTypes.ENUM('flat', 'per_km', 'zone'),
+    defaultValue: 'flat',
+    allowNull: false,
+    comment: 'flat = single price, per_km = base + rate*distance, zone = zone-based pricing',
+  },
+  base_price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Base fare for per_km pricing',
+  },
+  price_per_km: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Rate per km for per_km pricing',
+  },
+  zone_prices: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: null,
+    comment: 'Array of { zone_name, price } for zone-based pricing',
+  },
   is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
@@ -77,5 +102,31 @@ const Route = sequelize.define('Route', {
 }, {
   tableName: 'routes',
 });
+
+/**
+ * Calculate the effective price based on pricing type.
+ * For 'flat' → returns `price`.
+ * For 'per_km' → returns `base_price + price_per_km * distance_km`.
+ * For 'zone' → returns the zone price if a zone name is given, otherwise `price`.
+ */
+Route.prototype.calculatePrice = function (zoneName) {
+  const type = this.pricing_type || 'flat';
+
+  if (type === 'per_km') {
+    const base = parseFloat(this.base_price) || 0;
+    const ratePerKm = parseFloat(this.price_per_km) || 0;
+    const distance = parseFloat(this.distance_km) || 0;
+    return Math.round((base + ratePerKm * distance) * 100) / 100;
+  }
+
+  if (type === 'zone' && Array.isArray(this.zone_prices) && zoneName) {
+    const zone = this.zone_prices.find(
+      (z) => z.zone_name?.toLowerCase() === zoneName.toLowerCase()
+    );
+    if (zone) return parseFloat(zone.price) || parseFloat(this.price);
+  }
+
+  return parseFloat(this.price);
+};
 
 module.exports = Route;

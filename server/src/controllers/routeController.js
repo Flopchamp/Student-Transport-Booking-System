@@ -13,6 +13,7 @@ const createRoute = catchAsync(async (req, res) => {
     name, description, start_location, start_lat, start_lng,
     end_location, end_lat, end_lng, stops,
     distance_km, estimated_duration_min, price,
+    pricing_type, base_price, price_per_km, zone_prices,
   } = req.body;
 
   // Check for duplicate name
@@ -34,6 +35,10 @@ const createRoute = catchAsync(async (req, res) => {
     distance_km: distance_km || null,
     estimated_duration_min: estimated_duration_min || null,
     price,
+    pricing_type: pricing_type || 'flat',
+    base_price: base_price || 0,
+    price_per_km: price_per_km || 0,
+    zone_prices: zone_prices || null,
   });
 
   ApiResponse.created(res, { route }, 'Route created successfully');
@@ -131,6 +136,7 @@ const updateRoute = catchAsync(async (req, res) => {
     'name', 'description', 'start_location', 'start_lat', 'start_lng',
     'end_location', 'end_lat', 'end_lng', 'stops',
     'distance_km', 'estimated_duration_min', 'price',
+    'pricing_type', 'base_price', 'price_per_km', 'zone_prices',
   ];
 
   allowedFields.forEach((field) => {
@@ -192,6 +198,35 @@ const activateRoute = catchAsync(async (req, res) => {
   ApiResponse.success(res, { route }, 'Route activated successfully');
 });
 
+/**
+ * GET /api/v1/routes/:id/price
+ * Calculate the effective price for a route (optionally with a zone name).
+ * Query: ?zone=ZoneName
+ */
+const getRoutePrice = catchAsync(async (req, res) => {
+  const route = await Route.findByPk(req.params.id);
+
+  if (!route) {
+    throw ApiError.notFound('Route not found.');
+  }
+
+  if (req.user.role === 'parent' && !route.is_active) {
+    throw ApiError.notFound('Route not found.');
+  }
+
+  const zoneName = req.query.zone || null;
+  const effectivePrice = route.calculatePrice(zoneName);
+
+  ApiResponse.success(res, {
+    price: effectivePrice,
+    pricing_type: route.pricing_type,
+    base_price: route.base_price,
+    price_per_km: route.price_per_km,
+    distance_km: route.distance_km,
+    zone_prices: route.zone_prices,
+  }, 'Price calculated successfully');
+});
+
 module.exports = {
   createRoute,
   getRoutes,
@@ -199,4 +234,5 @@ module.exports = {
   updateRoute,
   deleteRoute,
   activateRoute,
+  getRoutePrice,
 };
