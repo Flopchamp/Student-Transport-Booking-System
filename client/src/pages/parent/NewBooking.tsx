@@ -32,6 +32,9 @@ export default function NewBooking() {
   const [startDate, setStartDate] = useState('');
   const [pickupTime, setPickupTime] = useState('07:15');
 
+  // Availability
+  const [availability, setAvailability] = useState<{ total_capacity: number; active_bookings: number; available_seats: number; vehicles: number } | null>(null);
+
   // Submit state
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -40,6 +43,15 @@ export default function NewBooking() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Fetch seat availability when route is known
+  useEffect(() => {
+    if (selectedRoute?.id) {
+      api.get(`/bookings/route/${selectedRoute.id}/availability`)
+        .then((res) => setAvailability(res.data.data))
+        .catch(() => setAvailability(null));
+    }
+  }, [selectedRoute]);
 
   const fetchData = async () => {
     try {
@@ -358,9 +370,13 @@ export default function NewBooking() {
                   </div>
                 </div>
                 <div className="bg-white rounded-lg px-3 py-2">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Vehicle & Driver</div>
-                  <div className="text-sm font-semibold text-slate-800">
-                    Assigned after booking
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold mb-0.5">Available Seats</div>
+                  <div className={`text-sm font-semibold ${availability ? (availability.available_seats > 0 ? 'text-emerald-600' : 'text-red-600') : 'text-slate-800'}`}>
+                    {availability
+                      ? availability.total_capacity > 0
+                        ? `${availability.available_seats} of ${availability.total_capacity}`
+                        : 'No vehicles assigned'
+                      : 'Loading...'}
                   </div>
                 </div>
               </div>

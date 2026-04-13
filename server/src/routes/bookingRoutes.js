@@ -15,6 +15,7 @@ const {
   updateBookingStatus,
   assignBooking,
   getBookingStats,
+  getRouteAvailability,
 } = require('../controllers/bookingController');
 
 const router = Router();
@@ -24,6 +25,9 @@ router.use(protect);
 
 // ─── Admin Stats (must be before /:id to avoid conflict) ───
 router.get('/stats', authorize('admin'), getBookingStats);
+
+// ─── Route availability (must be before /:id) ───
+router.get('/route/:routeId/availability', getRouteAvailability);
 
 // ─── Parent + Admin ─────────────────────────────────
 router.post('/', createBookingValidator, validate, createBooking);

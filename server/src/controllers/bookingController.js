@@ -220,6 +220,21 @@ const updateBookingStatus = catchAsync(async (req, res) => {
       const vehicle = await Vehicle.findByPk(vehicle_id);
       if (!vehicle) throw ApiError.notFound('Vehicle not found.');
       if (vehicle.status !== 'active') throw ApiError.badRequest('Vehicle is not active.');
+
+      // ── Capacity check ──
+      const activeBookingsOnVehicle = await Booking.count({
+        where: {
+          vehicle_id,
+          status: { [Op.in]: ['confirmed'] },
+          id: { [Op.ne]: booking.id },
+        },
+      });
+      if (activeBookingsOnVehicle >= vehicle.capacity) {
+        throw ApiError.badRequest(
+          `Vehicle ${vehicle.plate_number} is full (${vehicle.capacity} seats, ${activeBookingsOnVehicle} booked). Choose another vehicle or increase capacity.`,
+        );
+      }
+
       booking.vehicle_id = vehicle_id;
     }
 
@@ -263,6 +278,21 @@ const assignBooking = catchAsync(async (req, res) => {
       const vehicle = await Vehicle.findByPk(vehicle_id);
       if (!vehicle) throw ApiError.notFound('Vehicle not found.');
       if (vehicle.status !== 'active') throw ApiError.badRequest('Vehicle is not active.');
+
+      // ── Capacity check ──
+      const activeBookingsOnVehicle = await Booking.count({
+        where: {
+          vehicle_id,
+          status: { [Op.in]: ['pending', 'confirmed'] },
+          id: { [Op.ne]: booking.id },
+        },
+      });
+      if (activeBookingsOnVehicle >= vehicle.capacity) {
+        throw ApiError.badRequest(
+          `Vehicle ${vehicle.plate_number} is full (${vehicle.capacity} seats, ${activeBookingsOnVehicle} booked). Choose another vehicle or increase capacity.`,
+        );
+      }
+
       booking.vehicle_id = vehicle_id;
     }
   }
@@ -314,6 +344,46 @@ const getBookingStats = catchAsync(async (req, res) => {
   }, 'Booking statistics retrieved successfully');
 });
 
+/**
+ * GET /api/v1/bookings/route/:routeId/availability
+ * Returns vehicle capacity vs active bookings for a route.
+ * Helps parents see remaining seats before booking.
+ */
+const getRouteAvailability = catchAsync(async (req, res) => {
+  const { routeId } = req.params;
+
+  // Find all vehicles assigned to confirmed bookings on this route
+  const activeBookings = await Booking.count({
+    where: {
+      route_id: routeId,
+      status: { [Op.in]: ['pending', 'confirmed'] },
+    },
+  });
+
+  // Sum capacity of all active vehicles on this route
+  // (vehicles linked through drivers assigned to this route)
+  const vehiclesOnRoute = await Vehicle.findAll({
+    include: [{
+      association: 'driver',
+      where: { route_id: routeId },
+      attributes: [],
+    }],
+    where: { status: 'active', is_active: true },
+    attributes: ['id', 'plate_number', 'capacity'],
+  });
+
+  const totalCapacity = vehiclesOnRoute.reduce((sum, v) => sum + v.capacity, 0);
+  const availableSeats = Math.max(0, totalCapacity - activeBookings);
+
+  ApiResponse.success(res, {
+    route_id: routeId,
+    total_capacity: totalCapacity,
+    active_bookings: activeBookings,
+    available_seats: availableSeats,
+    vehicles: vehiclesOnRoute.length,
+  }, 'Route availability retrieved successfully');
+});
+
 module.exports = {
   createBooking,
   getBookings,
@@ -322,4 +392,5 @@ module.exports = {
   updateBookingStatus,
   assignBooking,
   getBookingStats,
+  getRouteAvailability,
 };
