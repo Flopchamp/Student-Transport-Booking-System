@@ -10,10 +10,13 @@ import {
   MapPin,
   Bus,
   ArrowRight,
+  History,
 } from 'lucide-react';
 import type { Booking } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
 import Modal from '../../components/ui/Modal';
+
+type BookingTab = 'active' | 'history';
 
 export default function MyBookings() {
   const navigate = useNavigate();
@@ -22,6 +25,7 @@ export default function MyBookings() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [activeTab, setActiveTab] = useState<BookingTab>('active');
 
   useEffect(() => { fetchBookings(); }, []);
 
@@ -57,8 +61,16 @@ export default function MyBookings() {
       routeName.toLowerCase().includes(search.toLowerCase()) ||
       studentName.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
-    return matchesSearch && matchesStatus;
+
+    // Tab filtering
+    const isActive = ['pending', 'confirmed'].includes(b.status);
+    const matchesTab = activeTab === 'active' ? isActive : !isActive;
+
+    return matchesSearch && matchesStatus && matchesTab;
   });
+
+  const activeCount = bookings.filter((b) => ['pending', 'confirmed'].includes(b.status)).length;
+  const historyCount = bookings.filter((b) => ['completed', 'cancelled'].includes(b.status)).length;
 
   if (loading) {
     return (
@@ -74,6 +86,38 @@ export default function MyBookings() {
       <div>
         <h1 className="text-2xl font-bold text-slate-800">My Bookings</h1>
         <p className="text-sm text-slate-500 mt-1">View and manage your transport bookings</p>
+      </div>
+
+      {/* ─── Tabs ─── */}
+      <div className="flex border-b border-slate-200">
+        <button
+          onClick={() => { setActiveTab('active'); setStatusFilter('all'); }}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'active'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          Active
+          {activeCount > 0 && (
+            <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-bold">{activeCount}</span>
+          )}
+        </button>
+        <button
+          onClick={() => { setActiveTab('history'); setStatusFilter('all'); }}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'history'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          <History className="w-4 h-4" />
+          History
+          {historyCount > 0 && (
+            <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-600 font-bold">{historyCount}</span>
+          )}
+        </button>
       </div>
 
       {/* ─── Search & Filter ─── */}
@@ -93,10 +137,17 @@ export default function MyBookings() {
           className="h-11 px-3.5 pr-9 text-sm border border-slate-200 rounded-[10px] bg-white text-slate-800 outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-primary"
         >
           <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          {activeTab === 'active' ? (
+            <>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+            </>
+          ) : (
+            <>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </>
+          )}
         </select>
       </div>
 
