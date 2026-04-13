@@ -1,0 +1,146 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Bus, ArrowLeft } from 'lucide-react';
+import api from '../../lib/api';
+
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      await api.post('/auth/forgot-password', { email });
+      setSubmitted(true);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-bg font-sans">
+      {/* Header */}
+      <header className="flex w-full items-center justify-between border-b border-border px-6 md:px-20 py-4 bg-white">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg text-white">
+            <Bus size={20} />
+          </div>
+          <h2 className="text-lg font-extrabold text-text leading-tight tracking-tight">EduTrans</h2>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col justify-center items-center w-full px-6 py-12">
+        <div className="w-full max-w-[480px] bg-white p-8 rounded-xl border border-border shadow-sm">
+          {/* Back link */}
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="flex items-center gap-1.5 text-sm text-slate-500 bg-transparent border-none cursor-pointer p-0 mb-6 hover:text-primary transition-colors"
+          >
+            <ArrowLeft size={16} />
+            Back to Login
+          </button>
+
+          {!submitted ? (
+            <>
+              {/* Title */}
+              <div className="mb-8">
+                <h1 className="text-text text-2xl font-bold leading-tight mb-2">
+                  Forgot Password?
+                </h1>
+                <p className="text-text-secondary text-sm leading-relaxed">
+                  Enter the email address associated with your account and we'll send you a link to
+                  reset your password.
+                </p>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm flex items-center gap-2">
+                  <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                    <span className="text-red-500 text-xs font-bold">!</span>
+                  </div>
+                  {error}
+                </div>
+              )}
+
+              {/* Form */}
+              <form onSubmit={handleSubmit}>
+                <div className="flex flex-col gap-2 mb-6">
+                  <label htmlFor="email" className="text-text text-sm font-semibold">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-['Material_Symbols_Outlined'] pointer-events-none">
+                      mail
+                    </span>
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="parent@example.com"
+                      required
+                      className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full flex h-12 items-center justify-center rounded-lg bg-primary text-white text-base font-bold border-none cursor-pointer transition-all shadow-md shadow-primary/20 hover:bg-primary/90 ${
+                    isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Reset Link'
+                  )}
+                </button>
+              </form>
+            </>
+          ) : (
+            /* Success state */
+            <div className="text-center py-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-green-600 text-2xl">✓</span>
+              </div>
+              <h2 className="text-text text-xl font-bold mb-2">Check Your Email</h2>
+              <p className="text-text-secondary text-sm leading-relaxed mb-6">
+                If an account exists for <span className="font-semibold text-text">{email}</span>,
+                we've sent a password reset link. Please check your inbox and spam folder.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="w-full flex h-12 items-center justify-center rounded-lg bg-primary text-white text-base font-bold border-none cursor-pointer transition-all shadow-md shadow-primary/20 hover:bg-primary/90"
+              >
+                Back to Login
+              </button>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full py-6 text-center text-slate-400 text-xs">
+        &copy; {new Date().getFullYear()} Student Transport Solutions. All rights reserved.
+      </footer>
+    </div>
+  );
+}

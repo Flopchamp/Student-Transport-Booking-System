@@ -194,7 +194,7 @@ export default function LoginPage() {
                   <label htmlFor="password" className="text-text text-sm font-semibold">
                     Password
                   </label>
-                  <button type="button" className="text-primary text-xs font-semibold bg-transparent border-none cursor-pointer p-0 hover:underline">
+                  <button type="button" onClick={() => navigate('/forgot-password')} className="text-primary text-xs font-semibold bg-transparent border-none cursor-pointer p-0 hover:underline">
                     Forgot Password?
                   </button>
                 </div>

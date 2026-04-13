@@ -40,6 +40,13 @@ module.exports = {
   // Google Maps
   GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
 
+  // SMTP (Email)
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: parseInt(process.env.SMTP_PORT, 10) || 587,
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
+  FROM_EMAIL: process.env.FROM_EMAIL || 'noreply@edutrans.com',
+
   // CORS
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
 };

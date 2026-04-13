@@ -9,6 +9,8 @@ import AdminLayout from './layouts/AdminLayout';
 // Public Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 
 // Parent Pages
 import ParentDashboard from './pages/parent/Dashboard';
@@ -52,6 +54,8 @@ function App() {
         path="/login"
         element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace /> : <LoginPage />}
       />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
       {/* Parent Routes */}
       <Route element={<ProtectedRoute allowedRoles={['parent']} />}>

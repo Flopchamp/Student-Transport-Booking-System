@@ -1,8 +1,12 @@
+const crypto = require('crypto');
+const { Op } = require('sequelize');
 const { User } = require('../models');
 const { generateToken } = require('../services/authService');
+const { sendPasswordResetEmail } = require('../services/emailService');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
+const env = require('../config/env');
 
 /**
  * POST /api/v1/auth/register
@@ -140,10 +144,88 @@ const changePassword = catchAsync(async (req, res) => {
   ApiResponse.success(res, { token }, 'Password changed successfully');
 });
 
+/**
+ * POST /api/v1/auth/forgot-password
+ * Generate a password reset token and email it to the user.
+ */
+const forgotPassword = catchAsync(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ where: { email } });
+
+  // Always return success to prevent email enumeration
+  if (!user) {
+    return ApiResponse.success(res, null, 'If an account with that email exists, a reset link has been sent.');
+  }
+
+  // Generate a random token
+  const rawToken = crypto.randomBytes(32).toString('hex');
+
+  // Hash the token before storing (so a DB leak doesn't expose valid tokens)
+  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+  // Save hashed token and expiry (1 hour) to the user
+  user.reset_password_token = hashedToken;
+  user.reset_password_expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  await user.save({ hooks: false }); // skip bcrypt hook — no password change
+
+  // Build the reset URL (the raw token goes in the URL)
+  const resetUrl = `${env.CLIENT_URL}/reset-password/${rawToken}`;
+
+  try {
+    await sendPasswordResetEmail(email, resetUrl);
+  } catch (err) {
+    // If email fails, clear the token so the user can try again
+    user.reset_password_token = null;
+    user.reset_password_expires = null;
+    await user.save({ hooks: false });
+    throw ApiError.internal('Failed to send reset email. Please try again later.');
+  }
+
+  ApiResponse.success(res, null, 'If an account with that email exists, a reset link has been sent.');
+});
+
+/**
+ * POST /api/v1/auth/reset-password/:token
+ * Reset the password using the token from the email link.
+ */
+const resetPassword = catchAsync(async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  // Hash the raw token from the URL so we can compare it with the stored hash
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Find a user with this token whose expiry is still in the future
+  const user = await User.findOne({
+    where: {
+      reset_password_token: hashedToken,
+      reset_password_expires: { [Op.gt]: new Date() },
+    },
+  });
+
+  if (!user) {
+    throw ApiError.badRequest('Reset token is invalid or has expired.');
+  }
+
+  // Set the new password (bcrypt hook will hash it)
+  user.password = password;
+  user.reset_password_token = null;
+  user.reset_password_expires = null;
+  await user.save();
+
+  // Generate a fresh JWT so the user is logged in immediately
+  const jwtToken = generateToken(user);
+
+  ApiResponse.success(res, { token: jwtToken }, 'Password has been reset successfully.');
+});
+
 module.exports = {
   register,
   login,
   getMe,
   updateMe,
   changePassword,
+  forgotPassword,
+  resetPassword,
 };
