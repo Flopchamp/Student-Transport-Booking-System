@@ -8,6 +8,7 @@ import {
   Truck,
   UserCheck,
   Calendar,
+  DollarSign,
   LogOut,
   Menu,
   X,
@@ -22,6 +23,7 @@ const navItems = [
   { label: 'Vehicle Fleet', icon: Truck, path: '/admin/vehicles' },
   { label: 'Drivers', icon: UserCheck, path: '/admin/drivers' },
   { label: 'Bookings', icon: Calendar, path: '/admin/bookings' },
+  { label: 'Payments', icon: DollarSign, path: '/admin/payments' },
 ];
 
 export default function AdminLayout() {

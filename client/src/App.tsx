@@ -19,6 +19,7 @@ import BookTransport from './pages/parent/BookTransport';
 import NewBooking from './pages/parent/NewBooking';
 import MyBookings from './pages/parent/MyBookings';
 import PaymentPage from './pages/parent/PaymentPage';
+import PaymentHistory from './pages/parent/PaymentHistory';
 import ProfilePage from './pages/parent/ProfilePage';
 
 // Admin Pages
@@ -28,6 +29,7 @@ import VehicleFleet from './pages/admin/VehicleFleet';
 import DriverManagement from './pages/admin/DriverManagement';
 import DriverProfile from './pages/admin/DriverProfile';
 import AdminBookings from './pages/admin/BookingManagement';
+import AdminPayments from './pages/admin/PaymentManagement';
 
 function App() {
   const { user, loading } = useAuth();
@@ -66,6 +68,7 @@ function App() {
         <Route path="/new-booking" element={<NewBooking />} />
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/payments" element={<PaymentHistory />} />
         <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
@@ -79,6 +82,7 @@ function App() {
         <Route path="/admin/drivers" element={<DriverManagement />} />
         <Route path="/admin/drivers/:id" element={<DriverProfile />} />
         <Route path="/admin/bookings" element={<AdminBookings />} />
+        <Route path="/admin/payments" element={<AdminPayments />} />
         </Route>
       </Route>
 

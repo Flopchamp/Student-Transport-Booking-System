@@ -21,7 +21,7 @@ const mainNav = [
   { label: 'Students', icon: Users, path: '/students' },
   { label: 'Bookings', icon: BookOpen, path: '/my-bookings' },
   { label: 'Routes', icon: RouteIcon, path: '/book-transport' },
-  { label: 'Payments', icon: CreditCard, path: '/payment' },
+  { label: 'Payments', icon: CreditCard, path: '/payments' },
   { label: 'Profile', icon: Settings, path: '/profile' },
 ];
 
