@@ -31,6 +31,8 @@ export default function NewBooking() {
   const [bookingType, setBookingType] = useState('round_trip');
   const [startDate, setStartDate] = useState('');
   const [pickupTime, setPickupTime] = useState('07:15');
+  const [dropoffTime, setDropoffTime] = useState('15:45');
+  const [tripPeriod, setTripPeriod] = useState<'morning' | 'afternoon' | 'both'>('both');
 
   // Availability
   const [availability, setAvailability] = useState<{ total_capacity: number; active_bookings: number; available_seats: number; vehicles: number } | null>(null);
@@ -79,9 +81,12 @@ export default function NewBooking() {
         student_id: selectedStudent.id,
         route_id: selectedRoute.id,
         start_date: startDate || new Date().toISOString().split('T')[0],
-        pickup_time: pickupTime,
-        dropoff_time: bookingType === 'round_trip' ? '15:45' : undefined,
-        notes: selectedStop ? `Pickup stop: ${selectedStop}` : undefined,
+        pickup_time: (tripPeriod === 'morning' || tripPeriod === 'both') ? pickupTime : dropoffTime,
+        dropoff_time: (tripPeriod === 'afternoon' || tripPeriod === 'both') ? dropoffTime : undefined,
+        notes: [
+          selectedStop ? `Pickup stop: ${selectedStop}` : '',
+          `Schedule: ${bookingType === 'round_trip' ? 'Round Trip' : 'One Way'} (${tripPeriod})`,
+        ].filter(Boolean).join(' | ') || undefined,
       });
       setSuccess(true);
     } catch (err: unknown) {
@@ -393,7 +398,7 @@ export default function NewBooking() {
       {step === 2 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
           <h2 className="text-xl font-bold text-slate-800 mb-1">Select Schedule</h2>
-          <p className="text-sm text-slate-500 mb-6">Choose your booking type and start date</p>
+          <p className="text-sm text-slate-500 mb-6">Choose your booking type, time of day, and start date</p>
 
           {/* Booking Type */}
           <div className="mb-5">
@@ -402,7 +407,7 @@ export default function NewBooking() {
             </label>
             <div className="grid grid-cols-2 gap-3 max-w-sm">
               {[
-                { value: 'one_way', label: 'One Way', desc: 'School pickup only' },
+                { value: 'one_way', label: 'One Way', desc: 'Single direction only' },
                 { value: 'round_trip', label: 'Round Trip', desc: 'Pickup + Drop-off' },
               ].map((t) => (
                 <div
@@ -421,8 +426,40 @@ export default function NewBooking() {
             </div>
           </div>
 
-          {/* Date + Time */}
-          <div className="grid grid-cols-2 gap-4 max-w-sm">
+          {/* AM / PM / Both selector */}
+          <div className="mb-5">
+            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              Trip Time
+            </label>
+            <div className="grid grid-cols-3 gap-3 max-w-md">
+              {([
+                { value: 'morning', label: '🌅 Morning (AM)', desc: 'To school' },
+                { value: 'afternoon', label: '🌇 Afternoon (PM)', desc: 'From school' },
+                { value: 'both', label: '🔁 Both', desc: 'AM + PM' },
+              ] as const).map((t) => (
+                <div
+                  key={t.value}
+                  onClick={() => {
+                    setTripPeriod(t.value);
+                    if (bookingType === 'one_way' && t.value === 'both') {
+                      setBookingType('round_trip');
+                    }
+                  }}
+                  className={`p-3 rounded-xl cursor-pointer text-center transition-all
+                    ${tripPeriod === t.value
+                      ? 'border-2 border-blue-600 bg-blue-50'
+                      : 'border border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                >
+                  <div className={`text-sm font-semibold ${tripPeriod === t.value ? 'text-blue-600' : 'text-slate-800'}`}>{t.label}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{t.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Date + Time inputs */}
+          <div className="grid grid-cols-3 gap-4 max-w-lg">
             <div>
               <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
                 Start Date
@@ -431,31 +468,54 @@ export default function NewBooking() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
                 className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
             </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                Pickup Time
-              </label>
-              <input
-                type="time"
-                value={pickupTime}
-                onChange={(e) => setPickupTime(e.target.value)}
-                className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
+            {(tripPeriod === 'morning' || tripPeriod === 'both') && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  Pickup Time (AM)
+                </label>
+                <input
+                  type="time"
+                  value={pickupTime}
+                  onChange={(e) => setPickupTime(e.target.value)}
+                  className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+            )}
+            {(tripPeriod === 'afternoon' || tripPeriod === 'both') && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  Drop-off Time (PM)
+                </label>
+                <input
+                  type="time"
+                  value={dropoffTime}
+                  onChange={(e) => setDropoffTime(e.target.value)}
+                  className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+            )}
           </div>
 
           {/* Schedule preview */}
-          <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 max-w-sm">
+          <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 max-w-lg">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-semibold text-slate-800">Schedule Preview</span>
             </div>
             <div className="text-[13px] text-slate-600 leading-relaxed">
-              <div>Mon-Fri, {pickupTime || '7:15'} AM (Pickup)</div>
-              {bookingType === 'round_trip' && <div>Mon-Fri, 3:45 PM (Drop-off)</div>}
+              {(tripPeriod === 'morning' || tripPeriod === 'both') && (
+                <div>Mon–Fri, {pickupTime} AM — Pickup to school</div>
+              )}
+              {(tripPeriod === 'afternoon' || tripPeriod === 'both') && (
+                <div>Mon–Fri, {dropoffTime} PM — Drop-off from school</div>
+              )}
+              {startDate && (
+                <div className="text-slate-400 mt-1">Starting {new Date(startDate + 'T00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+              )}
             </div>
           </div>
         </div>
@@ -493,8 +553,13 @@ export default function NewBooking() {
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Schedule</span>
                 </div>
                 <div className="text-[13px] text-slate-600 leading-relaxed">
-                  <div>Mon-Fri, {pickupTime || '7:15'} AM (Pickup)</div>
-                  {bookingType === 'round_trip' && <div>Mon-Fri, 3:45 PM (Drop-off)</div>}
+                  {(tripPeriod === 'morning' || tripPeriod === 'both') && (
+                    <div>Mon–Fri, {pickupTime} AM (Pickup)</div>
+                  )}
+                  {(tripPeriod === 'afternoon' || tripPeriod === 'both') && (
+                    <div>Mon–Fri, {dropoffTime} PM (Drop-off)</div>
+                  )}
+                  <div className="text-slate-400 mt-0.5 capitalize">{bookingType.replace('_', ' ')}</div>
                 </div>
               </div>
 
