@@ -8,6 +8,8 @@ import {
   User,
   Phone,
   RefreshCw,
+  Timer,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface VehicleTracking {
@@ -35,16 +37,52 @@ interface VehicleTracking {
   } | null;
 }
 
+interface ETAData {
+  booking: {
+    id: string;
+    booking_reference: string;
+    status: string;
+    student: { id: string; first_name: string; last_name: string };
+    route: { id: string; name: string; end_location: string };
+  };
+  vehicle: {
+    id: string;
+    plate_number: string;
+    make: string;
+    model: string;
+    driver?: { id: string; first_name: string; last_name: string; phone: string };
+  };
+  eta: {
+    distanceKm: number;
+    etaMinutes: number;
+    etaFormatted: string;
+  } | null;
+  proximity: 'arrived' | 'approaching' | 'nearby' | 'en_route' | 'far' | null;
+}
+
+const proximityConfig: Record<string, { label: string; color: string; bg: string }> = {
+  arrived: { label: 'Arrived', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
+  approaching: { label: 'Approaching', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
+  nearby: { label: 'Nearby', color: 'text-cyan-700', bg: 'bg-cyan-50 border-cyan-200' },
+  en_route: { label: 'En Route', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
+  far: { label: 'Far Away', color: 'text-slate-500', bg: 'bg-slate-50 border-slate-200' },
+};
+
 export default function TrackingPage() {
   const [vehicles, setVehicles] = useState<VehicleTracking[]>([]);
+  const [etas, setEtas] = useState<ETAData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleTracking | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchLocations = useCallback(async () => {
     try {
-      const res = await api.get('/tracking/my-vehicles');
-      setVehicles(res.data.data?.vehicles || []);
+      const [trackRes, etaRes] = await Promise.all([
+        api.get('/tracking/my-vehicles'),
+        api.get('/tracking/my-etas'),
+      ]);
+      setVehicles(trackRes.data.data?.vehicles || []);
+      setEtas(etaRes.data.data?.etas || []);
     } catch (err) {
       console.error('Failed to fetch tracking data:', err);
     } finally {
@@ -111,7 +149,66 @@ export default function TrackingPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
+        <div className="flex flex-col gap-5">
+          {/* ETA Cards */}
+          {etas.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Timer className="w-5 h-5 text-blue-600" />
+                <h2 className="text-base font-bold text-slate-800">Estimated Arrival Times</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {etas.map((e) => {
+                  const prox = e.proximity ? proximityConfig[e.proximity] : null;
+                  return (
+                    <div
+                      key={e.booking.id}
+                      className={`rounded-xl border p-4 transition-all ${prox ? prox.bg : 'bg-white border-slate-200'}`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm font-bold text-slate-800">
+                          {e.booking.student.first_name} {e.booking.student.last_name}
+                        </div>
+                        {prox && (
+                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${prox.color} ${prox.bg}`}>
+                            {prox.label}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-slate-500 mb-3">
+                        {e.booking.route.name} • {e.vehicle.plate_number}
+                      </div>
+                      {e.eta ? (
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-2xl font-bold text-slate-800">{e.eta.etaFormatted}</span>
+                          <span className="text-xs text-slate-500 ml-1">({e.eta.distanceKm} km away)</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          No GPS data available
+                        </div>
+                      )}
+                      {e.vehicle.driver && (
+                        <div className="mt-2 pt-2 border-t border-black/5 text-[11px] text-slate-500 flex items-center gap-1.5">
+                          <User className="w-3 h-3" />
+                          {e.vehicle.driver.first_name} {e.vehicle.driver.last_name}
+                          {e.vehicle.driver.phone && (
+                            <a href={`tel:${e.vehicle.driver.phone}`} className="text-blue-600 ml-1">
+                              <Phone className="w-3 h-3 inline" />
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Map + Vehicle List */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
           {/* Map placeholder */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
@@ -259,6 +356,7 @@ export default function TrackingPage() {
               );
             })}
           </div>
+        </div>
         </div>
       )}
     </div>

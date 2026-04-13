@@ -5,12 +5,18 @@ const {
   getVehicleLocation,
   getAllLocations,
   getMyVehicleLocations,
+  getETAForBooking,
+  getMyETAs,
 } = require('../controllers/trackingController');
 
 const router = Router();
 
 // All tracking routes require authentication
 router.use(protect);
+
+// ─── Parent: ETA endpoints ──────────────────────────
+router.get('/my-etas', getMyETAs);
+router.get('/eta/:bookingId', getETAForBooking);
 
 // ─── Parent: My vehicles' locations ─────────────────
 router.get('/my-vehicles', getMyVehicleLocations);
