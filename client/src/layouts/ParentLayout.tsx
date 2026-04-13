@@ -9,6 +9,7 @@ import {
   Route as RouteIcon,
   CreditCard,
   MessageSquare,
+  Megaphone,
   LogOut,
   Menu,
   X,
@@ -24,6 +25,7 @@ const mainNav = [
   { label: 'Routes', icon: RouteIcon, path: '/book-transport' },
   { label: 'Payments', icon: CreditCard, path: '/payments' },
   { label: 'Complaints', icon: MessageSquare, path: '/complaints' },
+  { label: 'Announcements', icon: Megaphone, path: '/announcements' },
   { label: 'Profile', icon: Settings, path: '/profile' },
 ];
 

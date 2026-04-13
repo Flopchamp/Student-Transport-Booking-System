@@ -22,6 +22,7 @@ import PaymentPage from './pages/parent/PaymentPage';
 import PaymentHistory from './pages/parent/PaymentHistory';
 import ProfilePage from './pages/parent/ProfilePage';
 import ComplaintsPage from './pages/parent/ComplaintsPage';
+import AnnouncementsPage from './pages/parent/AnnouncementsPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -36,6 +37,7 @@ import AnalyticsPage from './pages/admin/AnalyticsPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
 import ComplaintManagement from './pages/admin/ComplaintManagement';
 import SettingsPage from './pages/admin/SettingsPage';
+import AnnouncementManagement from './pages/admin/AnnouncementManagement';
 
 function App() {
   const { user, loading } = useAuth();
@@ -76,6 +78,7 @@ function App() {
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payments" element={<PaymentHistory />} />
         <Route path="/complaints" element={<ComplaintsPage />} />
+        <Route path="/announcements" element={<AnnouncementsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
@@ -93,6 +96,7 @@ function App() {
         <Route path="/admin/payments" element={<AdminPayments />} />
         <Route path="/admin/analytics" element={<AnalyticsPage />} />
         <Route path="/admin/complaints" element={<ComplaintManagement />} />
+        <Route path="/admin/announcements" element={<AnnouncementManagement />} />
         <Route path="/admin/audit-log" element={<AuditLogPage />} />
         <Route path="/admin/settings" element={<SettingsPage />} />
         </Route>

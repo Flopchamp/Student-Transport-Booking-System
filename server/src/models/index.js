@@ -9,6 +9,7 @@ const Payment = require('./Payment');
 const AuditLog = require('./AuditLog');
 const Complaint = require('./Complaint');
 const Setting = require('./Setting');
+const Announcement = require('./Announcement');
 
 // =============================================
 // ASSOCIATIONS
@@ -66,6 +67,10 @@ Complaint.belongsTo(User, { foreignKey: 'parent_id', as: 'parent' });
 Booking.hasMany(Complaint, { foreignKey: 'booking_id', as: 'complaints', onDelete: 'SET NULL' });
 Complaint.belongsTo(Booking, { foreignKey: 'booking_id', as: 'booking' });
 
+// User (Admin) <-> Announcements
+User.hasMany(Announcement, { foreignKey: 'author_id', as: 'announcements', onDelete: 'CASCADE' });
+Announcement.belongsTo(User, { foreignKey: 'author_id', as: 'author' });
+
 module.exports = {
   sequelize,
   User,
@@ -78,4 +83,5 @@ module.exports = {
   AuditLog,
   Complaint,
   Setting,
+  Announcement,
 };

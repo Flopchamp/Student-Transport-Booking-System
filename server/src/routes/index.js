@@ -11,7 +11,7 @@ const userRoutes = require('./userRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
 const auditLogRoutes = require('./auditLogRoutes');
 const complaintRoutes = require('./complaintRoutes');
-const settingRoutes = require('./settingRoutes');
+const settingRoutes = require('./settingRoutes');\nconst announcementRoutes = require('./announcementRoutes');
 
 const router = Router();
 
@@ -53,5 +53,8 @@ router.use('/complaints', complaintRoutes);
 
 // Settings
 router.use('/settings', settingRoutes);
+
+// Announcements
+router.use('/announcements', announcementRoutes);
 
 module.exports = router;
