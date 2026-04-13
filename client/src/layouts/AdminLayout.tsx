@@ -9,6 +9,7 @@ import {
   UserCheck,
   Calendar,
   DollarSign,
+  BarChart3,
   LogOut,
   Menu,
   X,
@@ -25,6 +26,7 @@ const navItems = [
   { label: 'Drivers', icon: UserCheck, path: '/admin/drivers' },
   { label: 'Bookings', icon: Calendar, path: '/admin/bookings' },
   { label: 'Payments', icon: DollarSign, path: '/admin/payments' },
+  { label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
 ];
 
 export default function AdminLayout() {
