@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, restrictTo } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const {
   getSettings,
   updateSettings,
@@ -12,7 +12,7 @@ const {
 router.get('/public', getPublicSettings);
 
 // Admin-only
-router.use(protect, restrictTo('admin'));
+router.use(protect, authorize('admin'));
 router.get('/', getSettings);
 router.put('/', updateSettings);
 router.post('/seed', seedSettings);

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, restrictTo } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const validate = require('../middleware/validate');
 const {
   createAnnouncement,
@@ -23,8 +23,8 @@ router.get('/', getAnnouncements);
 router.get('/:id', announcementIdValidator, validate, getAnnouncement);
 
 // Admin-only
-router.post('/', restrictTo('admin'), createAnnouncementValidator, validate, createAnnouncement);
-router.put('/:id', restrictTo('admin'), updateAnnouncementValidator, validate, updateAnnouncement);
-router.delete('/:id', restrictTo('admin'), announcementIdValidator, validate, deleteAnnouncement);
+router.post('/', authorize('admin'), createAnnouncementValidator, validate, createAnnouncement);
+router.put('/:id', authorize('admin'), updateAnnouncementValidator, validate, updateAnnouncement);
+router.delete('/:id', authorize('admin'), announcementIdValidator, validate, deleteAnnouncement);
 
 module.exports = router;
