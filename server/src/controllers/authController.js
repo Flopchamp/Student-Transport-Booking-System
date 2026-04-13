@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { User } = require('../models');
 const { generateToken } = require('../services/authService');
-const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
+const { sendPasswordResetEmail, sendWelcomeEmail, sendEmailVerificationEmail } = require('../services/emailService');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
@@ -31,8 +31,22 @@ const register = catchAsync(async (req, res) => {
     role: 'parent',
   });
 
-  // Generate token
+  // Generate email verification token
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  user.email_verification_token = hashedToken;
+  user.email_verification_expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  await user.save({ hooks: false });
+
+  // Generate JWT
   const token = generateToken(user);
+
+  // Send verification email (fire-and-forget)
+  const verifyUrl = `${env.CLIENT_URL}/verify-email/${rawToken}`;
+  sendEmailVerificationEmail(user.email, {
+    parentName: `${user.first_name} ${user.last_name}`,
+    verifyUrl,
+  }).catch((err) => console.error('[Email] Verification email failed:', err.message));
 
   // Send welcome email (fire-and-forget)
   sendWelcomeEmail(user.email, {
@@ -225,6 +239,64 @@ const resetPassword = catchAsync(async (req, res) => {
   ApiResponse.success(res, { token: jwtToken }, 'Password has been reset successfully.');
 });
 
+/**
+ * GET /api/v1/auth/verify-email/:token
+ * Verify the user's email address using the token from the email link.
+ */
+const verifyEmail = catchAsync(async (req, res) => {
+  const { token } = req.params;
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  const user = await User.findOne({
+    where: {
+      email_verification_token: hashedToken,
+      email_verification_expires: { [Op.gt]: new Date() },
+    },
+  });
+
+  if (!user) {
+    throw ApiError.badRequest('Verification link is invalid or has expired.');
+  }
+
+  user.email_verified = true;
+  user.email_verification_token = null;
+  user.email_verification_expires = null;
+  await user.save({ hooks: false });
+
+  ApiResponse.success(res, null, 'Email verified successfully.');
+});
+
+/**
+ * POST /api/v1/auth/resend-verification
+ * Resend email verification link for the authenticated user.
+ */
+const resendVerification = catchAsync(async (req, res) => {
+  const user = await User.findByPk(req.user.id);
+
+  if (!user) {
+    throw ApiError.notFound('User not found.');
+  }
+
+  if (user.email_verified) {
+    return ApiResponse.success(res, null, 'Email is already verified.');
+  }
+
+  // Generate new verification token
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  user.email_verification_token = hashedToken;
+  user.email_verification_expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await user.save({ hooks: false });
+
+  const verifyUrl = `${env.CLIENT_URL}/verify-email/${rawToken}`;
+  await sendEmailVerificationEmail(user.email, {
+    parentName: `${user.first_name} ${user.last_name}`,
+    verifyUrl,
+  });
+
+  ApiResponse.success(res, null, 'Verification email sent.');
+});
+
 module.exports = {
   register,
   login,
@@ -233,4 +305,6 @@ module.exports = {
   changePassword,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerification,
 };

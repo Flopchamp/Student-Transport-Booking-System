@@ -227,6 +227,33 @@ const sendWelcomeEmail = async (to, data) => {
   await sendEmail(to, subject, html);
 };
 
+/* ───────────────────────────────────────────────────
+   7. Email Verification
+   ─────────────────────────────────────────────────── */
+const sendEmailVerificationEmail = async (to, { parentName, verifyUrl }) => {
+  const subject = 'Verify Your Email — EduTrans';
+  const html = wrapHtml(`
+    <h2 style="color: #1e293b;">Verify Your Email</h2>
+    <p style="line-height: 1.6;">
+      Hi <strong>${parentName}</strong>,
+    </p>
+    <p style="line-height: 1.6;">
+      Thank you for registering with EduTrans! Please verify your email address by clicking the button below.
+      This link is valid for <strong>24 hours</strong>.
+    </p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${verifyUrl}"
+         style="display: inline-block; padding: 12px 32px; background: #6366f1; color: #fff; font-weight: bold; text-decoration: none; border-radius: 8px;">
+        Verify Email
+      </a>
+    </div>
+    <p style="color: #94a3b8; font-size: 13px;">
+      If you didn't create an account, please ignore this email.
+    </p>
+  `);
+  await sendEmail(to, subject, html);
+};
+
 module.exports = {
   sendPasswordResetEmail,
   sendBookingConfirmationEmail,
@@ -234,4 +261,5 @@ module.exports = {
   sendPaymentReceiptEmail,
   sendBookingCancellationEmail,
   sendWelcomeEmail,
+  sendEmailVerificationEmail,
 };

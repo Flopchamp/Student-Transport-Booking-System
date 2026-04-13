@@ -64,6 +64,18 @@ const User = sequelize.define('User', {
     type: DataTypes.DATE,
     allowNull: true,
   },
+  email_verified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  email_verification_token: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  email_verification_expires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   tableName: 'users',
   hooks: {

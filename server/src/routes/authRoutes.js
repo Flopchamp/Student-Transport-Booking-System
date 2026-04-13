@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const rateLimit = require('express-rate-limit');
-const { register, login, getMe, updateMe, changePassword, forgotPassword, resetPassword } = require('../controllers/authController');
+const { register, login, getMe, updateMe, changePassword, forgotPassword, resetPassword, verifyEmail, resendVerification } = require('../controllers/authController');
 const { registerValidator, loginValidator, changePasswordValidator, forgotPasswordValidator, resetPasswordValidator } = require('../validators/authValidator');
 const validate = require('../middleware/validate');
 const { protect } = require('../middleware/auth');
@@ -24,10 +24,12 @@ router.post('/register', authLimiter, registerValidator, validate, register);
 router.post('/login', authLimiter, loginValidator, validate, login);
 router.post('/forgot-password', authLimiter, forgotPasswordValidator, validate, forgotPassword);
 router.post('/reset-password/:token', authLimiter, resetPasswordValidator, validate, resetPassword);
+router.get('/verify-email/:token', verifyEmail);
 
 // Protected routes (require authentication)
 router.get('/me', protect, getMe);
 router.put('/me', protect, updateMe);
+router.post('/resend-verification', protect, resendVerification);
 router.put('/change-password', protect, changePasswordValidator, validate, changePassword);
 
 module.exports = router;
