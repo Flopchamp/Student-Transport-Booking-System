@@ -365,6 +365,7 @@ const updateBookingStatus = catchAsync(async (req, res) => {
 
   // Validate status transitions
   const validTransitions = {
+    waitlisted: ['pending', 'cancelled'],
     pending: ['confirmed', 'cancelled'],
     confirmed: ['completed', 'cancelled'],
     cancelled: [],      // terminal state
