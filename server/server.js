@@ -12,8 +12,17 @@ const PORT = env.PORT;
  * each run adds a NEW unique index (`booking_reference_2`, `_3`, …).
  * This also cleans up orphaned FK indexes.
  */
+// MySQL identifier: alphanumeric, underscore, dollar sign — no backtick or quote.
+// DDL statements cannot use parameterized placeholders for identifiers, so we
+// validate before interpolating into any backtick-quoted identifier position.
+const SAFE_IDENT = /^[a-zA-Z0-9_$]+$/;
+
 const cleanDuplicateKeys = async () => {
-  // Find tables with too many indexes
+  // Whitelist: only touch tables that belong to our own Sequelize models.
+  const knownTables = new Set(
+    Object.values(sequelize.models).map((m) => m.getTableName()),
+  );
+
   const [bloated] = await sequelize.query(
     `SELECT TABLE_NAME, COUNT(DISTINCT INDEX_NAME) AS idx_count
      FROM INFORMATION_SCHEMA.STATISTICS
@@ -23,24 +32,33 @@ const cleanDuplicateKeys = async () => {
   );
 
   for (const { TABLE_NAME } of bloated) {
+    // Skip anything that isn't one of our model tables.
+    if (!knownTables.has(TABLE_NAME)) continue;
+
     let dropped = 0;
 
-    // Get all non-primary indexes
+    // Parameterized replacement keeps TABLE_NAME out of the query string.
     const [indexes] = await sequelize.query(
       `SELECT DISTINCT INDEX_NAME, NON_UNIQUE, COLUMN_NAME
        FROM INFORMATION_SCHEMA.STATISTICS
        WHERE TABLE_SCHEMA = DATABASE()
-         AND TABLE_NAME = '${TABLE_NAME}'
+         AND TABLE_NAME = ?
          AND INDEX_NAME != 'PRIMARY'
        ORDER BY INDEX_NAME`,
+      { replacements: [TABLE_NAME] },
     );
 
-    // Group indexes by column — keep only the first per column, drop the rest
+    // Group indexes by column — keep only the first per column, drop the rest.
     const seenByCol = new Map();
     for (const idx of indexes) {
       const key = `${idx.COLUMN_NAME}:${idx.NON_UNIQUE}`;
       if (seenByCol.has(key)) {
-        // This is a duplicate index on the same column — drop it
+        // Validate both identifiers before interpolating into DDL.
+        // ALTER TABLE cannot use ? placeholders for identifier names.
+        if (!SAFE_IDENT.test(TABLE_NAME) || !SAFE_IDENT.test(idx.INDEX_NAME)) {
+          console.warn(`[cleanDuplicateKeys] Skipping unsafe identifier — table: ${TABLE_NAME}, index: ${idx.INDEX_NAME}`);
+          continue;
+        }
         try {
           await sequelize.query(`ALTER TABLE \`${TABLE_NAME}\` DROP INDEX \`${idx.INDEX_NAME}\``);
           dropped++;
