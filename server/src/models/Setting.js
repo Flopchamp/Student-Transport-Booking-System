@@ -35,8 +35,6 @@ const Setting = sequelize.define('Setting', {
 }, {
   tableName: 'settings',
   timestamps: true,
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt',
 });
 
 // Default settings seed helper
