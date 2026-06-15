@@ -1,5 +1,5 @@
-const { Op } = require('sequelize');
-const { Booking, Student, Route, Vehicle, Driver, Payment } = require('../models');
+const { Op, Transaction } = require('sequelize');
+const { sequelize, Booking, Student, Route, Vehicle, Driver, Payment } = require('../models');
 const { sendBookingConfirmationEmail, sendBookingStatusEmail, sendBookingCancellationEmail } = require('../services/emailService');
 const { sendBookingConfirmedSMS, sendBookingCancelledSMS } = require('../services/smsService');
 const logAudit = require('../utils/auditLog');
@@ -83,60 +83,73 @@ const createBooking = catchAsync(async (req, res) => {
     throw ApiError.notFound('Route not found or is inactive.');
   }
 
-  // 3. Check for duplicate active booking (same student + route + overlapping dates)
-  const existingBooking = await Booking.findOne({
-    where: {
-      student_id,
-      route_id,
-      status: { [Op.in]: ['pending', 'confirmed'] },
-      start_date: { [Op.lte]: end_date || start_date },
-      [Op.or]: [
-        { end_date: null },
-        { end_date: { [Op.gte]: start_date } },
-      ],
+  // 3–5. Duplicate check + capacity check + booking insert are a single atomic unit.
+  // SERIALIZABLE prevents two concurrent requests from both reading "capacity available"
+  // and both writing a `pending` booking, which would silently exceed vehicle capacity.
+  const { booking, isAtCapacity } = await sequelize.transaction(
+    { isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE },
+    async (t) => {
+      // 3. Check for duplicate active booking (same student + route + overlapping dates)
+      const existingBooking = await Booking.findOne({
+        where: {
+          student_id,
+          route_id,
+          status: { [Op.in]: ['pending', 'confirmed'] },
+          start_date: { [Op.lte]: end_date || start_date },
+          [Op.or]: [
+            { end_date: null },
+            { end_date: { [Op.gte]: start_date } },
+          ],
+        },
+        transaction: t,
+      });
+      if (existingBooking) {
+        throw ApiError.conflict(
+          `Student already has an active booking (${existingBooking.booking_reference}) on this route for overlapping dates.`,
+        );
+      }
+
+      // 4. Check route capacity — auto-waitlist if at capacity
+      const activeBookingsOnRoute = await Booking.count({
+        where: {
+          route_id,
+          status: { [Op.in]: ['pending', 'confirmed'] },
+        },
+        transaction: t,
+      });
+
+      const vehiclesOnRoute = await Vehicle.findAll({
+        include: [{
+          model: Driver,
+          as: 'driver',
+          where: { route_id },
+          attributes: [],
+        }],
+        attributes: ['capacity'],
+        transaction: t,
+      });
+      const totalCapacity = vehiclesOnRoute.reduce((sum, v) => sum + v.capacity, 0);
+      const capacityFull = totalCapacity > 0 && activeBookingsOnRoute >= totalCapacity;
+
+      // 5. Create booking — price from route, auto-waitlist if at capacity
+      const newBooking = await Booking.create({
+        parent_id: req.user.id,
+        student_id,
+        route_id,
+        pickup_time,
+        dropoff_time: dropoff_time || null,
+        start_date,
+        end_date: end_date || null,
+        amount: route.price,
+        notes: notes || null,
+        status: capacityFull ? 'waitlisted' : 'pending',
+      }, { transaction: t });
+
+      return { booking: newBooking, isAtCapacity: capacityFull };
     },
-  });
-  if (existingBooking) {
-    throw ApiError.conflict(
-      `Student already has an active booking (${existingBooking.booking_reference}) on this route for overlapping dates.`,
-    );
-  }
+  );
 
-  // 4. Check route capacity — auto-waitlist if at capacity
-  const activeBookingsOnRoute = await Booking.count({
-    where: {
-      route_id,
-      status: { [Op.in]: ['pending', 'confirmed'] },
-    },
-  });
-
-  const vehiclesOnRoute = await Vehicle.findAll({
-    include: [{
-      model: Driver,
-      as: 'driver',
-      where: { route_id },
-      attributes: [],
-    }],
-    attributes: ['capacity'],
-  });
-  const totalCapacity = vehiclesOnRoute.reduce((sum, v) => sum + v.capacity, 0);
-  const isAtCapacity = totalCapacity > 0 && activeBookingsOnRoute >= totalCapacity;
-
-  // 5. Create booking — price from route, auto-waitlist if at capacity
-  const booking = await Booking.create({
-    parent_id: req.user.id,
-    student_id,
-    route_id,
-    pickup_time,
-    dropoff_time: dropoff_time || null,
-    start_date,
-    end_date: end_date || null,
-    amount: route.price,
-    notes: notes || null,
-    status: isAtCapacity ? 'waitlisted' : 'pending',
-  });
-
-  // 6. Re-fetch with associations
+  // 6. Re-fetch with associations (lock released — no need to hold it for the JOIN)
   const fullBooking = await Booking.findByPk(booking.id, { include: bookingIncludes });
 
   // 7. Send booking confirmation email (fire-and-forget)
