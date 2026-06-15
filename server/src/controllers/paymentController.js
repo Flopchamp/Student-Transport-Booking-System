@@ -104,7 +104,7 @@ const createPayment = catchAsync(async (req, res) => {
       }, { transaction: t });
 
       // 5. Simulate payment processing (replace with real gateway calls in production)
-      const simulateSuccess = true;
+      const simulateSuccess = process.env.NODE_ENV !== 'production';
 
       if (simulateSuccess) {
         newPayment.status = PAYMENT_STATUS.COMPLETED;
