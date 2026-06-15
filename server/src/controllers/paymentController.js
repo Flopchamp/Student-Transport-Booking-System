@@ -1,6 +1,6 @@
-const { Op } = require('sequelize');
+const { Op, Transaction } = require('sequelize');
 const PDFDocument = require('pdfkit');
-const { Payment, Booking, Route, Student, User } = require('../models');
+const { sequelize, Payment, Booking, Route, Student, User } = require('../models');
 const { PAYMENT_STATUS, BOOKING_STATUS } = require('../config/constants');
 const { sendPaymentReceiptEmail, sendRefundRequestEmail, sendRefundProcessedEmail } = require('../services/emailService');
 const { sendPaymentReceivedSMS, sendRefundProcessedSMS } = require('../services/smsService');
@@ -35,93 +35,102 @@ const paymentIncludes = [
 const createPayment = catchAsync(async (req, res) => {
   const { booking_id, payment_method, phone_number, card_token } = req.body;
 
-  // 1. Verify the booking belongs to this parent and is payable
-  const booking = await Booking.findOne({
+  // 1. Fast ownership + state check before acquiring any locks
+  const bookingCheck = await Booking.findOne({
     where: { id: booking_id, parent_id: req.user.id },
-    include: [
-      { association: 'route', attributes: ['id', 'name', 'price'] },
-    ],
+    attributes: ['id', 'status'],
   });
 
-  if (!booking) {
+  if (!bookingCheck) {
     throw ApiError.notFound('Booking not found or does not belong to you.');
   }
-
-  if (booking.status === 'cancelled') {
+  if (bookingCheck.status === 'cancelled') {
     throw ApiError.badRequest('Cannot pay for a cancelled booking.');
   }
-
-  if (booking.status === 'completed') {
+  if (bookingCheck.status === 'completed') {
     throw ApiError.badRequest('This booking is already completed.');
   }
 
-  // 2. Check if there's already a completed payment for this booking
-  const existingPayment = await Payment.findOne({
-    where: {
-      booking_id,
-      status: PAYMENT_STATUS.COMPLETED,
+  // 2–5. Duplicate-payment check, stale-pending supersession, payment creation, and
+  // booking status update are one atomic unit. SERIALIZABLE prevents two concurrent
+  // requests from both passing the "already paid" check and both writing a COMPLETED
+  // payment record for the same booking. The booking is re-read inside the transaction
+  // so its status is evaluated under the lock, closing the TOCTOU gap.
+  const payment = await sequelize.transaction(
+    { isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE },
+    async (t) => {
+      // Re-read booking under the transaction lock
+      const booking = await Booking.findOne({
+        where: { id: booking_id, parent_id: req.user.id },
+        include: [{ association: 'route', attributes: ['id', 'name', 'price'] }],
+        transaction: t,
+      });
+
+      if (booking.status === 'cancelled') {
+        throw ApiError.badRequest('Cannot pay for a cancelled booking.');
+      }
+      if (booking.status === 'completed') {
+        throw ApiError.badRequest('This booking is already completed.');
+      }
+
+      // 2. Check if there's already a completed payment for this booking
+      const existingPayment = await Payment.findOne({
+        where: { booking_id, status: PAYMENT_STATUS.COMPLETED },
+        transaction: t,
+      });
+      if (existingPayment) {
+        throw ApiError.conflict('This booking has already been paid for.');
+      }
+
+      // 3. Check for a pending payment — fail it and create new
+      const pendingPayment = await Payment.findOne({
+        where: { booking_id, parent_id: req.user.id, status: PAYMENT_STATUS.PENDING },
+        transaction: t,
+      });
+      if (pendingPayment) {
+        pendingPayment.status = PAYMENT_STATUS.FAILED;
+        pendingPayment.failure_reason = 'Superseded by new payment attempt';
+        await pendingPayment.save({ transaction: t });
+      }
+
+      // 4. Create the payment record
+      const newPayment = await Payment.create({
+        booking_id,
+        parent_id: req.user.id,
+        amount: booking.amount,
+        currency: 'KES',
+        payment_method,
+        status: PAYMENT_STATUS.PENDING,
+      }, { transaction: t });
+
+      // 5. Simulate payment processing (replace with real gateway calls in production)
+      const simulateSuccess = true;
+
+      if (simulateSuccess) {
+        newPayment.status = PAYMENT_STATUS.COMPLETED;
+        newPayment.paid_at = new Date();
+
+        if (payment_method === 'mpesa') {
+          newPayment.mpesa_receipt_number = 'QK' + Date.now().toString(36).toUpperCase().slice(-8);
+        } else {
+          newPayment.stripe_payment_intent_id = 'pi_sim_' + Date.now().toString(36);
+        }
+
+        await newPayment.save({ transaction: t });
+
+        booking.status = BOOKING_STATUS.CONFIRMED;
+        await booking.save({ transaction: t });
+      } else {
+        newPayment.status = PAYMENT_STATUS.FAILED;
+        newPayment.failure_reason = 'Payment declined (simulated)';
+        await newPayment.save({ transaction: t });
+      }
+
+      return newPayment;
     },
-  });
+  );
 
-  if (existingPayment) {
-    throw ApiError.conflict('This booking has already been paid for.');
-  }
-
-  // 3. Check for a pending payment — fail it and create new
-  const pendingPayment = await Payment.findOne({
-    where: {
-      booking_id,
-      parent_id: req.user.id,
-      status: PAYMENT_STATUS.PENDING,
-    },
-  });
-
-  if (pendingPayment) {
-    pendingPayment.status = PAYMENT_STATUS.FAILED;
-    pendingPayment.failure_reason = 'Superseded by new payment attempt';
-    await pendingPayment.save();
-  }
-
-  // 4. Create the payment record
-  const payment = await Payment.create({
-    booking_id,
-    parent_id: req.user.id,
-    amount: booking.amount,
-    currency: 'KES',
-    payment_method,
-    status: PAYMENT_STATUS.PENDING,
-  });
-
-  // 5. Simulate payment processing
-  //    In production, this would call Stripe/M-Pesa API
-  //    For now, we simulate a successful payment after a short delay
-  const simulateSuccess = true; // Toggle for testing failures
-
-  if (simulateSuccess) {
-    payment.status = PAYMENT_STATUS.COMPLETED;
-    payment.paid_at = new Date();
-
-    if (payment_method === 'mpesa') {
-      // Simulate M-Pesa receipt
-      const receipt = 'QK' + Date.now().toString(36).toUpperCase().slice(-8);
-      payment.mpesa_receipt_number = receipt;
-    } else {
-      // Simulate Stripe payment intent
-      payment.stripe_payment_intent_id = 'pi_sim_' + Date.now().toString(36);
-    }
-
-    await payment.save();
-
-    // Update booking status to confirmed after successful payment
-    booking.status = BOOKING_STATUS.CONFIRMED;
-    await booking.save();
-  } else {
-    payment.status = PAYMENT_STATUS.FAILED;
-    payment.failure_reason = 'Payment declined (simulated)';
-    await payment.save();
-  }
-
-  // 6. Refetch with full associations
+  // 6. Refetch with full associations (lock released — no need to hold it for the JOINs)
   const fullPayment = await Payment.findByPk(payment.id, { include: paymentIncludes });
 
   // 7. Send payment receipt email if successful (fire-and-forget)
@@ -285,15 +294,17 @@ const refundPayment = catchAsync(async (req, res) => {
     throw ApiError.badRequest('Only completed or refund-requested payments can be refunded.');
   }
 
-  // Mark as refunded
-  payment.status = PAYMENT_STATUS.REFUNDED;
-  await payment.save();
+  // Mark as refunded and revert booking atomically — a crash between the two writes
+  // must not leave a REFUNDED payment paired with a still-CONFIRMED booking.
+  await sequelize.transaction(async (t) => {
+    payment.status = PAYMENT_STATUS.REFUNDED;
+    await payment.save({ transaction: t });
 
-  // Revert booking to pending if it was confirmed by this payment
-  if (payment.booking && payment.booking.status === BOOKING_STATUS.CONFIRMED) {
-    payment.booking.status = BOOKING_STATUS.PENDING;
-    await payment.booking.save();
-  }
+    if (payment.booking && payment.booking.status === BOOKING_STATUS.CONFIRMED) {
+      payment.booking.status = BOOKING_STATUS.PENDING;
+      await payment.booking.save({ transaction: t });
+    }
+  });
 
   const fullPayment = await Payment.findByPk(payment.id, { include: paymentIncludes });
 
