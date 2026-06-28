@@ -60,12 +60,6 @@ const updateDriverValidator = [
     .trim()
     .isLength({ min: 2, max: 50 }).withMessage('Last name must be 2-50 characters'),
 
-  body('email')
-    .optional()
-    .trim()
-    .isEmail().withMessage('Please provide a valid email')
-    .normalizeEmail(),
-
   body('phone')
     .optional()
     .trim()
