@@ -4,15 +4,7 @@ import toast from 'react-hot-toast';
 const api = axios.create({
   baseURL: '/api/v1',
   headers: { 'Content-Type': 'application/json' },
-});
-
-// Attach JWT token to every request
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  withCredentials: true,
 });
 
 // Handle errors globally — show toast + redirect on 401
@@ -22,8 +14,7 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const message = error.response?.data?.message || error.message || 'Something went wrong';
 
-    if (status === 401) {
-      localStorage.removeItem('token');
+    if (status === 401 && error.config?.url !== '/auth/me') {
       localStorage.removeItem('user');
       window.location.href = '/login';
     } else if (status === 403) {
