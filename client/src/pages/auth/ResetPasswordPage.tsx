@@ -35,12 +35,6 @@ export default function ResetPasswordPage() {
         confirm_password: confirmPassword,
       });
 
-      // Store the new JWT so the user is logged in immediately
-      const newToken = res.data?.data?.token;
-      if (newToken) {
-        localStorage.setItem('token', newToken);
-      }
-
       setSuccess(true);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string; errors?: { msg: string }[] } } };

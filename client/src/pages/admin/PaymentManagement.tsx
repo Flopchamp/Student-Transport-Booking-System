@@ -208,9 +208,8 @@ export default function PaymentManagement() {
                         {(payment.status === 'completed' || payment.status === 'refunded') && (
                           <button
                             onClick={() => {
-                              const token = localStorage.getItem('token');
                               window.open(
-                                `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/payments/${payment.id}/receipt?token=${token}`,
+                                `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/payments/${payment.id}/receipt`,
                                 '_blank'
                               );
                             }}

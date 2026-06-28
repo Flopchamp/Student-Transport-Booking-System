@@ -22,9 +22,6 @@ export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Login-only
-  const [rememberMe, setRememberMe] = useState(false);
-
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -51,7 +48,9 @@ export default function LoginPage() {
 
     try {
       const loggedInUser = await login(email, password);
-      navigate(loggedInUser.role === 'admin' ? '/admin' : '/dashboard');
+      if (loggedInUser.role === 'admin') navigate('/admin');
+      else if (loggedInUser.role === 'driver') navigate('/driver');
+      else navigate('/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setError(error.response?.data?.message || 'Invalid credentials. Please try again.');
@@ -217,20 +216,6 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
-              </div>
-
-              {/* Remember Me */}
-              <div className="flex items-center gap-2 py-1 mb-5">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded accent-primary cursor-pointer"
-                />
-                <label htmlFor="remember" className="text-slate-500 text-sm cursor-pointer">
-                  Remember me
-                </label>
               </div>
 
               {/* Submit Button */}
