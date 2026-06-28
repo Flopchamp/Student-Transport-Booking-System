@@ -8,9 +8,11 @@ const { User } = require('../models');
  */
 const protect = async (req, res, next) => {
   try {
-    // 1) Extract token from header or query param (for file downloads)
+    // 1) Extract token: cookie (browser) → Authorization header (mobile/API) → query param (file downloads)
     let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     } else if (req.query.token) {
       token = req.query.token;
@@ -36,7 +38,16 @@ const protect = async (req, res, next) => {
       throw ApiError.unauthorized('Your account has been deactivated.');
     }
 
-    // 4) Attach user to request
+    // 4) Reject tokens issued before the last password change.
+    // iat is seconds; password_changed_at is a Date — floor to seconds for comparison.
+    if (user.password_changed_at) {
+      const changedAtSeconds = Math.floor(user.password_changed_at.getTime() / 1000);
+      if (decoded.iat < changedAtSeconds) {
+        throw ApiError.unauthorized('Password was recently changed. Please log in again.');
+      }
+    }
+
+    // 5) Attach user to request
     req.user = user;
     next();
   } catch (error) {
