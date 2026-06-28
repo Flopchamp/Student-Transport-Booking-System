@@ -15,12 +15,6 @@ const createDriver = catchAsync(async (req, res) => {
     vehicle_id, status, profile_photo,
   } = req.body;
 
-  // Check duplicate email
-  const existingEmail = await Driver.findOne({ where: { email } });
-  if (existingEmail) {
-    throw ApiError.conflict('A driver with this email already exists.');
-  }
-
   // Check duplicate license
   const existingLicense = await Driver.findOne({ where: { license_number } });
   if (existingLicense) {
@@ -42,7 +36,6 @@ const createDriver = catchAsync(async (req, res) => {
   const driver = await Driver.create({
     first_name,
     last_name,
-    email,
     phone,
     license_number,
     license_expiry,
@@ -94,7 +87,6 @@ const getDrivers = catchAsync(async (req, res) => {
     where[Op.or] = [
       { first_name: { [Op.like]: `%${search}%` } },
       { last_name: { [Op.like]: `%${search}%` } },
-      { email: { [Op.like]: `%${search}%` } },
       { license_number: { [Op.like]: `%${search}%` } },
     ];
   }
@@ -165,14 +157,6 @@ const updateDriver = catchAsync(async (req, res) => {
     throw ApiError.notFound('Driver not found.');
   }
 
-  // Check email uniqueness if changing
-  if (req.body.email && req.body.email !== driver.email) {
-    const existing = await Driver.findOne({ where: { email: req.body.email } });
-    if (existing) {
-      throw ApiError.conflict('A driver with this email already exists.');
-    }
-  }
-
   // Check license uniqueness if changing
   if (req.body.license_number && req.body.license_number !== driver.license_number) {
     const existing = await Driver.findOne({ where: { license_number: req.body.license_number } });
@@ -196,7 +180,7 @@ const updateDriver = catchAsync(async (req, res) => {
   }
 
   const allowedFields = [
-    'first_name', 'last_name', 'email', 'phone',
+    'first_name', 'last_name', 'phone',
     'license_number', 'license_expiry',
     'vehicle_id', 'status', 'profile_photo',
   ];

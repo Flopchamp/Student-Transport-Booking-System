@@ -649,41 +649,101 @@ const createRecurringBooking = catchAsync(async (req, res) => {
     throw ApiError.badRequest('Maximum 90 recurring bookings allowed at once.');
   }
 
-  // Create parent booking
-  const parentBooking = await Booking.create({
-    parent_id: req.user.id,
-    student_id,
-    route_id,
-    pickup_time,
-    dropoff_time: dropoff_time || null,
-    start_date: dates[0],
-    end_date: dates[dates.length - 1],
-    amount: route.price,
-    notes: notes || null,
-    is_recurring: true,
-    recurrence_pattern,
-    recurrence_end_date,
-  });
+  // SERIALIZABLE: prevent concurrent recurring requests from racing on the same route/dates.
+  // All capacity reads and inserts are atomic — no other transaction can interleave.
+  const { parentBooking, childBookings, waitlistedCount } = await sequelize.transaction(
+    { isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE },
+    async (t) => {
+      // Fetch vehicle capacity once — same for all dates on this route
+      const vehiclesOnRoute = await Vehicle.findAll({
+        include: [{
+          model: Driver,
+          as: 'driver',
+          where: { route_id },
+          attributes: [],
+        }],
+        attributes: ['capacity'],
+        transaction: t,
+      });
+      const totalCapacity = vehiclesOnRoute.reduce((sum, v) => sum + v.capacity, 0);
 
-  // Create child bookings for each individual date (skip first since parent covers it)
-  const childBookings = [];
-  for (let i = 1; i < dates.length; i++) {
-    const child = await Booking.create({
-      parent_id: req.user.id,
-      student_id,
-      route_id,
-      pickup_time,
-      dropoff_time: dropoff_time || null,
-      start_date: dates[i],
-      end_date: dates[i],
-      amount: route.price,
-      notes: notes || null,
-      is_recurring: true,
-      recurrence_pattern,
-      parent_booking_id: parentBooking.id,
-    });
-    childBookings.push(child);
-  }
+      // Per-date: duplicate check + capacity count. No inserts yet — all reads see a
+      // consistent snapshot, so checking date N doesn't see bookings created for date N-1.
+      const dateStatuses = [];
+      for (const date of dates) {
+        const duplicate = await Booking.findOne({
+          where: {
+            student_id,
+            route_id,
+            status: { [Op.in]: ['pending', 'confirmed'] },
+            start_date: { [Op.lte]: date },
+            [Op.or]: [{ end_date: null }, { end_date: { [Op.gte]: date } }],
+          },
+          attributes: ['booking_reference'],
+          transaction: t,
+        });
+        if (duplicate) {
+          throw ApiError.conflict(
+            `Student already has an active booking on this route for ${date} (ref: ${duplicate.booking_reference}).`,
+          );
+        }
+
+        const activeOnDate = await Booking.count({
+          where: {
+            route_id,
+            status: { [Op.in]: ['pending', 'confirmed'] },
+            start_date: { [Op.lte]: date },
+            [Op.or]: [{ end_date: null }, { end_date: { [Op.gte]: date } }],
+          },
+          transaction: t,
+        });
+        dateStatuses.push(totalCapacity > 0 && activeOnDate >= totalCapacity ? 'waitlisted' : 'pending');
+      }
+
+      // Create parent booking covering the full date range
+      const newParent = await Booking.create({
+        parent_id: req.user.id,
+        student_id,
+        route_id,
+        pickup_time,
+        dropoff_time: dropoff_time || null,
+        start_date: dates[0],
+        end_date: dates[dates.length - 1],
+        amount: route.price,
+        notes: notes || null,
+        is_recurring: true,
+        recurrence_pattern,
+        recurrence_end_date,
+        status: dateStatuses[0],
+      }, { transaction: t });
+
+      // bulkCreate all child bookings in a single INSERT statement
+      let newChildren = [];
+      if (dates.length > 1) {
+        newChildren = await Booking.bulkCreate(
+          dates.slice(1).map((date, i) => ({
+            parent_id: req.user.id,
+            student_id,
+            route_id,
+            pickup_time,
+            dropoff_time: dropoff_time || null,
+            start_date: date,
+            end_date: date,
+            amount: route.price,
+            notes: notes || null,
+            is_recurring: true,
+            recurrence_pattern,
+            parent_booking_id: newParent.id,
+            status: dateStatuses[i + 1],
+          })),
+          { transaction: t },
+        );
+      }
+
+      const waitlisted = dateStatuses.filter(s => s === 'waitlisted').length;
+      return { parentBooking: newParent, childBookings: newChildren, waitlistedCount: waitlisted };
+    },
+  );
 
   const totalBookings = 1 + childBookings.length;
   const totalAmount = Number(route.price) * totalBookings;
@@ -698,12 +758,17 @@ const createRecurringBooking = catchAsync(async (req, res) => {
     amount: totalAmount,
   }).catch(err => console.error('[Email] Recurring booking email failed:', err.message));
 
+  const message = waitlistedCount > 0
+    ? `${totalBookings} recurring bookings created (${waitlistedCount} waitlisted due to capacity)`
+    : `${totalBookings} recurring bookings created successfully`;
+
   ApiResponse.created(res, {
     parent_booking: parentBooking,
     total_bookings: totalBookings,
     total_amount: totalAmount,
+    waitlisted_count: waitlistedCount,
     dates,
-  }, `${totalBookings} recurring bookings created successfully`);
+  }, message);
 });
 
 module.exports = {
