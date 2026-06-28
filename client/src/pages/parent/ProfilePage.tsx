@@ -61,10 +61,6 @@ export default function ProfilePage() {
         current_password: currentPassword,
         new_password: newPassword,
       });
-      // Update token if returned
-      if (res.data.data?.token) {
-        localStorage.setItem('token', res.data.data.token);
-      }
       toast.success('Password changed successfully!');
       setCurrentPassword('');
       setNewPassword('');

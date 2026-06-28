@@ -195,9 +195,8 @@ export default function PaymentHistory() {
                         {(payment.status === 'completed' || payment.status === 'refunded') && (
                           <button
                             onClick={() => {
-                              const token = localStorage.getItem('token');
                               window.open(
-                                `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/payments/${payment.id}/receipt?token=${token}`,
+                                `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/payments/${payment.id}/receipt`,
                                 '_blank'
                               );
                             }}
@@ -317,9 +316,8 @@ export default function PaymentHistory() {
             {(selectedPayment.status === 'completed' || selectedPayment.status === 'refunded') && (
               <button
                 onClick={() => {
-                  const token = localStorage.getItem('token');
                   window.open(
-                    `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/payments/${selectedPayment.id}/receipt?token=${token}`,
+                    `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/payments/${selectedPayment.id}/receipt`,
                     '_blank'
                   );
                 }}
