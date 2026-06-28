@@ -30,14 +30,6 @@ const Driver = sequelize.define('Driver', {
       len: { args: [2, 50], msg: 'Last name must be 2-50 characters' },
     },
   },
-  email: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-    unique: { msg: 'Email already registered' },
-    validate: {
-      isEmail: { msg: 'Please provide a valid email' },
-    },
-  },
   phone: {
     type: DataTypes.STRING(20),
     allowNull: false,
