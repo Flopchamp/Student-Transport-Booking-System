@@ -8,6 +8,16 @@ const ApiResponse = require('../utils/ApiResponse');
 const catchAsync = require('../utils/catchAsync');
 const env = require('../config/env');
 
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days — matches JWT_EXPIRES_IN
+  path: '/',
+};
+
+const setAuthCookie = (res, token) => res.cookie('token', token, COOKIE_OPTIONS);
+
 /**
  * POST /api/v1/auth/register
  * Register a new user (parent by default).
@@ -38,8 +48,8 @@ const register = catchAsync(async (req, res) => {
   user.email_verification_expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
   await user.save({ hooks: false });
 
-  // Generate JWT
-  const token = generateToken(user);
+  // Set auth cookie — token never touches the response body
+  setAuthCookie(res, generateToken(user));
 
   // Send verification email (fire-and-forget)
   const verifyUrl = `${env.CLIENT_URL}/verify-email/${rawToken}`;
@@ -53,10 +63,7 @@ const register = catchAsync(async (req, res) => {
     parentName: `${user.first_name} ${user.last_name}`,
   }).catch((err) => console.error('[Email] Welcome email failed:', err.message));
 
-  ApiResponse.created(res, {
-    user: user.toSafeJSON(),
-    token,
-  }, 'Registration successful');
+  ApiResponse.created(res, { user: user.toSafeJSON() }, 'Registration successful');
 });
 
 /**
@@ -85,13 +92,9 @@ const login = catchAsync(async (req, res) => {
     throw ApiError.unauthorized('Invalid email or password.');
   }
 
-  // Generate token
-  const token = generateToken(user);
+  setAuthCookie(res, generateToken(user));
 
-  ApiResponse.success(res, {
-    user: user.toSafeJSON(),
-    token,
-  }, 'Login successful');
+  ApiResponse.success(res, { user: user.toSafeJSON() }, 'Login successful');
 });
 
 /**
@@ -154,14 +157,14 @@ const changePassword = catchAsync(async (req, res) => {
     throw ApiError.badRequest('Current password is incorrect.');
   }
 
-  // Update password (bcrypt hook will hash it)
+  // Update password (bcrypt hook will hash it, password_changed_at is set automatically)
   user.password = new_password;
   await user.save();
 
-  // Generate new token
-  const token = generateToken(user);
+  // Rotate the cookie so the new token reflects the updated password_changed_at
+  setAuthCookie(res, generateToken(user));
 
-  ApiResponse.success(res, { token }, 'Password changed successfully');
+  ApiResponse.success(res, null, 'Password changed successfully');
 });
 
 /**
@@ -234,10 +237,9 @@ const resetPassword = catchAsync(async (req, res) => {
   user.reset_password_expires = null;
   await user.save();
 
-  // Generate a fresh JWT so the user is logged in immediately
-  const jwtToken = generateToken(user);
+  setAuthCookie(res, generateToken(user));
 
-  ApiResponse.success(res, { token: jwtToken }, 'Password has been reset successfully.');
+  ApiResponse.success(res, null, 'Password has been reset successfully.');
 });
 
 /**
@@ -298,9 +300,19 @@ const resendVerification = catchAsync(async (req, res) => {
   ApiResponse.success(res, null, 'Verification email sent.');
 });
 
+/**
+ * POST /api/v1/auth/logout
+ * Clear the auth cookie.
+ */
+const logout = (req, res) => {
+  res.clearCookie('token', { path: '/' });
+  ApiResponse.success(res, null, 'Logged out successfully');
+};
+
 module.exports = {
   register,
   login,
+  logout,
   getMe,
   updateMe,
   changePassword,

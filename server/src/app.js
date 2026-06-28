@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 
 const env = require('./config/env');
 const routes = require('./routes');
@@ -32,8 +33,8 @@ app.use(
 // Rate Limiting
 // ------------------------------------
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  windowMs: 15 * 60 * 1000,
+  max: env.NODE_ENV === 'development' ? 2000 : 100,
   message: {
     success: false,
     message: 'Too many requests, please try again later.',
@@ -44,10 +45,11 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // ------------------------------------
-// Body Parsing
+// Body Parsing & Cookies
 // ------------------------------------
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+app.use(cookieParser());
 
 // ------------------------------------
 // Logging
