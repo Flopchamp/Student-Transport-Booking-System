@@ -44,7 +44,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
-      len: { args: [6, 255], msg: 'Password must be at least 6 characters' },
+      len: { args: [8, 255], msg: 'Password must be at least 8 characters' },
     },
   },
   role: {
@@ -80,6 +80,10 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  password_changed_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   tableName: 'users',
   hooks: {
@@ -91,6 +95,7 @@ const User = sequelize.define('User', {
     beforeUpdate: async (user) => {
       if (user.changed('password')) {
         user.password = await bcrypt.hash(user.password, 12);
+        user.password_changed_at = new Date();
       }
     },
   },
@@ -109,6 +114,10 @@ User.prototype.comparePassword = async function (candidatePassword) {
 User.prototype.toSafeJSON = function () {
   const values = { ...this.get() };
   delete values.password;
+  delete values.reset_password_token;
+  delete values.reset_password_expires;
+  delete values.email_verification_token;
+  delete values.email_verification_expires;
   return values;
 };
 
