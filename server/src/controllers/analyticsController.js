@@ -28,7 +28,7 @@ const getOverview = catchAsync(async (req, res) => {
     User.count(),
     Student.count(),
     Route.count(),
-    Route.count({ where: { status: 'active' } }),
+    Route.count({ where: { is_active: true } }),
     Vehicle.count(),
     Vehicle.count({ where: { status: 'active' } }),
     Driver.count(),
