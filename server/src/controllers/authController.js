@@ -53,6 +53,9 @@ const register = catchAsync(async (req, res) => {
 
   // Send verification email (fire-and-forget)
   const verifyUrl = `${env.CLIENT_URL}/verify-email/${rawToken}`;
+  if (env.NODE_ENV !== 'production') {
+    console.log(`[Dev] Email verify URL: ${verifyUrl}`);
+  }
   sendEmailVerificationEmail(user.email, {
     parentName: `${user.first_name} ${user.last_name}`,
     verifyUrl,
@@ -194,6 +197,9 @@ const forgotPassword = catchAsync(async (req, res) => {
 
   // Build the reset URL (the raw token goes in the URL)
   const resetUrl = `${env.CLIENT_URL}/reset-password/${rawToken}`;
+  if (env.NODE_ENV !== 'production') {
+    console.log(`[Dev] Password reset URL: ${resetUrl}`);
+  }
 
   try {
     await sendPasswordResetEmail(email, resetUrl);
