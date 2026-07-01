@@ -73,28 +73,29 @@ const getAllLocations = catchAsync(async (req, res) => {
         association: 'vehicle',
         attributes: ['id', 'plate_number', 'make', 'model', 'capacity', 'status'],
         include: [
-          { model: Driver, as: 'driver', attributes: ['id', 'first_name', 'last_name', 'phone'] },
+          {
+            model: Driver,
+            as: 'driver',
+            attributes: ['id', 'first_name', 'last_name', 'phone'],
+            include: [
+              { model: Route, as: 'route', attributes: ['id', 'name', 'start_location', 'end_location'] },
+            ],
+          },
         ],
       },
     ],
     order: [['last_updated', 'DESC']],
   });
 
-  // Enrich with route info via drivers
-  const enriched = [];
-  for (const loc of locations) {
+  const enriched = locations.map((loc) => {
     const locData = loc.toJSON();
-    // Get the driver's route
-    if (locData.vehicle) {
-      const driver = await Driver.findOne({
-        where: { vehicle_id: locData.vehicle.id },
-        include: [{ model: Route, as: 'route', attributes: ['id', 'name', 'start_location', 'end_location'] }],
-      });
-      locData.route = driver?.route || null;
-      locData.driver = driver ? { id: driver.id, first_name: driver.first_name, last_name: driver.last_name, phone: driver.phone } : locData.vehicle.driver;
-    }
-    enriched.push(locData);
-  }
+    const driver = locData.vehicle?.driver ?? null;
+    return {
+      ...locData,
+      driver: driver ? { id: driver.id, first_name: driver.first_name, last_name: driver.last_name, phone: driver.phone } : null,
+      route: driver?.route ?? null,
+    };
+  });
 
   ApiResponse.success(res, { locations: enriched }, 'All vehicle locations retrieved');
 });
