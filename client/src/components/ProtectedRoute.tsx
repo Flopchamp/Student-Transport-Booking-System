@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
 
 export default function ProtectedRoute({ allowedRoles }: Props) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -17,7 +18,8 @@ export default function ProtectedRoute({ allowedRoles }: Props) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const isAdminRoute = location.pathname.startsWith('/admin');
+    return <Navigate to={isAdminRoute ? '/admin/login' : '/login'} replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
