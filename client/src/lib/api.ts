@@ -16,7 +16,8 @@ api.interceptors.response.use(
 
     if (status === 401 && error.config?.url !== '/auth/me') {
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      const isAdminPath = window.location.pathname.startsWith('/admin');
+      window.location.href = isAdminPath ? '/admin/login' : '/login';
     } else if (status === 403) {
       toast.error('You do not have permission to perform this action');
     } else if (status === 404) {
