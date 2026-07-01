@@ -130,26 +130,10 @@ export default function UserManagement() {
       {/* Stats */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard
-            title="Total Users"
-            value={stats.totalUsers}
-            icon={<Users className="w-5 h-5 text-primary" />}
-          />
-          <StatCard
-            title="Active Users"
-            value={stats.activeUsers}
-            icon={<UserCheck className="w-5 h-5 text-green-600" />}
-          />
-          <StatCard
-            title="Parents"
-            value={stats.parents}
-            icon={<UserIcon className="w-5 h-5 text-blue-600" />}
-          />
-          <StatCard
-            title="Admins"
-            value={stats.admins}
-            icon={<Shield className="w-5 h-5 text-purple-600" />}
-          />
+          <StatCard icon={Users} label="Total Users" value={stats.totalUsers} iconBg="bg-primary/10" iconColor="text-primary" />
+          <StatCard icon={UserCheck} label="Active Users" value={stats.activeUsers} iconBg="bg-green-50" iconColor="text-green-600" />
+          <StatCard icon={UserIcon} label="Parents" value={stats.parents} iconBg="bg-blue-50" iconColor="text-blue-600" />
+          <StatCard icon={Shield} label="Admins" value={stats.admins} iconBg="bg-purple-50" iconColor="text-purple-600" />
         </div>
       )}
 
