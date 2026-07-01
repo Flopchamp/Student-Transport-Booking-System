@@ -3,20 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Bus, Eye, EyeOff, HelpCircle, User, Phone } from 'lucide-react';
 
-type LoginTab = 'parent' | 'admin';
 type PageMode = 'login' | 'register';
 
 export default function LoginPage() {
   const [mode, setMode] = useState<PageMode>('login');
-  const [activeTab, setActiveTab] = useState<LoginTab>('parent');
 
-  // Shared fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Registration-only fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,7 +23,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { login, register } = useAuth();
 
-  /** Reset form fields when switching mode */
   const switchMode = (newMode: PageMode) => {
     setMode(newMode);
     setError('');
@@ -52,8 +47,8 @@ export default function LoginPage() {
       else if (loggedInUser.role === 'driver') navigate('/driver');
       else navigate('/dashboard');
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Invalid credentials. Please try again.');
+      const e = err as { response?: { data?: { message?: string } } };
+      setError(e.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -63,7 +58,6 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    // Client-side quick checks before hitting the API
     if (password.length < 8) {
       setError('Password must be at least 8 characters.');
       return;
@@ -86,10 +80,9 @@ export default function LoginPage() {
       });
       navigate('/dashboard');
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string; errors?: { msg: string }[] } } };
-      // Show first validation error if array is present, otherwise generic message
-      const firstValidation = error.response?.data?.errors?.[0]?.msg;
-      setError(firstValidation || error.response?.data?.message || 'Registration failed. Please try again.');
+      const e = err as { response?: { data?: { message?: string; errors?: { msg: string }[] } } };
+      const firstValidation = e.response?.data?.errors?.[0]?.msg;
+      setError(firstValidation || e.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -99,18 +92,21 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col bg-bg font-sans">
       {/* Header */}
       <header className="flex w-full items-center justify-between border-b border-border px-6 md:px-20 py-4 bg-white">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+        <button
+          type="button"
+          className="flex items-center gap-3 bg-transparent border-none cursor-pointer p-0"
+          onClick={() => navigate('/')}
+        >
           <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg text-white">
             <Bus size={20} />
           </div>
           <h2 className="text-lg font-extrabold text-text leading-tight tracking-tight">EduTrans</h2>
-        </div>
+        </button>
         <button className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 text-slate-500 border-none cursor-pointer hover:bg-slate-200 transition-colors">
           <HelpCircle size={20} />
         </button>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col justify-center items-center w-full px-6 py-12">
         <div className="w-full max-w-[480px] bg-white p-8 rounded-xl border border-border shadow-sm">
           {/* Title */}
@@ -120,42 +116,12 @@ export default function LoginPage() {
             </h1>
             <p className="text-text-secondary text-base">
               {mode === 'login'
-                ? 'Please enter your details to sign in'
+                ? 'Sign in to manage your child\'s transport'
                 : 'Register as a parent to book transport'}
             </p>
           </div>
 
-          {/* Role Toggle — only visible on login */}
-          {mode === 'login' && (
-            <div className="flex mb-8">
-              <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-slate-100 p-1">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('parent')}
-                  className={`flex h-full flex-1 items-center justify-center rounded-md px-4 border-none cursor-pointer text-sm font-semibold transition-all ${
-                    activeTab === 'parent'
-                      ? 'bg-white shadow-sm text-primary'
-                      : 'bg-transparent text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  Parent
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('admin')}
-                  className={`flex h-full flex-1 items-center justify-center rounded-md px-4 border-none cursor-pointer text-sm font-semibold transition-all ${
-                    activeTab === 'admin'
-                      ? 'bg-white shadow-sm text-primary'
-                      : 'bg-transparent text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  Admin
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Error Message */}
+          {/* Error */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm flex items-center gap-2">
               <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center shrink-0">
@@ -168,7 +134,6 @@ export default function LoginPage() {
           {/* ==================== LOGIN FORM ==================== */}
           {mode === 'login' && (
             <form onSubmit={handleLogin}>
-              {/* Email Field */}
               <div className="flex flex-col gap-2 mb-5">
                 <label htmlFor="email" className="text-text text-sm font-semibold">
                   Email Address
@@ -182,18 +147,22 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="parent@example.com"
                     required
+                    autoComplete="email"
                     className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
               </div>
 
-              {/* Password Field */}
               <div className="flex flex-col gap-2 mb-5">
                 <div className="flex justify-between items-center">
                   <label htmlFor="password" className="text-text text-sm font-semibold">
                     Password
                   </label>
-                  <button type="button" onClick={() => navigate('/forgot-password')} className="text-primary text-xs font-semibold bg-transparent border-none cursor-pointer p-0 hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-primary text-xs font-semibold bg-transparent border-none cursor-pointer p-0 hover:underline"
+                  >
                     Forgot Password?
                   </button>
                 </div>
@@ -206,6 +175,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
+                    autoComplete="current-password"
                     className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-12 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                   <button
@@ -218,7 +188,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -241,7 +210,6 @@ export default function LoginPage() {
           {/* ==================== REGISTER FORM ==================== */}
           {mode === 'register' && (
             <form onSubmit={handleRegister}>
-              {/* Name row */}
               <div className="grid grid-cols-2 gap-4 mb-5">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="firstName" className="text-text text-sm font-semibold">
@@ -283,7 +251,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Email */}
               <div className="flex flex-col gap-2 mb-5">
                 <label htmlFor="regEmail" className="text-text text-sm font-semibold">
                   Email Address
@@ -297,12 +264,12 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="parent@example.com"
                     required
+                    autoComplete="email"
                     className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
               </div>
 
-              {/* Phone */}
               <div className="flex flex-col gap-2 mb-5">
                 <label htmlFor="phone" className="text-text text-sm font-semibold">
                   Phone Number
@@ -323,7 +290,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Password */}
               <div className="flex flex-col gap-2 mb-5">
                 <label htmlFor="regPassword" className="text-text text-sm font-semibold">
                   Password
@@ -338,6 +304,7 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     required
                     minLength={8}
+                    autoComplete="new-password"
                     className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-12 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                   <button
@@ -353,7 +320,6 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {/* Confirm Password */}
               <div className="flex flex-col gap-2 mb-6">
                 <label htmlFor="confirmPassword" className="text-text text-sm font-semibold">
                   Confirm Password
@@ -368,6 +334,7 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     required
                     minLength={8}
+                    autoComplete="new-password"
                     className="flex w-full rounded-lg text-text border border-border bg-white h-12 pl-12 pr-12 text-sm outline-none transition-all focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                   <button
@@ -380,7 +347,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -428,7 +394,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Bottom Links */}
         <div className="mt-8 flex gap-6">
           <a href="#" className="text-slate-400 text-xs no-underline hover:text-slate-600 transition-colors">Privacy Policy</a>
           <a href="#" className="text-slate-400 text-xs no-underline hover:text-slate-600 transition-colors">Terms of Service</a>
@@ -436,7 +401,6 @@ export default function LoginPage() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="w-full py-6 text-center text-slate-400 text-xs">
         &copy; {new Date().getFullYear()} Student Transport Solutions. All rights reserved.
       </footer>
