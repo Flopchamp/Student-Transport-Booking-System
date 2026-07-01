@@ -208,26 +208,10 @@ export default function AnalyticsPage() {
       {/* KPI Cards */}
       {overview && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard
-            title="Total Revenue"
-            value={`KES ${overview.revenue.total.toLocaleString()}`}
-            icon={<DollarSign className="w-5 h-5 text-emerald-600" />}
-          />
-          <StatCard
-            title="Pending Revenue"
-            value={`KES ${overview.revenue.pending.toLocaleString()}`}
-            icon={<Clock className="w-5 h-5 text-yellow-600" />}
-          />
-          <StatCard
-            title="Total Bookings"
-            value={overview.bookings.total}
-            icon={<Calendar className="w-5 h-5 text-blue-600" />}
-          />
-          <StatCard
-            title="Users"
-            value={overview.users.total}
-            icon={<Users className="w-5 h-5 text-purple-600" />}
-          />
+          <StatCard icon={DollarSign} label="Total Revenue" value={`KES ${overview.revenue.total.toLocaleString()}`} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
+          <StatCard icon={Clock} label="Pending Revenue" value={`KES ${overview.revenue.pending.toLocaleString()}`} iconBg="bg-yellow-50" iconColor="text-yellow-600" />
+          <StatCard icon={Calendar} label="Total Bookings" value={overview.bookings.total} iconBg="bg-blue-50" iconColor="text-blue-600" />
+          <StatCard icon={Users} label="Users" value={overview.users.total} iconBg="bg-purple-50" iconColor="text-purple-600" />
         </div>
       )}
 
