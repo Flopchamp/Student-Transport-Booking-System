@@ -74,7 +74,6 @@ const getAllLocations = catchAsync(async (req, res) => {
         attributes: ['id', 'plate_number', 'make', 'model', 'capacity', 'status'],
         include: [
           { model: Driver, as: 'driver', attributes: ['id', 'first_name', 'last_name', 'phone'] },
-          { model: Route, as: 'drivers' }, // We'll get route through driver below
         ],
       },
     ],
