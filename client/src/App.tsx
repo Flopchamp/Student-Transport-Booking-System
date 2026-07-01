@@ -10,6 +10,7 @@ import DriverLayout from './layouts/DriverLayout';
 // Public Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
+import AdminLoginPage from './pages/auth/AdminLoginPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
@@ -74,6 +75,10 @@ function App() {
       <Route
         path="/login"
         element={user ? <Navigate to={user.role === 'admin' ? '/admin' : user.role === 'driver' ? '/driver' : '/dashboard'} replace /> : <LoginPage />}
+      />
+      <Route
+        path="/admin/login"
+        element={user?.role === 'admin' ? <Navigate to="/admin" replace /> : <AdminLoginPage />}
       />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
